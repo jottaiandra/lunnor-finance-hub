@@ -35,55 +35,47 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
         return;
       }
       
-      // Check dimensions (using Image API)
-      const img = new Image();
-      const objectUrl = URL.createObjectURL(file);
+      // Verify supported format
+      const supportedFormats = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!supportedFormats.includes(file.type)) {
+        toast.error('Formato não suportado. Use JPG, PNG ou WEBP');
+        return;
+      }
       
-      img.onload = async () => {
-        URL.revokeObjectURL(objectUrl);
-        
-        // Upload the file
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user?.id}.${fileExt}`;
-        const filePath = `profile_images/${fileName}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, file, { upsert: true });
-        
-        if (uploadError) {
-          throw uploadError;
-        }
-        
-        // Get public URL
-        const { data: publicUrl } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
-          
-        // Update profile with new image URL
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
-            profile_image_url: publicUrl.publicUrl,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', user?.id);
-          
-        if (updateError) {
-          throw updateError;
-        }
-        
-        setProfileImage(publicUrl.publicUrl);
-        toast.success('Foto de perfil atualizada com sucesso');
-      };
+      // Upload the file
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}_${Date.now()}.${fileExt}`;
+      const filePath = `profile_images/${fileName}`;
       
-      img.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        toast.error('Arquivo inválido');
-        setUploadingImage(false);
-      };
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
       
-      img.src = objectUrl;
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get public URL
+      const { data: publicUrl } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Update profile with new image URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          profile_image_url: publicUrl.publicUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user?.id);
+        
+      if (updateError) {
+        throw updateError;
+      }
+      
+      // Update local state
+      setProfileImage(publicUrl.publicUrl);
+      toast.success('Foto de perfil atualizada com sucesso');
       
     } catch (error: any) {
       console.error('Erro ao fazer upload da imagem:', error);
@@ -97,7 +89,16 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
     <div className="flex flex-col items-center justify-center gap-4">
       <Avatar className="h-32 w-32">
         {profileImage ? (
-          <AvatarImage src={profileImage} className="object-cover" alt="Foto de perfil" />
+          <AvatarImage 
+            src={profileImage} 
+            className="object-cover" 
+            alt="Foto de perfil" 
+            onError={() => {
+              console.log('Error loading profile image');
+              // Fall back to initials if image fails to load
+              setProfileImage('');
+            }}
+          />
         ) : (
           <AvatarFallback className="text-4xl bg-primary text-white">
             {userInitials}
@@ -110,14 +111,13 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
         className="relative w-full max-w-xs"
         disabled={uploadingImage}
       >
-        {uploadingImage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        <Upload className="mr-2 h-4 w-4" />
+        {uploadingImage ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
         Carregar Nova Foto
         <input
           type="file"
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           onChange={handleImageUpload}
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           disabled={uploadingImage}
         />
       </Button>

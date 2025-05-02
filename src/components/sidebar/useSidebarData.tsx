@@ -65,6 +65,8 @@ export const useSidebarData = () => {
         if (data) {
           if (data.profile_image_url) {
             setProfileImage(data.profile_image_url);
+          } else {
+            setProfileImage(null);
           }
           
           // Set initials based on name or email

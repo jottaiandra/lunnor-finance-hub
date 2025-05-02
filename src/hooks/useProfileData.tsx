@@ -63,6 +63,11 @@ export const useProfileData = () => {
     }
   }, [user?.id]);
   
+  // Function to update the profile image
+  const setProfileImageAndCache = (url: string) => {
+    setProfileImage(url);
+  };
+  
   const fetchProfileData = async () => {
     try {
       setLoading(true);
@@ -107,6 +112,8 @@ export const useProfileData = () => {
         // Verificar se o campo profile_image_url existe em data
         if ('profile_image_url' in data && data.profile_image_url) {
           setProfileImage(data.profile_image_url);
+        } else {
+          setProfileImage(null);
         }
       }
     } catch (error: any) {
@@ -117,11 +124,38 @@ export const useProfileData = () => {
     }
   };
   
+  // Set up real-time subscription for profile updates
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const channel = supabase
+      .channel('profile-changes')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, 
+        (payload) => {
+          if (payload.new && 'profile_image_url' in payload.new) {
+            const newImageUrl = payload.new.profile_image_url as string | null;
+            setProfileImage(newImageUrl);
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+  
   return {
     user,
     loading,
     profileImage,
-    setProfileImage,
+    setProfileImage: setProfileImageAndCache,
     fetchError,
     profileForm,
     passwordForm,

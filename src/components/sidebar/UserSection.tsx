@@ -26,7 +26,15 @@ const UserSection: React.FC<UserSectionProps> = ({
       <div className="flex items-center space-x-3">
         <Avatar>
           {profileImage ? (
-            <AvatarImage src={profileImage} alt="Foto de perfil" />
+            <AvatarImage 
+              src={profileImage} 
+              alt="Foto de perfil" 
+              onError={(e) => {
+                // Hide the broken image and show fallback
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
           ) : (
             <AvatarFallback className="bg-primary text-white">
               {userInitials}
@@ -55,7 +63,15 @@ const UserSection: React.FC<UserSectionProps> = ({
           <div className="flex flex-col items-center gap-2">
             <Avatar className="h-10 w-10">
               {profileImage ? (
-                <AvatarImage src={profileImage} alt="Foto de perfil" />
+                <AvatarImage 
+                  src={profileImage} 
+                  alt="Foto de perfil" 
+                  onError={(e) => {
+                    // Hide the broken image and show fallback
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
+                />
               ) : (
                 <AvatarFallback className="bg-primary text-white">
                   {userInitials}
