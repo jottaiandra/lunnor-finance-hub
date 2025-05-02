@@ -122,41 +122,55 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleAddGoal = async (goalData: Omit<any, "id">) => {
     if (!user) return;
-    const newGoal = await addGoal(goalData, user.id, dispatch);
-    
-    // Send WhatsApp notification for new goal
-    if (newGoal) {
-      await processNotification(user.id, 'goal_updated', {
-        titulo: newGoal.title,
-        progresso: 0,
-        nome: user.email?.split('@')[0] || 'Usuário'
-      });
+    try {
+      const newGoal = await addGoal(goalData, user.id, dispatch);
+      
+      // Send WhatsApp notification for new goal
+      if (newGoal) {
+        await processNotification(user.id, 'goal_updated', {
+          titulo: newGoal.title,
+          progresso: 0,
+          nome: user.email?.split('@')[0] || 'Usuário'
+        });
+      }
+      
+      return newGoal;
+    } catch (error) {
+      console.error("Error in handleAddGoal:", error);
+      return null;
     }
   };
 
   const handleUpdateGoal = async (goalData: any) => {
     if (!user) return;
-    const updatedGoal = await updateGoal(goalData, user.id, dispatch);
-    
-    // Send WhatsApp notification for goal updates
-    if (updatedGoal) {
-      const progress = Math.round((updatedGoal.current / updatedGoal.target) * 100);
+    try {
+      const updatedGoal = await updateGoal(goalData, user.id, dispatch);
       
-      // If goal is achieved, send achievement notification
-      if (updatedGoal.current >= updatedGoal.target) {
-        await processNotification(user.id, 'goal_achieved', {
-          titulo: updatedGoal.title,
-          progresso: progress,
-          nome: user.email?.split('@')[0] || 'Usuário'
-        });
-      } else {
-        // Otherwise send regular update notification
-        await processNotification(user.id, 'goal_updated', {
-          titulo: updatedGoal.title,
-          progresso: progress,
-          nome: user.email?.split('@')[0] || 'Usuário'
-        });
+      // Send WhatsApp notification for goal updates
+      if (updatedGoal) {
+        const progress = Math.round((updatedGoal.current / updatedGoal.target) * 100);
+        
+        // If goal is achieved, send achievement notification
+        if (updatedGoal.current >= updatedGoal.target) {
+          await processNotification(user.id, 'goal_achieved', {
+            titulo: updatedGoal.title,
+            progresso: progress,
+            nome: user.email?.split('@')[0] || 'Usuário'
+          });
+        } else {
+          // Otherwise send regular update notification
+          await processNotification(user.id, 'goal_updated', {
+            titulo: updatedGoal.title,
+            progresso: progress,
+            nome: user.email?.split('@')[0] || 'Usuário'
+          });
+        }
       }
+      
+      return updatedGoal;
+    } catch (error) {
+      console.error("Error in handleUpdateGoal:", error);
+      return null;
     }
   };
 
