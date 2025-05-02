@@ -54,3 +54,22 @@ export const isTransactionInPeriod = (date: Date, period: 'today' | 'week' | 'mo
       return true;
   }
 };
+
+// Get start and end of month
+export const getMonthDates = (date: Date): { start: Date; end: Date } => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  return {
+    start: new Date(year, month, 1),
+    end: new Date(year, month + 1, 0)
+  };
+};
+
+// Get start and end of year
+export const getYearDates = (date: Date): { start: Date; end: Date } => {
+  const year = date.getFullYear();
+  return {
+    start: new Date(year, 0, 1),
+    end: new Date(year, 11, 31)
+  };
+};

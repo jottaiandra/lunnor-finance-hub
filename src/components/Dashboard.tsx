@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChartPie, CircleDollarSign } from 'lucide-react';
+import { ChartPie, CircleDollarSign, BellRing } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import TransactionForm from './TransactionForm';
@@ -13,6 +13,8 @@ import { Button } from './ui/button';
 import TransactionList from './TransactionList';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import AlertsNotifications from './AlertsNotifications';
+import AlertSettings from './AlertSettings';
 
 const OverviewCard = ({ title, amount, icon, colorClass, isNegative = false }: { 
   title: string; 
@@ -41,6 +43,8 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState('overview');
   const [userName, setUserName] = useState<string>('');
+  const [showAlertsDrawer, setShowAlertsDrawer] = useState<boolean>(false);
+  const [showAlertSettings, setShowAlertSettings] = useState<boolean>(false);
   
   const balance = getCurrentBalance();
   const totalIncomeMonth = getTotalIncome('month');
@@ -112,9 +116,23 @@ const Dashboard: React.FC = () => {
   
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Confira o resumo das suas finanças.</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Confira o resumo das suas finanças.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={showAlertSettings} onOpenChange={setShowAlertSettings}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                Configurar alertas
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+              <AlertSettings />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
       {/* Welcome message */}
@@ -125,6 +143,14 @@ const Dashboard: React.FC = () => {
           </h2>
         </CardContent>
       </Card>
+      
+      <div className="mb-6">
+        <h2 className="text-lg font-medium mb-3 flex items-center gap-2">
+          <BellRing className="h-5 w-5 text-yellow-500" />
+          Alertas e notificações
+        </h2>
+        <AlertsNotifications />
+      </div>
       
       <div className="grid gap-4 md:grid-cols-3">
         <OverviewCard 
@@ -156,19 +182,6 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-      
-      {state.alerts.filter(alert => !alert.read).length > 0 && (
-        <div className="mt-4 space-y-2">
-          {state.alerts.filter(alert => !alert.read).map((alert) => (
-            <Alert key={alert.id} variant={alert.type === 'warning' ? 'destructive' : 'default'}>
-              <AlertTitle className="font-medium">
-                {alert.type === 'warning' ? 'Alerta!' : 'Informação'}
-              </AlertTitle>
-              <AlertDescription>{alert.message}</AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
       
       <div className="mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
