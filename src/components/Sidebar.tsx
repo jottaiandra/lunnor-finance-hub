@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -129,6 +128,64 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     signOut();
   };
 
+  const renderUserSection = () => {
+    if (!isCollapsed) {
+      return (
+        <div className="flex items-center space-x-3">
+          <Avatar>
+            {profileImage ? (
+              <AvatarImage src={profileImage} alt="Foto de perfil" />
+            ) : (
+              <AvatarFallback className="bg-primary text-white">
+                {userInitials}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          <div>
+            <p className="text-sm font-medium">{user?.email}</p>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-red-500 p-0 h-auto text-xs hover:text-red-600 hover:bg-transparent"
+              onClick={handleSignOut}
+            >
+              Sair da conta
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex flex-col items-center gap-2">
+              <Avatar className="h-10 w-10">
+                {profileImage ? (
+                  <AvatarImage src={profileImage} alt="Foto de perfil" />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white">
+                    {userInitials}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-red-500" 
+                onClick={handleSignOut}
+              >
+                <LogOut size={20} />
+              </Button>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">Sair da conta</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   if (isMobile && isCollapsed) {
     return null;
   }
@@ -171,57 +228,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
 
       <div className="p-4 border-t">
         <div className="flex items-center justify-between">
-          {!isCollapsed ? (
-            <div className="flex items-center space-x-3">
-              <Avatar>
-                {profileImage ? (
-                  <AvatarImage src={profileImage} alt="Foto de perfil" />
-                ) : (
-                  <AvatarFallback className="bg-primary text-white">
-                    {userInitials}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">{user?.email}</p>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-red-500 p-0 h-auto text-xs hover:text-red-600 hover:bg-transparent"
-                  onClick={handleSignOut}
-                >
-                  Sair da conta
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center gap-2">
-                    <Avatar className="h-10 w-10">
-                      {profileImage ? (
-                        <AvatarImage src={profileImage} alt="Foto de perfil" />
-                      ) : (
-                        <AvatarFallback className="bg-primary text-white">
-                          {userInitials}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-red-500" 
-                      onClick={handleSignOut}
-                    >
-                      <LogOut size={20} />
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">Sair da conta</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          {renderUserSection()}
         </div>
       </div>
     </div>
