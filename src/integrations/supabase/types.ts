@@ -77,29 +77,35 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           created_at: string
           email: string
           first_name: string | null
           id: string
           last_name: string | null
+          profile_image_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           email: string
           first_name?: string | null
           id: string
           last_name?: string | null
+          profile_image_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           email?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
+          profile_image_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }

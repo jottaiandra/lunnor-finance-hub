@@ -71,23 +71,34 @@ const ProfilePage: React.FC = () => {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
+      
+      // Verificando se o usuário está definido
+      if (!user?.id) {
+        console.error('ID do usuário não encontrado');
+        setLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
       
       if (error) {
         console.error('Erro ao buscar dados do perfil:', error);
+        setLoading(false);
         return;
       }
       
       if (data) {
-        // Safe access to potentially missing fields
+        // Acessando com segurança campos que podem não existir
         const firstName = data.first_name || '';
         const lastName = data.last_name || '';
-        const email = data.email || user?.email || '';
-        const address = data.address || '';
+        const email = data.email || user.email || '';
+        
+        // Verificar se o campo address existe em data
+        const address = 'address' in data ? data.address || '' : '';
         
         profileForm.reset({
           firstName,
@@ -96,7 +107,8 @@ const ProfilePage: React.FC = () => {
           address,
         });
         
-        if (data.profile_image_url) {
+        // Verificar se o campo profile_image_url existe em data
+        if ('profile_image_url' in data && data.profile_image_url) {
           setProfileImage(data.profile_image_url);
         }
       }
@@ -148,6 +160,7 @@ const ProfilePage: React.FC = () => {
       
       if (signInError) {
         toast.error('Senha atual incorreta');
+        setLoading(false);
         return;
       }
       
@@ -366,6 +379,9 @@ const ProfilePage: React.FC = () => {
                               <Input placeholder="Rua Exemplo, 123" {...field} />
                             </FormControl>
                             <FormMessage />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {!field.value && "Endereço não informado"}
+                            </p>
                           </FormItem>
                         )}
                       />

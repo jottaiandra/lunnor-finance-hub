@@ -39,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       if (!user) return;
       
       try {
+        // Verificando se o perfil existe antes de buscar a imagem
         const { data, error } = await supabase
           .from('profiles')
           .select('profile_image_url')
@@ -50,7 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           return;
         }
         
-        if (data && data.profile_image_url) {
+        // Verificar se o data existe e tem a propriedade profile_image_url
+        if (data && 'profile_image_url' in data && data.profile_image_url) {
           setProfileImage(data.profile_image_url);
         }
       } catch (error) {
