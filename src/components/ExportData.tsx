@@ -8,8 +8,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, FileText } from 'lucide-react';
+import { CalendarIcon, FileText, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const ExportData: React.FC = () => {
   const [dataType, setDataType] = React.useState<'all' | 'income' | 'expense'>('all');
@@ -20,19 +23,162 @@ const ExportData: React.FC = () => {
   const { state, getFilteredTransactions } = useFinance();
   const { toast } = useToast();
 
-  const handleExport = () => {
-    toast({
-      title: "Exportação iniciada",
-      description: `Os dados serão exportados em formato ${exportFormat === 'excel' ? 'Excel' : 'PDF'}.`,
-    });
+  const getDataToExport = () => {
+    let transactions = state.transactions || [];
     
-    // Aqui seria implementada a lógica real de exportação
-    setTimeout(() => {
+    // Filtrar por tipo de transação
+    if (dataType === 'income') {
+      transactions = transactions.filter(t => t.type === 'income');
+    } else if (dataType === 'expense') {
+      transactions = transactions.filter(t => t.type === 'expense');
+    }
+    
+    // Filtrar por data
+    if (startDate) {
+      transactions = transactions.filter(t => new Date(t.date) >= startDate);
+    }
+    if (endDate) {
+      transactions = transactions.filter(t => new Date(t.date) <= endDate);
+    }
+    
+    // Mapear para o formato de exportação
+    return transactions.map(t => ({
+      Tipo: t.type === 'income' ? 'Receita' : 'Despesa',
+      Descrição: t.description,
+      Categoria: t.category,
+      'Método de Pagamento': t.payment_method,
+      Valor: t.type === 'expense' ? `-${t.amount}` : t.amount,
+      Data: format(new Date(t.date), 'dd/MM/yyyy'),
+      Contato: t.contact || '-'
+    }));
+  };
+
+  const handleExportExcel = () => {
+    try {
+      const data = getDataToExport();
+      
+      if (data.length === 0) {
+        toast({
+          title: "Sem dados para exportar",
+          description: "Não há transações para exportar com os filtros selecionados.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Criar uma nova planilha
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Transações");
+      
+      // Gerar nome do arquivo com data
+      const fileName = `transacoes_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+      
+      // Salvar arquivo
+      XLSX.writeFile(wb, fileName);
+      
       toast({
         title: "Exportação concluída",
-        description: "Os dados foram exportados com sucesso!",
+        description: `Arquivo Excel "${fileName}" baixado com sucesso.`
       });
-    }, 1500);
+    } catch (error) {
+      console.error("Erro ao exportar Excel:", error);
+      toast({
+        title: "Erro na exportação",
+        description: "Ocorreu um erro ao exportar os dados para Excel.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const data = getDataToExport();
+      
+      if (data.length === 0) {
+        toast({
+          title: "Sem dados para exportar",
+          description: "Não há transações para exportar com os filtros selecionados.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Criar documento PDF
+      const doc = new jsPDF();
+      
+      // Adicionar título
+      doc.setFontSize(18);
+      doc.text("Relatório de Transações", 14, 22);
+      
+      // Adicionar filtros aplicados
+      doc.setFontSize(11);
+      let yPos = 30;
+      
+      doc.text(`Tipo: ${dataType === 'all' ? 'Todas' : dataType === 'income' ? 'Receitas' : 'Despesas'}`, 14, yPos);
+      yPos += 6;
+      
+      if (startDate && endDate) {
+        doc.text(`Período: ${format(startDate, 'dd/MM/yyyy')} a ${format(endDate, 'dd/MM/yyyy')}`, 14, yPos);
+        yPos += 6;
+      } else if (startDate) {
+        doc.text(`A partir de: ${format(startDate, 'dd/MM/yyyy')}`, 14, yPos);
+        yPos += 6;
+      } else if (endDate) {
+        doc.text(`Até: ${format(endDate, 'dd/MM/yyyy')}`, 14, yPos);
+        yPos += 6;
+      }
+      
+      // Adicionar data e hora da exportação
+      doc.text(`Exportado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, yPos);
+      yPos += 10;
+      
+      // Preparar dados para a tabela
+      const tableColumn = ["Tipo", "Descrição", "Categoria", "Valor", "Data"];
+      const tableRows = data.map(item => [
+        item.Tipo,
+        item.Descrição,
+        item.Categoria,
+        item.Valor.toString(),
+        item.Data
+      ]);
+      
+      // @ts-ignore - Ignorar erro de tipo para o jsPDF-AutoTable
+      doc.autoTable({
+        startY: yPos,
+        head: [tableColumn],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+        styles: { fontSize: 9 }
+      });
+      
+      // Gerar nome do arquivo com data
+      const fileName = `transacoes_${format(new Date(), 'dd-MM-yyyy')}.pdf`;
+      
+      // Salvar arquivo
+      doc.save(fileName);
+      
+      toast({
+        title: "Exportação concluída",
+        description: `Arquivo PDF "${fileName}" baixado com sucesso.`
+      });
+    } catch (error) {
+      console.error("Erro ao exportar PDF:", error);
+      toast({
+        title: "Erro na exportação",
+        description: "Ocorreu um erro ao exportar os dados para PDF.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleExport = () => {
+    if (exportFormat === 'excel') {
+      handleExportExcel();
+    } else {
+      handleExportPDF();
+    }
   };
   
   return (
@@ -135,7 +281,7 @@ const ExportData: React.FC = () => {
 
         <div className="pt-4 flex flex-col space-y-4">
           <Button onClick={handleExport} className="w-full">
-            <FileText className="mr-2 h-4 w-4" />
+            <Download className="mr-2 h-4 w-4" />
             {exportFormat === 'excel' ? 'Exportar para Excel' : 'Exportar para PDF'}
           </Button>
           

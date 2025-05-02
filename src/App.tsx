@@ -8,6 +8,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Layout from "@/pages/Layout";
 import AuthPage from "@/pages/AuthPage";
+import HomePage from "@/pages/HomePage";
+import SobrePage from "@/pages/SobrePage";
+import ContatoPage from "@/pages/ContatoPage";
 import Index from "@/pages/Index";
 import TransactionsPage from "@/pages/TransactionsPage";
 import ReportsPage from "@/pages/ReportsPage";
@@ -27,8 +30,11 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/sobre" element={<SobrePage />} />
+            <Route path="/contato" element={<ContatoPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Index />} />
               <Route path="transactions" element={<TransactionsPage />} />
               <Route path="reports" element={<ReportsPage />} />
