@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -121,14 +122,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const handleAddGoal = async (goalData: Omit<any, "id">) => {
-    if (!user) return;
+    if (!user) return null;
     try {
+      // Make sure addGoal returns the actual goal object
       const newGoal = await addGoal(goalData, user.id, dispatch);
       
       // Send WhatsApp notification for new goal
-      if (newGoal) {
+      if (newGoal && typeof newGoal === 'object') {
         await processNotification(user.id, 'goal_updated', {
-          titulo: newGoal.title,
+          titulo: newGoal.title || 'Nova Meta',
           progresso: 0,
           nome: user.email?.split('@')[0] || 'Usuário'
         });
@@ -142,25 +144,28 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const handleUpdateGoal = async (goalData: any) => {
-    if (!user) return;
+    if (!user) return null;
     try {
+      // Make sure updateGoal returns the actual goal object
       const updatedGoal = await updateGoal(goalData, user.id, dispatch);
       
       // Send WhatsApp notification for goal updates
-      if (updatedGoal) {
-        const progress = Math.round((updatedGoal.current / updatedGoal.target) * 100);
+      if (updatedGoal && typeof updatedGoal === 'object') {
+        const current = updatedGoal.current || 0;
+        const target = updatedGoal.target || 1;
+        const progress = Math.round((current / target) * 100);
         
         // If goal is achieved, send achievement notification
-        if (updatedGoal.current >= updatedGoal.target) {
+        if (current >= target) {
           await processNotification(user.id, 'goal_achieved', {
-            titulo: updatedGoal.title,
+            titulo: updatedGoal.title || 'Meta',
             progresso: progress,
             nome: user.email?.split('@')[0] || 'Usuário'
           });
         } else {
           // Otherwise send regular update notification
           await processNotification(user.id, 'goal_updated', {
-            titulo: updatedGoal.title,
+            titulo: updatedGoal.title || 'Meta',
             progresso: progress,
             nome: user.email?.split('@')[0] || 'Usuário'
           });

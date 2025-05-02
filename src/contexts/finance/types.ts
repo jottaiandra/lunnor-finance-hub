@@ -53,8 +53,8 @@ export interface FinanceContextType {
   addTransaction: (transaction: Omit<Transaction, "id">) => Promise<void>;
   updateTransaction: (transaction: Transaction, updateOptions?: { updateAllFuture?: boolean }) => Promise<void>;
   deleteTransaction: (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => Promise<void>;
-  addGoal: (goal: Omit<Goal, "id">) => Promise<void>;
-  updateGoal: (goal: Goal) => Promise<void>;
+  addGoal: (goal: Omit<Goal, "id">) => Promise<Goal | null>;
+  updateGoal: (goal: Goal) => Promise<Goal | null>;
   deleteGoal: (id: string) => Promise<void>;
   markAlertRead: (id: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;

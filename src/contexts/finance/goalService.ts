@@ -63,8 +63,8 @@ export const fetchGoals = async (userId: string, dispatch: any) => {
 };
 
 // Add a new goal
-export const addGoal = async (goal: Omit<Goal, "id">, userId: string, dispatch: any) => {
-  if (!userId) return;
+export const addGoal = async (goal: Omit<Goal, "id">, userId: string, dispatch: any): Promise<Goal | null> => {
+  if (!userId) return null;
   
   try {
     // Prepare data for Supabase
@@ -91,6 +91,8 @@ export const addGoal = async (goal: Omit<Goal, "id">, userId: string, dispatch: 
     // Add to local state
     const newGoal = mapGoalFromDB(data);
     dispatch({ type: "ADD_GOAL", payload: newGoal });
+    
+    return newGoal;
   } catch (error: any) {
     console.error("Erro ao adicionar meta:", error);
     toast.error("Erro ao salvar meta");
@@ -99,8 +101,8 @@ export const addGoal = async (goal: Omit<Goal, "id">, userId: string, dispatch: 
 };
 
 // Update an existing goal
-export const updateGoal = async (goal: Goal, userId: string, dispatch: any) => {
-  if (!userId) return;
+export const updateGoal = async (goal: Goal, userId: string, dispatch: any): Promise<Goal | null> => {
+  if (!userId) return null;
   
   try {
     // Prepare data for Supabase
@@ -115,15 +117,19 @@ export const updateGoal = async (goal: Goal, userId: string, dispatch: any) => {
     };
     
     // Update in Supabase
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('goals')
       .update(goalData)
-      .eq('id', goal.id);
+      .eq('id', goal.id)
+      .select()
+      .single();
     
     if (error) throw error;
     
     // Update local state
     dispatch({ type: "UPDATE_GOAL", payload: goal });
+    
+    return goal;
   } catch (error: any) {
     console.error("Erro ao atualizar meta:", error);
     toast.error("Erro ao atualizar meta");
