@@ -40,7 +40,8 @@ const GoalsPage: React.FC = () => {
     setDialogOpen(false);
   };
 
-  if (isLoading || state.loading.goals) {
+  // Mostrar loading apenas durante o carregamento inicial
+  if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
