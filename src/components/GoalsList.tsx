@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { AlertCircle, Check, Trash, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from '@/components/ui/sonner';
+import { Skeleton } from './ui/skeleton';
 
 const GoalsList: React.FC = () => {
   const { state, deleteGoal } = useFinance();
@@ -26,21 +27,37 @@ const GoalsList: React.FC = () => {
   };
   
   const calculateProgress = (goal: typeof state.goals[0]) => {
+    if (!goal || typeof goal.current !== 'number' || typeof goal.target !== 'number') {
+      return 0;
+    }
     const percentage = (goal.current / goal.target) * 100;
     return Math.min(100, Math.max(0, percentage));
   };
   
-  // First check if the goals are still loading
+  // Show loading skeleton during API fetch
   if (state.loading.goals) {
     return (
-      <div className="flex justify-center items-center h-40">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-6 w-3/4" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
   
-  // Then check if goals array exists and has items
-  if (!Array.isArray(state.goals) || state.goals.length === 0) {
+  // Verify the goals data structure is valid
+  const hasValidGoals = Array.isArray(state.goals) && state.goals.length > 0;
+  
+  if (!hasValidGoals) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
@@ -53,6 +70,11 @@ const GoalsList: React.FC = () => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {state.goals.map((goal) => {
+        // Skip rendering if goal data is invalid
+        if (!goal || !goal.id) {
+          return null;
+        }
+        
         const progress = calculateProgress(goal);
         const isComplete = progress >= 100;
         
@@ -97,7 +119,10 @@ const GoalsList: React.FC = () => {
                 </div>
                 
                 <div className="text-xs text-muted-foreground">
-                  <span>Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - {format(new Date(goal.endDate), "dd/MM/yyyy")}</span>
+                  <span>
+                    Período: {goal.startDate instanceof Date ? format(goal.startDate, "dd/MM/yyyy") : '--'} - 
+                    {goal.endDate instanceof Date ? format(goal.endDate, "dd/MM/yyyy") : '--'}
+                  </span>
                 </div>
                 
                 <div className="pt-2 flex items-center">

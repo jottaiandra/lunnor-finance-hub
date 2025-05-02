@@ -6,49 +6,61 @@ import GoalsList from '@/components/GoalsList';
 import GoalForm from '@/components/GoalForm';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 const GoalsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const { state, fetchGoals } = useFinance();
 
-  // Use useCallback to prevent the function from being recreated on each render
+  // Simplified fetch data function
   const loadData = useCallback(async () => {
+    if (state.loading.goals) return; // Prevent duplicate calls if already loading
+    
     try {
       setIsLoading(true);
+      setLoadError(null);
       await fetchGoals();
     } catch (error) {
       console.error("Erro ao carregar metas:", error);
+      setLoadError("Não foi possível carregar as metas. Por favor, tente novamente.");
+      toast.error("Erro ao carregar metas");
     } finally {
       setIsLoading(false);
     }
-  }, [fetchGoals]);
+  }, [fetchGoals, state.loading.goals]);
 
   useEffect(() => {
-    // Avoid repeated calls by adding a flag check
-    let isMounted = true;
+    loadData();
     
-    // Call the memoized function
-    loadData().then(() => {
-      if (isMounted) {
-        setIsLoading(false);
-      }
-    });
-    
+    // Cleanup function
     return () => {
-      isMounted = false;
+      // Nothing to cleanup
     };
   }, [loadData]); // Only depend on the memoized function
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
+    // Refresh goals list after adding a new goal
+    loadData();
   };
 
-  // Use only local loading state to prevent conflicts with context state
-  if (isLoading) {
+  // Show loading state only during initial load
+  if (isLoading && !state.goals.length) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show error state if there's a loading error
+  if (loadError) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4">
+        <p className="text-destructive">{loadError}</p>
+        <Button onClick={() => loadData()}>Tentar novamente</Button>
       </div>
     );
   }

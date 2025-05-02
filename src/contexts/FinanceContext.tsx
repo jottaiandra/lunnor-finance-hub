@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Transaction, TransactionType, PaymentMethod, IncomeCategory, ExpenseCategory, Goal, Alert } from "@/types";
@@ -196,16 +195,39 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     contact: item.contact
   });
 
-  const mapGoalFromDB = (item: any): Goal => ({
-    id: item.id,
-    title: item.title,
-    target: Number(item.target),
-    current: Number(item.current),
-    type: item.type as 'income' | 'expense-reduction',
-    period: item.period as 'weekly' | 'monthly' | 'yearly',
-    startDate: new Date(item.start_date),
-    endDate: new Date(item.end_date)
-  });
+  // Improved mapGoalFromDB function with better error handling
+  const mapGoalFromDB = (item: any): Goal => {
+    try {
+      if (!item || !item.id) {
+        console.error("Received invalid goal data:", item);
+        throw new Error("Dados inválidos de meta");
+      }
+
+      return {
+        id: item.id,
+        title: item.title || "",
+        target: typeof item.target === 'number' ? item.target : Number(item.target) || 0,
+        current: typeof item.current === 'number' ? item.current : Number(item.current) || 0,
+        type: item.type as 'income' | 'expense-reduction',
+        period: item.period as 'weekly' | 'monthly' | 'yearly',
+        startDate: item.start_date ? new Date(item.start_date) : new Date(),
+        endDate: item.end_date ? new Date(item.end_date) : new Date()
+      };
+    } catch (error) {
+      console.error("Error mapping goal data:", error, item);
+      // Return a minimal valid object to prevent UI errors
+      return {
+        id: item.id || uuidv4(),
+        title: "Erro nos dados",
+        target: 0,
+        current: 0,
+        type: 'income',
+        period: 'monthly',
+        startDate: new Date(),
+        endDate: new Date()
+      };
+    }
+  };
 
   const mapAlertFromDB = (item: any): Alert => ({
     id: item.id,
@@ -214,6 +236,64 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     read: item.read,
     createdAt: new Date(item.created_at)
   });
+
+  // Improved fetchGoals function with better error handling
+  const fetchGoals = async () => {
+    if (!user) {
+      console.log("No user authenticated, skipping goal fetch");
+      return;
+    }
+    
+    try {
+      // Set loading state at the beginning
+      dispatch({ type: "SET_LOADING", payload: { key: 'goals', value: true } });
+      
+      console.log("Fetching goals for user:", user.id);
+      
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Supabase error fetching goals:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log("No goals data returned");
+        dispatch({ type: "SET_GOALS", payload: [] });
+        return;
+      }
+      
+      console.log("Goals fetched successfully:", data.length);
+      
+      // Map the data and handle potential mapping errors
+      const mappedGoals: Goal[] = [];
+      
+      for (const item of data) {
+        try {
+          const goal = mapGoalFromDB(item);
+          mappedGoals.push(goal);
+        } catch (mappingError) {
+          console.error("Error mapping a goal:", mappingError, item);
+          // Skip this item instead of breaking the whole list
+        }
+      }
+      
+      dispatch({ type: "SET_GOALS", payload: mappedGoals });
+    } catch (error: any) {
+      console.error("Error fetching goals:", error);
+      toast.error("Erro ao carregar metas");
+      dispatch({ type: "SET_ERROR", payload: error.message });
+      // Set empty array on error to prevent UI issues
+      dispatch({ type: "SET_GOALS", payload: [] });
+    } finally {
+      // Always set loading to false when done
+      dispatch({ type: "SET_LOADING", payload: { key: 'goals', value: false } });
+    }
+  };
 
   // Função para buscar transações
   const fetchTransactions = async () => {
@@ -237,31 +317,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       dispatch({ type: "SET_ERROR", payload: error.message });
     } finally {
       dispatch({ type: "SET_LOADING", payload: { key: 'transactions', value: false } });
-    }
-  };
-
-  // Função para buscar metas
-  const fetchGoals = async () => {
-    if (!user) return;
-    
-    try {
-      dispatch({ type: "SET_LOADING", payload: { key: 'goals', value: true } });
-      
-      const { data, error } = await supabase
-        .from('goals')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      const mappedGoals = data.map(mapGoalFromDB);
-      dispatch({ type: "SET_GOALS", payload: mappedGoals });
-    } catch (error: any) {
-      console.error("Erro ao buscar metas:", error);
-      toast.error("Erro ao carregar metas");
-      dispatch({ type: "SET_ERROR", payload: error.message });
-    } finally {
-      dispatch({ type: "SET_LOADING", payload: { key: 'goals', value: false } });
     }
   };
 
@@ -449,23 +504,29 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Excluir uma meta
+  // Enhanced deleteGoal with better error handling
   const deleteGoal = async (id: string) => {
     if (!user) return;
     
     try {
+      console.log("Deleting goal:", id);
+      
       // Excluir do Supabase
       const { error } = await supabase
         .from('goals')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error deleting goal:", error);
+        throw error;
+      }
       
       // Remover do estado local
       dispatch({ type: "DELETE_GOAL", payload: id });
+      console.log("Goal deleted successfully");
     } catch (error: any) {
-      console.error("Erro ao excluir meta:", error);
+      console.error("Error deleting goal:", error);
       toast.error("Erro ao excluir meta");
       throw error;
     }
@@ -495,6 +556,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Carregar dados quando o usuário estiver autenticado
   useEffect(() => {
     if (user) {
+      // Log that we're loading data for this user
+      console.log("Loading data for user:", user.id);
+      
+      // Load initial data
       fetchTransactions();
       fetchGoals();
       fetchAlerts();
@@ -539,6 +604,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         supabase.removeChannel(goalsChannel);
         supabase.removeChannel(alertsChannel);
       };
+    } else {
+      console.log("No authenticated user, skipping data fetch");
+      
+      // Reset state when user is not authenticated
+      dispatch({ type: "SET_TRANSACTIONS", payload: [] });
+      dispatch({ type: "SET_GOALS", payload: [] });
+      dispatch({ type: "SET_ALERTS", payload: [] });
     }
   }, [user]);
 
