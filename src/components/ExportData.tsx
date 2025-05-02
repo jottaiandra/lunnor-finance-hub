@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { CalendarIcon, Download, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
+// Import the autoTable type declarations
 import 'jspdf-autotable';
 
 const ExportData: React.FC = () => {
