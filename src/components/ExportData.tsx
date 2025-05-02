@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useFinance } from '@/contexts/FinanceContext';
@@ -7,20 +8,20 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, FileText, Download } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { CalendarIcon, Download, Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
 const ExportData: React.FC = () => {
-  const [dataType, setDataType] = React.useState<'all' | 'income' | 'expense'>('all');
-  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
-  const [exportFormat, setExportFormat] = React.useState<'excel' | 'pdf'>('excel');
+  const [dataType, setDataType] = useState<'all' | 'income' | 'expense'>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel');
+  const [isExporting, setIsExporting] = useState(false);
 
   const { state, getFilteredTransactions } = useFinance();
-  const { toast } = useToast();
 
   const getDataToExport = () => {
     let transactions = state.transactions || [];
@@ -52,15 +53,14 @@ const ExportData: React.FC = () => {
     }));
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
+      setIsExporting(true);
       const data = getDataToExport();
       
       if (data.length === 0) {
-        toast({
-          title: "Sem dados para exportar",
-          description: "Não há transações para exportar com os filtros selecionados.",
-          variant: "destructive"
+        toast.error("Sem dados para exportar", {
+          description: "Não há transações para exportar com os filtros selecionados."
         });
         return;
       }
@@ -76,29 +76,27 @@ const ExportData: React.FC = () => {
       // Salvar arquivo
       XLSX.writeFile(wb, fileName);
       
-      toast({
-        title: "Exportação concluída",
+      toast.success("Exportação concluída", {
         description: `Arquivo Excel "${fileName}" baixado com sucesso.`
       });
     } catch (error) {
       console.error("Erro ao exportar Excel:", error);
-      toast({
-        title: "Erro na exportação",
-        description: "Ocorreu um erro ao exportar os dados para Excel.",
-        variant: "destructive"
+      toast.error("Erro na exportação", {
+        description: "Ocorreu um erro ao exportar os dados para Excel."
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
+      setIsExporting(true);
       const data = getDataToExport();
       
       if (data.length === 0) {
-        toast({
-          title: "Sem dados para exportar",
-          description: "Não há transações para exportar com os filtros selecionados.",
-          variant: "destructive"
+        toast.error("Sem dados para exportar", {
+          description: "Não há transações para exportar com os filtros selecionados."
         });
         return;
       }
@@ -142,7 +140,7 @@ const ExportData: React.FC = () => {
         item.Data
       ]);
       
-      // @ts-ignore - Ignorar erro de tipo para o jsPDF-AutoTable
+      // Usar autoTable com tipagem correta
       doc.autoTable({
         startY: yPos,
         head: [tableColumn],
@@ -158,17 +156,16 @@ const ExportData: React.FC = () => {
       // Salvar arquivo
       doc.save(fileName);
       
-      toast({
-        title: "Exportação concluída",
+      toast.success("Exportação concluída", {
         description: `Arquivo PDF "${fileName}" baixado com sucesso.`
       });
     } catch (error) {
       console.error("Erro ao exportar PDF:", error);
-      toast({
-        title: "Erro na exportação",
-        description: "Ocorreu um erro ao exportar os dados para PDF.",
-        variant: "destructive"
+      toast.error("Erro na exportação", {
+        description: "Ocorreu um erro ao exportar os dados para PDF."
       });
+    } finally {
+      setIsExporting(false);
     }
   };
   
@@ -279,8 +276,16 @@ const ExportData: React.FC = () => {
         </div>
 
         <div className="pt-4 flex flex-col space-y-4">
-          <Button onClick={handleExport} className="w-full">
-            <Download className="mr-2 h-4 w-4" />
+          <Button 
+            onClick={handleExport} 
+            className="w-full" 
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
             {exportFormat === 'excel' ? 'Exportar para Excel' : 'Exportar para PDF'}
           </Button>
           

@@ -42,6 +42,7 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -63,18 +64,22 @@ const ProfilePage: React.FC = () => {
   });
   
   useEffect(() => {
+    // Evitar múltiplas chamadas e verificar se o usuário está definido
     if (user) {
       fetchProfileData();
+    } else {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
   
   const fetchProfileData = async () => {
     try {
       setLoading(true);
+      setFetchError(null);
       
       // Verificando se o usuário está definido
       if (!user?.id) {
-        console.error('ID do usuário não encontrado');
+        setFetchError('ID do usuário não encontrado');
         setLoading(false);
         return;
       }
@@ -83,10 +88,11 @@ const ProfilePage: React.FC = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Erro ao buscar dados do perfil:', error);
+        setFetchError('Erro ao buscar dados do perfil');
         setLoading(false);
         return;
       }
@@ -114,7 +120,7 @@ const ProfilePage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Erro ao buscar dados do perfil:', error);
-      toast.error('Erro ao carregar dados do perfil');
+      setFetchError('Erro ao carregar dados do perfil');
     } finally {
       setLoading(false);
     }
@@ -266,6 +272,29 @@ const ProfilePage: React.FC = () => {
     );
   }
   
+  if (fetchError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Perfil</h1>
+          <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+        </div>
+        
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-red-500">{fetchError}</p>
+            <Button 
+              className="mt-4"
+              onClick={() => fetchProfileData()}
+            >
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

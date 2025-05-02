@@ -21,6 +21,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [navItems, setNavItems] = useState([
+    { title: 'Dashboard', icon: <Home size={20} />, href: '/app' },
+    { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/app/transactions' },
+    { title: 'Relatórios', icon: <ChartPie size={20} />, href: '/app/reports' },
+    { title: 'Metas', icon: <Flag size={20} />, href: '/app/goals' },
+    { title: 'Exportar', icon: <FileText size={20} />, href: '/app/export' },
+    { title: 'Perfil', icon: <UserCircle size={20} />, href: '/app/profile' },
+  ]);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -28,8 +36,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       
       try {
         const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
-        if (error) throw error;
-        setIsAdmin(data || false);
+        if (error) {
+          console.error('Erro ao verificar status de admin:', error);
+          return;
+        }
+        
+        const isUserAdmin = data || false;
+        setIsAdmin(isUserAdmin);
+        
+        // Atualizar os itens de navegação se for admin
+        if (isUserAdmin && !navItems.some(item => item.title === 'Administração')) {
+          setNavItems(prev => [
+            ...prev,
+            { title: 'Administração', icon: <Users size={20} />, href: '/app/admin' }
+          ]);
+        }
       } catch (error) {
         console.error('Erro ao verificar status de admin:', error);
       }
@@ -44,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           .from('profiles')
           .select('profile_image_url')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
           
         if (error) {
           console.error('Erro ao buscar imagem de perfil:', error);
@@ -60,23 +81,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       }
     };
     
-    checkAdminStatus();
-    fetchProfileImage();
-  }, [user]);
-
-  const navItems = [
-    { title: 'Dashboard', icon: <Home size={20} />, href: '/app' },
-    { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/app/transactions' },
-    { title: 'Relatórios', icon: <ChartPie size={20} />, href: '/app/reports' },
-    { title: 'Metas', icon: <Flag size={20} />, href: '/app/goals' },
-    { title: 'Exportar', icon: <FileText size={20} />, href: '/app/export' },
-    { title: 'Perfil', icon: <UserCircle size={20} />, href: '/app/profile' },
-  ];
-
-  // Adiciona item de administração apenas se o usuário for admin
-  if (isAdmin) {
-    navItems.push({ title: 'Administração', icon: <Users size={20} />, href: '/app/admin' });
-  }
+    if (user) {
+      checkAdminStatus();
+      fetchProfileImage();
+    }
+  }, [user?.id]);
 
   const handleSignOut = () => {
     signOut();

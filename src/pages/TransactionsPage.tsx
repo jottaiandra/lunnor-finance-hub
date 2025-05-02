@@ -17,8 +17,25 @@ const TransactionsPage: React.FC = () => {
   const { dispatch, fetchTransactions, state } = useFinance();
 
   useEffect(() => {
-    fetchTransactions();
-  }, [fetchTransactions]);
+    // Evita chamadas repetidas adicionando uma flag de verificação
+    let isMounted = true;
+    
+    const loadData = async () => {
+      try {
+        await fetchTransactions();
+      } catch (error) {
+        console.error("Erro ao carregar transações:", error);
+      }
+    };
+    
+    if (isMounted) {
+      loadData();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenIncomeForm = () => {
     setActiveForm(TransactionType.INCOME);

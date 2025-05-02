@@ -34,30 +34,55 @@ const AdminPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [adminCheckError, setAdminCheckError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Só executar uma vez quando o componente montar
+    let isMounted = true;
+    
     const checkAdminStatus = async () => {
-      if (!user) return;
-      
-      // Verificar se o usuário é admin
-      const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
-      
-      if (error) {
-        console.error('Erro ao verificar status de admin:', error);
-        toast.error('Erro ao verificar permissões de administrador');
+      if (!user) {
+        setLoading(false);
         return;
       }
       
-      setIsAdmin(data || false);
-      if (data) {
-        fetchUsers();
-      } else {
-        setLoading(false);
+      try {
+        setAdminCheckError(null);
+        // Verificar se o usuário é admin
+        const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
+        
+        if (error) {
+          console.error('Erro ao verificar status de admin:', error);
+          if (isMounted) {
+            setAdminCheckError('Erro ao verificar permissões de administrador');
+            setLoading(false);
+          }
+          return;
+        }
+        
+        if (isMounted) {
+          setIsAdmin(data || false);
+          if (data) {
+            fetchUsers();
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status de admin:', error);
+        if (isMounted) {
+          setAdminCheckError('Erro ao verificar permissões de administrador');
+          setLoading(false);
+        }
       }
     };
     
     checkAdminStatus();
-  }, [user]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const fetchUsers = async () => {
     try {
@@ -127,6 +152,25 @@ const AdminPage: React.FC = () => {
     );
   }
 
+  if (adminCheckError) {
+    return (
+      <div className="p-6">
+        <h1 className="text-3xl font-bold tracking-tight mb-6">Erro de Administração</h1>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-red-500">{adminCheckError}</p>
+            <Button 
+              className="mt-4"
+              onClick={() => window.location.reload()}
+            >
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="p-6">
@@ -166,74 +210,82 @@ const AdminPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b">
-                    <td className="p-2">{user.email}</td>
-                    <td className="p-2">
-                      {user.first_name || ''} {user.last_name || ''}
-                    </td>
-                    <td className="p-2">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {user.role === 'admin' ? 'Administrador' : 'Usuário'}
-                      </span>
-                    </td>
-                    <td className="p-2">
-                      {new Date(user.created_at).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="p-2 text-right">
-                      {user.role === 'admin' ? (
-                        <Button
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => toggleUserRole(user.id, 'user')}
-                        >
-                          Remover Admin
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline" 
-                          size="sm" 
-                          className="mr-2"
-                          onClick={() => toggleUserRole(user.id, 'admin')}
-                        >
-                          <Shield className="h-4 w-4 mr-1" /> Promover
-                        </Button>
-                      )}
-                      
-                      <AlertDialog open={deleteDialogOpen && userToDelete === user.id} onOpenChange={setDeleteDialogOpen}>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => {
-                              setUserToDelete(user.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <UserX className="h-4 w-4 mr-1" /> Excluir
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta ação não pode ser desfeita. Isso excluirá permanentemente a conta 
-                              do usuário {user.email} e removerá todos os dados associados.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setUserToDelete(null)}>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground">
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-4 text-center">
+                      Nenhum usuário encontrado
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  users.map((user) => (
+                    <tr key={user.id} className="border-b">
+                      <td className="p-2">{user.email}</td>
+                      <td className="p-2">
+                        {user.first_name || ''} {user.last_name || ''}
+                      </td>
+                      <td className="p-2">
+                        <span className={`px-2 py-1 rounded-full text-xs ${
+                          user.role === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.role === 'admin' ? 'Administrador' : 'Usuário'}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="p-2 text-right">
+                        {user.role === 'admin' ? (
+                          <Button
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => toggleUserRole(user.id, 'user')}
+                          >
+                            Remover Admin
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline" 
+                            size="sm" 
+                            className="mr-2"
+                            onClick={() => toggleUserRole(user.id, 'admin')}
+                          >
+                            <Shield className="h-4 w-4 mr-1" /> Promover
+                          </Button>
+                        )}
+                        
+                        <AlertDialog open={deleteDialogOpen && userToDelete === user.id} onOpenChange={setDeleteDialogOpen}>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => {
+                                setUserToDelete(user.id);
+                                setDeleteDialogOpen(true);
+                              }}
+                            >
+                              <UserX className="h-4 w-4 mr-1" /> Excluir
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser desfeita. Isso excluirá permanentemente a conta 
+                                do usuário {user.email} e removerá todos os dados associados.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setUserToDelete(null)}>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground">
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
