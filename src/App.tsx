@@ -13,6 +13,7 @@ import TransactionsPage from "@/pages/TransactionsPage";
 import ReportsPage from "@/pages/ReportsPage";
 import GoalsPage from "@/pages/GoalsPage";
 import ExportPage from "@/pages/ExportPage";
+import AdminPage from "@/pages/AdminPage";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="reports" element={<ReportsPage />} />
               <Route path="goals" element={<GoalsPage />} />
               <Route path="export" element={<ExportPage />} />
+              <Route path="admin" element={<AdminPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

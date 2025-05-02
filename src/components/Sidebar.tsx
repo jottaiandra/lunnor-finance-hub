@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ChartPie, CircleDollarSign, FileText, Flag, Home, LogOut, User } from 'lucide-react';
+import { ChartPie, CircleDollarSign, FileText, Flag, Home, LogOut, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -18,6 +19,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
+        if (error) throw error;
+        setIsAdmin(data || false);
+      } catch (error) {
+        console.error('Erro ao verificar status de admin:', error);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
 
   const navItems = [
     { title: 'Dashboard', icon: <Home size={20} />, href: '/' },
@@ -26,6 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     { title: 'Metas', icon: <Flag size={20} />, href: '/goals' },
     { title: 'Exportar', icon: <FileText size={20} />, href: '/export' },
   ];
+
+  // Adiciona item de administração apenas se o usuário for admin
+  if (isAdmin) {
+    navItems.push({ title: 'Administração', icon: <Users size={20} />, href: '/admin' });
+  }
 
   const handleSignOut = () => {
     signOut();
@@ -50,9 +73,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="ml-auto"
+          className="ml-auto text-primary"
         >
-          {isCollapsed ? "➡️" : "⬅️"}
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </Button>
       </div>
 

@@ -12,7 +12,13 @@ import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import TransactionList from './TransactionList';
 
-const OverviewCard = ({ title, amount, icon, colorClass }: { title: string; amount: number; icon: React.ReactNode; colorClass: string }) => (
+const OverviewCard = ({ title, amount, icon, colorClass, isNegative = false }: { 
+  title: string; 
+  amount: number; 
+  icon: React.ReactNode; 
+  colorClass: string;
+  isNegative?: boolean;
+}) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -21,7 +27,9 @@ const OverviewCard = ({ title, amount, icon, colorClass }: { title: string; amou
       </div>
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">R$ {amount.toFixed(2).replace('.', ',')}</div>
+      <div className={`text-2xl font-bold ${isNegative ? 'text-negative' : ''}`}>
+        {isNegative ? '-' : ''}R$ {amount.toFixed(2).replace('.', ',')}
+      </div>
     </CardContent>
   </Card>
 );
@@ -84,6 +92,7 @@ const Dashboard: React.FC = () => {
           amount={totalExpenseMonth} 
           icon={<CircleDollarSign className="h-4 w-4 text-white" />} 
           colorClass="bg-negative text-white" 
+          isNegative={true}
         />
         
         <Card>
@@ -95,7 +104,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${balance >= 0 ? 'text-positive' : 'text-negative'}`}>
-              R$ {balance.toFixed(2).replace('.', ',')}
+              {balance < 0 ? '-' : ''}R$ {Math.abs(balance).toFixed(2).replace('.', ',')}
             </div>
           </CardContent>
         </Card>
