@@ -5,65 +5,34 @@ import { Button } from '@/components/ui/button';
 import GoalsList from '@/components/GoalsList';
 import GoalForm from '@/components/GoalForm';
 import { useFinance } from '@/contexts/FinanceContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 const GoalsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const { state, fetchGoals } = useFinance();
-
-  // Simplified fetch data function
-  const loadData = useCallback(async () => {
-    if (state.loading.goals) return; // Prevent duplicate calls if already loading
-    
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-      await fetchGoals();
-    } catch (error) {
-      console.error("Erro ao carregar metas:", error);
-      setLoadError("Não foi possível carregar as metas. Por favor, tente novamente.");
-      toast.error("Erro ao carregar metas");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchGoals, state.loading.goals]);
-
+  
+  // Load goals when the component mounts
   useEffect(() => {
-    loadData();
-    
-    // Cleanup function
-    return () => {
-      // Nothing to cleanup
-    };
-  }, [loadData]); // Only depend on the memoized function
+    console.log("GoalsPage mounted, fetching goals...");
+    fetchGoals().catch(error => {
+      console.error("Error in initial goals fetch:", error);
+      toast.error("Erro ao carregar metas. Por favor, tente novamente.");
+    });
+  }, [fetchGoals]);
+
+  const handleRefresh = () => {
+    toast.info("Recarregando metas...");
+    fetchGoals().catch(error => {
+      console.error("Error refreshing goals:", error);
+      toast.error("Erro ao recarregar metas");
+    });
+  };
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
-    // Refresh goals list after adding a new goal
-    loadData();
+    toast.success("Meta adicionada com sucesso!");
   };
-
-  // Show loading state only during initial load
-  if (isLoading && !state.goals.length) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Show error state if there's a loading error
-  if (loadError) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center gap-4">
-        <p className="text-destructive">{loadError}</p>
-        <Button onClick={() => loadData()}>Tentar novamente</Button>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -73,20 +42,33 @@ const GoalsPage: React.FC = () => {
           <p className="text-muted-foreground">Acompanhe seu progresso em direção às suas metas.</p>
         </div>
         
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Nova Meta</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <GoalForm 
-              onSuccess={handleFormSuccess} 
-              onCancel={() => setDialogOpen(false)} 
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Nova Meta</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <GoalForm 
+                onSuccess={handleFormSuccess} 
+                onCancel={() => setDialogOpen(false)} 
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
+      {/* Pass the loading state directly to GoalsList */}
       <GoalsList />
+      
+      {/* Debug information */}
+      <div className="text-xs text-muted-foreground mt-8">
+        <p>Estado de carregamento: {state.loading.goals ? 'Carregando' : 'Pronto'}</p>
+        <p>Metas carregadas: {state.goals.length}</p>
+      </div>
     </div>
   );
 };

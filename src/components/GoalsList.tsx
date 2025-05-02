@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
-import { AlertCircle, Check, Trash, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Trash, Loader2, Target } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from '@/components/ui/sonner';
 import { Skeleton } from './ui/skeleton';
@@ -59,9 +59,15 @@ const GoalsList: React.FC = () => {
   
   if (!hasValidGoals) {
     return (
-      <Card>
-        <CardContent className="py-10 text-center">
-          <p className="text-muted-foreground">Nenhuma meta encontrada. Crie sua primeira meta financeira!</p>
+      <Card className="py-12">
+        <CardContent className="flex flex-col items-center justify-center text-center space-y-4">
+          <Target className="h-12 w-12 text-muted-foreground" />
+          <div>
+            <h3 className="text-lg font-semibold">Nenhuma meta encontrada</h3>
+            <p className="text-muted-foreground">
+              Crie sua primeira meta financeira usando o botão "Nova Meta" acima.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -72,6 +78,7 @@ const GoalsList: React.FC = () => {
       {state.goals.map((goal) => {
         // Skip rendering if goal data is invalid
         if (!goal || !goal.id) {
+          console.warn("Received invalid goal data:", goal);
           return null;
         }
         
@@ -101,7 +108,7 @@ const GoalsList: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Progresso:</span>
-                  <span className={isComplete ? 'text-positive font-medium' : 'font-medium'}>
+                  <span className={isComplete ? 'text-green-600 font-medium' : 'font-medium'}>
                     {progress.toFixed(0)}%
                   </span>
                 </div>
@@ -120,14 +127,20 @@ const GoalsList: React.FC = () => {
                 
                 <div className="text-xs text-muted-foreground">
                   <span>
-                    Período: {goal.startDate instanceof Date ? format(goal.startDate, "dd/MM/yyyy") : '--'} - 
-                    {goal.endDate instanceof Date ? format(goal.endDate, "dd/MM/yyyy") : '--'}
+                    {goal.startDate && goal.endDate ? (
+                      <>
+                        Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - 
+                        {format(new Date(goal.endDate), "dd/MM/yyyy")}
+                      </>
+                    ) : (
+                      'Período não definido'
+                    )}
                   </span>
                 </div>
                 
                 <div className="pt-2 flex items-center">
                   {isComplete ? (
-                    <div className="text-positive text-sm font-medium flex items-center">
+                    <div className="text-green-600 text-sm font-medium flex items-center">
                       <Check className="h-4 w-4 mr-1" />
                       Meta alcançada!
                     </div>
