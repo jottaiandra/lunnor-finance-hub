@@ -39,6 +39,12 @@ export interface Transaction {
   type: TransactionType;
   contact?: string; // Cliente ou Fornecedor
   isRecurrent?: boolean;
+  recurrenceFrequency?: string; // 'daily', 'weekly', 'biweekly', 'monthly', 'yearly', 'custom'
+  recurrenceInterval?: number; // For custom frequency, number of days
+  recurrenceStartDate?: Date;
+  recurrenceEndDate?: Date;
+  parentTransactionId?: string; // ID of the original recurring transaction
+  isOriginal?: boolean; // Is this the original transaction or generated from a recurring one
 }
 
 export interface Goal {
@@ -57,5 +63,14 @@ export interface Alert {
   message: string;
   type: 'warning' | 'info' | 'success' | 'danger';
   read: boolean;
+  createdAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: string;
+  relatedTransactionId?: string;
+  isRead: boolean;
   createdAt: Date;
 }

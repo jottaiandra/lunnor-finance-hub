@@ -12,9 +12,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
-import { CalendarIcon, CircleDollarSign, Loader2, Pencil, Search, Trash } from 'lucide-react';
+import { CalendarIcon, CircleDollarSign, Loader2, Pencil, Repeat, Search, Trash } from 'lucide-react';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -22,6 +26,7 @@ import { Calendar } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/sonner';
+import { Badge } from './ui/badge';
 
 interface TransactionListProps {
   limit?: number;
@@ -30,13 +35,13 @@ interface TransactionListProps {
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = true, title = "Transações Recentes" }) => {
-  const { state, dispatch, getFilteredTransactions, deleteTransaction } = useFinance();
+  const { state, dispatch, getFilteredTransactions, deleteTransaction, updateTransaction } = useFinance();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => {
     try {
       setDeletingId(id);
-      await deleteTransaction(id);
+      await deleteTransaction(id, deleteOptions);
       toast.success("Transação excluída com sucesso");
     } catch (error) {
       console.error("Erro ao excluir transação:", error);
@@ -232,7 +237,17 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
               <TableBody>
                 {displayedTransactions.map((transaction) => (
                   <TableRow key={transaction.id}>
-                    <TableCell>{format(new Date(transaction.date), "dd/MM/yyyy")}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {format(new Date(transaction.date), "dd/MM/yyyy")}
+                        {transaction.isRecurrent && (
+                          <Badge variant="outline" className="ml-2 px-1">
+                            <Repeat className="h-3 w-3 mr-1" />
+                            <span className="text-xs">Recorrente</span>
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{transaction.description}</TableCell>
                     <TableCell>{transaction.category}</TableCell>
                     <TableCell className={cn(
@@ -257,23 +272,49 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                             <Pencil className="h-4 w-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="flex items-center text-destructive focus:text-destructive" 
-                            onClick={() => handleDelete(transaction.id)}
-                            disabled={deletingId === transaction.id}
-                          >
-                            {deletingId === transaction.id ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Excluindo...
-                              </>
-                            ) : (
-                              <>
+                          
+                          {transaction.isRecurrent ? (
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="text-destructive focus:text-destructive">
                                 <Trash className="h-4 w-4 mr-2" />
                                 Excluir
-                              </>
-                            )}
-                          </DropdownMenuItem>
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDelete(transaction.id)}
+                                    disabled={deletingId === transaction.id}
+                                  >
+                                    Apenas esta ocorrência
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDelete(transaction.id, { deleteAllFuture: true })}
+                                    disabled={deletingId === transaction.id}
+                                  >
+                                    Esta e todas futuras
+                                  </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                              </DropdownMenuPortal>
+                            </DropdownMenuSub>
+                          ) : (
+                            <DropdownMenuItem 
+                              className="flex items-center text-destructive focus:text-destructive" 
+                              onClick={() => handleDelete(transaction.id)}
+                              disabled={deletingId === transaction.id}
+                            >
+                              {deletingId === transaction.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Excluindo...
+                                </>
+                              ) : (
+                                <>
+                                  <Trash className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

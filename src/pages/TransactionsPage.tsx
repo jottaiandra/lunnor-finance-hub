@@ -7,14 +7,21 @@ import TransactionList from '@/components/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import { TransactionType } from '@/types';
 import { useFinance } from '@/contexts/FinanceContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Bell } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 const TransactionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('all');
   const [activeForm, setActiveForm] = React.useState<TransactionType | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { dispatch, fetchTransactions, state } = useFinance();
+  const { dispatch, fetchTransactions, fetchNotifications, state, markNotificationRead, hasUnreadNotifications } = useFinance();
 
   useEffect(() => {
     // Evita chamadas repetidas adicionando uma flag de verificação
@@ -23,8 +30,9 @@ const TransactionsPage: React.FC = () => {
     const loadData = async () => {
       try {
         await fetchTransactions();
+        await fetchNotifications();
       } catch (error) {
-        console.error("Erro ao carregar transações:", error);
+        console.error("Erro ao carregar dados:", error);
       }
     };
     
@@ -67,6 +75,10 @@ const TransactionsPage: React.FC = () => {
       payload: { type }
     });
   };
+  
+  const handleNotificationClick = (id: string) => {
+    markNotificationRead(id);
+  };
 
   if (state.loading.transactions) {
     return (
@@ -84,6 +96,49 @@ const TransactionsPage: React.FC = () => {
           <p className="text-muted-foreground">Gerencie suas receitas e despesas.</p>
         </div>
         <div className="flex space-x-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {hasUnreadNotifications() && (
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-destructive"></span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-0">
+              <div className="p-2 border-b border-border">
+                <h3 className="font-medium">Notificações</h3>
+              </div>
+              {state.notifications.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground text-sm">
+                  Nenhuma notificação
+                </div>
+              ) : (
+                <div className="max-h-96 overflow-auto">
+                  {state.notifications.map(notification => (
+                    <div 
+                      key={notification.id}
+                      className={`p-3 border-b border-border cursor-pointer hover:bg-muted/50 ${notification.isRead ? 'bg-white' : 'bg-muted/20'}`}
+                      onClick={() => handleNotificationClick(notification.id)}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm">{notification.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {format(new Date(notification.createdAt), "dd/MM/yyyy 'às' HH:mm")}
+                          </p>
+                        </div>
+                        {!notification.isRead && (
+                          <Badge variant="outline" className="ml-2 bg-blue-50">Nova</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          
           <Button 
             className="bg-positive hover:bg-positive/80" 
             onClick={handleOpenIncomeForm}

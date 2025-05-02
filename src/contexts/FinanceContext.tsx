@@ -1,14 +1,17 @@
+
 import React, { createContext, useContext, useReducer, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Transaction, TransactionType, PaymentMethod, IncomeCategory, ExpenseCategory, Goal, Alert } from "@/types";
+import { Transaction, TransactionType, PaymentMethod, IncomeCategory, ExpenseCategory, Goal, Alert, Notification } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/sonner";
+import { addDays, addMonths, addWeeks, addYears, format } from "date-fns";
 
 type State = {
   transactions: Transaction[];
   goals: Goal[];
   alerts: Alert[];
+  notifications: Notification[];
   currentFilter: {
     startDate: Date | null;
     endDate: Date | null;
@@ -20,6 +23,7 @@ type State = {
     transactions: boolean;
     goals: boolean;
     alerts: boolean;
+    notifications: boolean;
   };
   error: string | null;
 };
@@ -28,6 +32,7 @@ type Action =
   | { type: "SET_TRANSACTIONS"; payload: Transaction[] }
   | { type: "SET_GOALS"; payload: Goal[] }
   | { type: "SET_ALERTS"; payload: Alert[] }
+  | { type: "SET_NOTIFICATIONS"; payload: Notification[] }
   | { type: "ADD_TRANSACTION"; payload: Transaction }
   | { type: "UPDATE_TRANSACTION"; payload: Transaction }
   | { type: "DELETE_TRANSACTION"; payload: string }
@@ -35,14 +40,16 @@ type Action =
   | { type: "UPDATE_GOAL"; payload: Goal }
   | { type: "DELETE_GOAL"; payload: string }
   | { type: "MARK_ALERT_READ"; payload: string }
+  | { type: "MARK_NOTIFICATION_READ"; payload: string }
   | { type: "SET_FILTER"; payload: Partial<State["currentFilter"]> }
-  | { type: "SET_LOADING"; payload: { key: 'transactions' | 'goals' | 'alerts', value: boolean } }
+  | { type: "SET_LOADING"; payload: { key: 'transactions' | 'goals' | 'alerts' | 'notifications', value: boolean } }
   | { type: "SET_ERROR"; payload: string | null };
 
 const initialState: State = {
   transactions: [],
   goals: [],
   alerts: [],
+  notifications: [],
   currentFilter: {
     startDate: null,
     endDate: null,
@@ -53,7 +60,8 @@ const initialState: State = {
   loading: {
     transactions: false,
     goals: false,
-    alerts: false
+    alerts: false,
+    notifications: false
   },
   error: null
 };
@@ -74,6 +82,11 @@ const reducer = (state: State, action: Action): State => {
       return {
         ...state,
         alerts: action.payload
+      };
+    case "SET_NOTIFICATIONS":
+      return {
+        ...state,
+        notifications: action.payload
       };
     case "ADD_TRANSACTION":
       return {
@@ -118,6 +131,13 @@ const reducer = (state: State, action: Action): State => {
           alert.id === action.payload ? { ...alert, read: true } : alert
         )
       };
+    case "MARK_NOTIFICATION_READ":
+      return {
+        ...state,
+        notifications: state.notifications.map((notification) =>
+          notification.id === action.payload ? { ...notification, isRead: true } : notification
+        )
+      };
     case "SET_FILTER":
       return {
         ...state,
@@ -151,13 +171,16 @@ const FinanceContext = createContext<{
   fetchTransactions: () => Promise<void>;
   fetchGoals: () => Promise<void>;
   fetchAlerts: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
   addTransaction: (transaction: Omit<Transaction, "id">) => Promise<void>;
-  updateTransaction: (transaction: Transaction) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
+  updateTransaction: (transaction: Transaction, updateOptions?: { updateAllFuture?: boolean }) => Promise<void>;
+  deleteTransaction: (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => Promise<void>;
   addGoal: (goal: Omit<Goal, "id">) => Promise<void>;
   updateGoal: (goal: Goal) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   markAlertRead: (id: string) => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  hasUnreadNotifications: () => boolean;
 }>({
   state: initialState,
   dispatch: () => {},
@@ -168,13 +191,16 @@ const FinanceContext = createContext<{
   fetchTransactions: async () => {},
   fetchGoals: async () => {},
   fetchAlerts: async () => {},
+  fetchNotifications: async () => {},
   addTransaction: async () => {},
   updateTransaction: async () => {},
   deleteTransaction: async () => {},
   addGoal: async () => {},
   updateGoal: async () => {},
   deleteGoal: async () => {},
-  markAlertRead: async () => {}
+  markAlertRead: async () => {},
+  markNotificationRead: async () => {},
+  hasUnreadNotifications: () => false
 });
 
 export const useFinance = () => useContext(FinanceContext);
@@ -192,7 +218,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     category: item.category,
     paymentMethod: item.payment_method as PaymentMethod,
     type: item.type as TransactionType,
-    contact: item.contact
+    contact: item.contact,
+    isRecurrent: item.is_recurrent || false,
+    recurrenceFrequency: item.recurrence_frequency,
+    recurrenceInterval: item.recurrence_interval,
+    recurrenceStartDate: item.recurrence_start_date ? new Date(item.recurrence_start_date) : undefined,
+    recurrenceEndDate: item.recurrence_end_date ? new Date(item.recurrence_end_date) : undefined,
+    parentTransactionId: item.parent_transaction_id,
+    isOriginal: item.is_original !== false
   });
 
   // Improved mapGoalFromDB function with better error handling
@@ -236,6 +269,40 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     read: item.read,
     createdAt: new Date(item.created_at)
   });
+  
+  const mapNotificationFromDB = (item: any): Notification => ({
+    id: item.id,
+    message: item.message,
+    type: item.type,
+    relatedTransactionId: item.related_transaction_id,
+    isRead: item.is_read || false,
+    createdAt: new Date(item.created_at)
+  });
+
+  // Função para buscar notificações
+  const fetchNotifications = async () => {
+    if (!user) return;
+    
+    try {
+      dispatch({ type: "SET_LOADING", payload: { key: 'notifications', value: true } });
+      
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const mappedNotifications = data.map(mapNotificationFromDB);
+      dispatch({ type: "SET_NOTIFICATIONS", payload: mappedNotifications });
+    } catch (error: any) {
+      console.error("Erro ao buscar notificações:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: { key: 'notifications', value: false } });
+    }
+  };
 
   // Improved fetchGoals function with better error handling
   const fetchGoals = async () => {
@@ -344,6 +411,107 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Helper function to calculate next occurrence date
+  const calculateNextOccurrenceDate = (
+    startDate: Date, 
+    frequency: string, 
+    interval: number = 1
+  ): Date => {
+    const date = new Date(startDate);
+    
+    switch (frequency) {
+      case 'daily':
+        return addDays(date, 1);
+      case 'weekly':
+        return addWeeks(date, 1);
+      case 'biweekly':
+        return addWeeks(date, 2);
+      case 'monthly':
+        return addMonths(date, 1);
+      case 'yearly':
+        return addYears(date, 1);
+      case 'custom':
+        return addDays(date, interval);
+      default:
+        return addMonths(date, 1); // Default to monthly
+    }
+  };
+
+  // Helper function to generate future recurring transactions
+  const generateRecurringTransactions = async (transaction: Transaction, count: number = 5) => {
+    if (!user || !transaction.isRecurrent || !transaction.recurrenceFrequency) return;
+
+    try {
+      const futureTransactions = [];
+      let currentDate = new Date(transaction.date);
+      const endDate = transaction.recurrenceEndDate ? new Date(transaction.recurrenceEndDate) : null;
+      
+      for (let i = 0; i < count; i++) {
+        // Calculate next date in the series
+        currentDate = calculateNextOccurrenceDate(
+          currentDate, 
+          transaction.recurrenceFrequency, 
+          transaction.recurrenceInterval
+        );
+        
+        // Stop if we've reached the end date
+        if (endDate && currentDate > endDate) break;
+        
+        // Create a new transaction for this date
+        const newTransaction = {
+          user_id: user.id,
+          date: currentDate.toISOString(),
+          description: transaction.description,
+          amount: transaction.amount,
+          category: transaction.category,
+          payment_method: transaction.paymentMethod,
+          type: transaction.type,
+          contact: transaction.contact || null,
+          is_recurrent: true,
+          recurrence_frequency: transaction.recurrenceFrequency,
+          recurrence_interval: transaction.recurrenceInterval,
+          recurrence_start_date: transaction.recurrenceStartDate?.toISOString(),
+          recurrence_end_date: transaction.recurrenceEndDate?.toISOString(),
+          parent_transaction_id: transaction.id,
+          is_original: false
+        };
+        
+        futureTransactions.push(newTransaction);
+      }
+      
+      if (futureTransactions.length > 0) {
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert(futureTransactions)
+          .select();
+        
+        if (error) throw error;
+        
+        // Create a notification for the user
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: user.id,
+            message: `${futureTransactions.length} novas transações recorrentes foram geradas para "${transaction.description}"`,
+            type: 'info',
+            related_transaction_id: transaction.id,
+            is_read: false
+          });
+          
+        // Update the state with new transactions
+        if (data) {
+          const mappedNewTransactions = data.map(mapTransactionFromDB);
+          dispatch({ 
+            type: "SET_TRANSACTIONS", 
+            payload: [...state.transactions, ...mappedNewTransactions] 
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao gerar transações recorrentes:", error);
+    }
+  };
+
   // Adicionar uma transação
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
     if (!user) return;
@@ -358,7 +526,13 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         category: transaction.category,
         payment_method: transaction.paymentMethod,
         type: transaction.type,
-        contact: transaction.contact || null
+        contact: transaction.contact || null,
+        is_recurrent: transaction.isRecurrent || false,
+        recurrence_frequency: transaction.recurrenceFrequency || null,
+        recurrence_interval: transaction.recurrenceInterval || null,
+        recurrence_start_date: transaction.recurrenceStartDate ? transaction.recurrenceStartDate.toISOString() : null,
+        recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
+        is_original: transaction.isOriginal !== false
       };
       
       // Inserir no Supabase
@@ -373,6 +547,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Adicionar ao estado local
       const newTransaction = mapTransactionFromDB(data);
       dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
+      
+      // If this is a recurring transaction, generate future occurrences
+      if (transaction.isRecurrent && transaction.recurrenceFrequency) {
+        await generateRecurringTransactions(newTransaction);
+      }
     } catch (error: any) {
       console.error("Erro ao adicionar transação:", error);
       toast.error("Erro ao salvar transação");
@@ -381,7 +560,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Atualizar uma transação
-  const updateTransaction = async (transaction: Transaction) => {
+  const updateTransaction = async (
+    transaction: Transaction, 
+    updateOptions?: { updateAllFuture?: boolean }
+  ) => {
     if (!user) return;
     
     try {
@@ -393,19 +575,48 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         category: transaction.category,
         payment_method: transaction.paymentMethod,
         type: transaction.type,
-        contact: transaction.contact || null
+        contact: transaction.contact || null,
+        is_recurrent: transaction.isRecurrent || false,
+        recurrence_frequency: transaction.recurrenceFrequency || null,
+        recurrence_interval: transaction.recurrenceInterval || null,
+        recurrence_start_date: transaction.recurrenceStartDate ? transaction.recurrenceStartDate.toISOString() : null,
+        recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
       };
       
-      // Atualizar no Supabase
-      const { error } = await supabase
-        .from('transactions')
-        .update(transactionData)
-        .eq('id', transaction.id);
-      
-      if (error) throw error;
-      
-      // Atualizar no estado local
-      dispatch({ type: "UPDATE_TRANSACTION", payload: transaction });
+      if (updateOptions?.updateAllFuture && transaction.isRecurrent) {
+        // Update this and all future transactions
+        const { error } = await supabase
+          .from('transactions')
+          .update(transactionData)
+          .eq('parent_transaction_id', transaction.parentTransactionId || transaction.id)
+          .gte('date', transaction.date.toISOString());
+        
+        if (error) throw error;
+        
+        // Also update the original transaction if this is not it
+        if (transaction.parentTransactionId) {
+          const { error: origError } = await supabase
+            .from('transactions')
+            .update(transactionData)
+            .eq('id', transaction.parentTransactionId);
+          
+          if (origError) throw origError;
+        }
+        
+        // Refresh transactions to get updated data
+        await fetchTransactions();
+      } else {
+        // Update only this transaction
+        const { error } = await supabase
+          .from('transactions')
+          .update(transactionData)
+          .eq('id', transaction.id);
+        
+        if (error) throw error;
+        
+        // Atualizar no estado local
+        dispatch({ type: "UPDATE_TRANSACTION", payload: transaction });
+      }
     } catch (error: any) {
       console.error("Erro ao atualizar transação:", error);
       toast.error("Erro ao atualizar transação");
@@ -414,20 +625,62 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   // Excluir uma transação
-  const deleteTransaction = async (id: string) => {
+  const deleteTransaction = async (
+    id: string,
+    deleteOptions?: { deleteAllFuture?: boolean }
+  ) => {
     if (!user) return;
     
     try {
-      // Excluir do Supabase
-      const { error } = await supabase
-        .from('transactions')
-        .delete()
-        .eq('id', id);
+      const transaction = state.transactions.find(t => t.id === id);
       
-      if (error) throw error;
+      if (!transaction) {
+        throw new Error("Transação não encontrada");
+      }
       
-      // Remover do estado local
-      dispatch({ type: "DELETE_TRANSACTION", payload: id });
+      if (deleteOptions?.deleteAllFuture && transaction.isRecurrent) {
+        // Delete this transaction and all future occurrences
+        if (transaction.parentTransactionId) {
+          // This is a child, delete from this date forward
+          const { error } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('parent_transaction_id', transaction.parentTransactionId)
+            .gte('date', transaction.date.toISOString());
+          
+          if (error) throw error;
+        } else {
+          // This is the original, delete all children
+          const { error } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('parent_transaction_id', id);
+          
+          if (error) throw error;
+        }
+        
+        // Now delete this specific transaction
+        const { error: singleError } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', id);
+        
+        if (singleError) throw singleError;
+        
+        // Refresh to get updated data
+        await fetchTransactions();
+      } else {
+        // Just delete this single transaction
+        const { error } = await supabase
+          .from('transactions')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        // Remover do estado local
+        dispatch({ type: "DELETE_TRANSACTION", payload: id });
+      }
     } catch (error: any) {
       console.error("Erro ao excluir transação:", error);
       toast.error("Erro ao excluir transação");
@@ -552,6 +805,32 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       throw error;
     }
   };
+  
+  // Marcar notificação como lida
+  const markNotificationRead = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      // Atualizar no Supabase
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Atualizar no estado local
+      dispatch({ type: "MARK_NOTIFICATION_READ", payload: id });
+    } catch (error: any) {
+      console.error("Erro ao marcar notificação como lida:", error);
+      throw error;
+    }
+  };
+  
+  // Verificar se há notificações não lidas
+  const hasUnreadNotifications = () => {
+    return state.notifications.some(notification => !notification.isRead);
+  };
 
   // Carregar dados quando o usuário estiver autenticado
   useEffect(() => {
@@ -563,6 +842,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fetchTransactions();
       fetchGoals();
       fetchAlerts();
+      fetchNotifications();
       
       // Configurar assinaturas de tempo real para atualizações
       const transactionsChannel = supabase
@@ -597,12 +877,24 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         )
         .subscribe();
+        
+      const notificationsChannel = supabase
+        .channel('public:notifications')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` }, 
+          (payload) => {
+            console.log('Mudança em notificações:', payload);
+            fetchNotifications();
+          }
+        )
+        .subscribe();
       
       // Limpar assinaturas ao desmontar
       return () => {
         supabase.removeChannel(transactionsChannel);
         supabase.removeChannel(goalsChannel);
         supabase.removeChannel(alertsChannel);
+        supabase.removeChannel(notificationsChannel);
       };
     } else {
       console.log("No authenticated user, skipping data fetch");
@@ -611,6 +903,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       dispatch({ type: "SET_TRANSACTIONS", payload: [] });
       dispatch({ type: "SET_GOALS", payload: [] });
       dispatch({ type: "SET_ALERTS", payload: [] });
+      dispatch({ type: "SET_NOTIFICATIONS", payload: [] });
     }
   }, [user]);
 
@@ -732,13 +1025,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         fetchTransactions,
         fetchGoals,
         fetchAlerts,
+        fetchNotifications,
         addTransaction,
         updateTransaction,
         deleteTransaction,
         addGoal,
         updateGoal,
         deleteGoal,
-        markAlertRead
+        markAlertRead,
+        markNotificationRead,
+        hasUnreadNotifications
       }}
     >
       {children}

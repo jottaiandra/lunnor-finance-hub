@@ -75,6 +75,44 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          related_transaction_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_transaction_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_transaction_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_transaction_id_fkey"
+            columns: ["related_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -120,7 +158,14 @@ export type Database = {
           date: string
           description: string
           id: string
+          is_original: boolean | null
+          is_recurrent: boolean | null
+          parent_transaction_id: string | null
           payment_method: string
+          recurrence_end_date: string | null
+          recurrence_frequency: string | null
+          recurrence_interval: number | null
+          recurrence_start_date: string | null
           type: string
           user_id: string
         }
@@ -132,7 +177,14 @@ export type Database = {
           date?: string
           description: string
           id?: string
+          is_original?: boolean | null
+          is_recurrent?: boolean | null
+          parent_transaction_id?: string | null
           payment_method: string
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
+          recurrence_interval?: number | null
+          recurrence_start_date?: string | null
           type: string
           user_id: string
         }
@@ -144,11 +196,26 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          is_original?: boolean | null
+          is_recurrent?: boolean | null
+          parent_transaction_id?: string | null
           payment_method?: string
+          recurrence_end_date?: string | null
+          recurrence_frequency?: string | null
+          recurrence_interval?: number | null
+          recurrence_start_date?: string | null
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_parent_transaction_id_fkey"
+            columns: ["parent_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

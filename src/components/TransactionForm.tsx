@@ -9,10 +9,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, Repeat } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction, TransactionType, PaymentMethod, IncomeCategory, ExpenseCategory } from '@/types';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 interface TransactionFormProps {
   type: TransactionType;
@@ -28,6 +30,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
   const [paymentMethod, setPaymentMethod] = React.useState('');
   const [contact, setContact] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  
+  // Recurrence states
+  const [isRecurrent, setIsRecurrent] = React.useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = React.useState('monthly');
+  const [recurrenceInterval, setRecurrenceInterval] = React.useState('1');
+  const [recurrenceEndDate, setRecurrenceEndDate] = React.useState<Date | undefined>(undefined);
 
   const { toast } = useToast();
   const { addTransaction } = useFinance();
@@ -44,6 +52,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
       return;
     }
 
+    if (isRecurrent && !recurrenceFrequency) {
+      toast({
+        title: "Erro",
+        description: "Selecione a frequência da recorrência.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -54,7 +71,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
         category,
         paymentMethod: paymentMethod as PaymentMethod,
         type,
-        contact: contact || undefined
+        contact: contact || undefined,
+        isRecurrent,
+        recurrenceFrequency: isRecurrent ? recurrenceFrequency : undefined,
+        recurrenceInterval: isRecurrent ? Number(recurrenceInterval) : undefined,
+        recurrenceStartDate: isRecurrent ? date : undefined,
+        recurrenceEndDate: isRecurrent ? recurrenceEndDate : undefined,
+        isOriginal: true
       };
 
       await addTransaction(newTransaction);
@@ -71,6 +94,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
       setCategory('');
       setPaymentMethod('');
       setContact('');
+      setIsRecurrent(false);
+      setRecurrenceFrequency('monthly');
+      setRecurrenceInterval('1');
+      setRecurrenceEndDate(undefined);
 
       if (onSuccess) {
         onSuccess();
@@ -198,6 +225,98 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
               value={contact}
               onChange={(e) => setContact(e.target.value)}
             />
+          </div>
+
+          {/* Recurrence Options */}
+          <div className="space-y-4 pt-2 border-t border-border">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="is-recurrent" 
+                checked={isRecurrent}
+                onCheckedChange={(checked) => setIsRecurrent(checked === true)}
+              />
+              <Label htmlFor="is-recurrent" className="flex items-center">
+                <Repeat className="h-4 w-4 mr-1" />
+                Esta é uma transação recorrente
+              </Label>
+            </div>
+
+            {isRecurrent && (
+              <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="recurrence-frequency">Frequência</Label>
+                    <Select value={recurrenceFrequency} onValueChange={setRecurrenceFrequency}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Diária</SelectItem>
+                        <SelectItem value="weekly">Semanal</SelectItem>
+                        <SelectItem value="biweekly">Quinzenal</SelectItem>
+                        <SelectItem value="monthly">Mensal</SelectItem>
+                        <SelectItem value="yearly">Anual</SelectItem>
+                        <SelectItem value="custom">Personalizada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {recurrenceFrequency === 'custom' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="recurrence-interval">A cada (dias)</Label>
+                      <Input
+                        id="recurrence-interval"
+                        type="number"
+                        min="1"
+                        placeholder="Dias"
+                        value={recurrenceInterval}
+                        onChange={(e) => setRecurrenceInterval(e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="recurrence-end">Data de término (opcional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="recurrence-end"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !recurrenceEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {recurrenceEndDate ? format(recurrenceEndDate, "dd/MM/yyyy") : "Sem data de término"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <div className="p-2">
+                        <Button 
+                          variant="ghost" 
+                          className="text-xs w-full mb-2"
+                          onClick={() => setRecurrenceEndDate(undefined)}
+                        >
+                          Limpar data
+                        </Button>
+                        <Calendar
+                          mode="single"
+                          selected={recurrenceEndDate}
+                          onSelect={setRecurrenceEndDate}
+                          initialFocus
+                          disabled={(date) => date < new Date()}
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco para recorrência contínua
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
