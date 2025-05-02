@@ -8,6 +8,7 @@ import TransactionForm from '@/components/TransactionForm';
 import { TransactionType } from '@/types';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 const TransactionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('all');
@@ -17,7 +18,7 @@ const TransactionsPage: React.FC = () => {
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [fetchTransactions]);
 
   const handleOpenIncomeForm = () => {
     setActiveForm(TransactionType.INCOME);
@@ -31,6 +32,9 @@ const TransactionsPage: React.FC = () => {
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
+    toast.success('Transação registrada com sucesso!');
+    // Recarregar as transações após o registro bem-sucedido
+    fetchTransactions();
   };
 
   const handleTabChange = (value: string) => {
@@ -63,10 +67,16 @@ const TransactionsPage: React.FC = () => {
           <p className="text-muted-foreground">Gerencie suas receitas e despesas.</p>
         </div>
         <div className="flex space-x-2">
-          <Button className="bg-positive hover:bg-positive/80" onClick={handleOpenIncomeForm}>
+          <Button 
+            className="bg-positive hover:bg-positive/80" 
+            onClick={handleOpenIncomeForm}
+          >
             Nova Receita
           </Button>
-          <Button className="bg-negative hover:bg-negative/80" onClick={handleOpenExpenseForm}>
+          <Button 
+            className="bg-negative hover:bg-negative/80" 
+            onClick={handleOpenExpenseForm}
+          >
             Nova Despesa
           </Button>
         </div>
