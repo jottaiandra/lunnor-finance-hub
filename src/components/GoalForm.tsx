@@ -9,8 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Goal } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -28,11 +27,12 @@ const GoalForm: React.FC<GoalFormProps> = ({ onSuccess, onCancel }) => {
   const [period, setPeriod] = React.useState<'weekly' | 'monthly' | 'yearly'>('monthly');
   const [startDate, setStartDate] = React.useState<Date | undefined>(new Date());
   const [endDate, setEndDate] = React.useState<Date | undefined>();
+  const [loading, setLoading] = React.useState(false);
 
   const { toast } = useToast();
-  const { dispatch } = useFinance();
+  const { addGoal } = useFinance();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title || !target || !startDate || !endDate) {
@@ -44,29 +44,47 @@ const GoalForm: React.FC<GoalFormProps> = ({ onSuccess, onCancel }) => {
       return;
     }
 
-    const newGoal: Goal = {
-      id: uuidv4(),
-      title,
-      target: Number(target),
-      current: Number(current) || 0,
-      type,
-      period,
-      startDate,
-      endDate
-    };
+    try {
+      setLoading(true);
 
-    dispatch({
-      type: "ADD_GOAL",
-      payload: newGoal
-    });
+      const newGoal: Omit<Goal, "id"> = {
+        title,
+        target: Number(target),
+        current: Number(current) || 0,
+        type,
+        period,
+        startDate,
+        endDate
+      };
 
-    toast({
-      title: "Sucesso",
-      description: "Meta adicionada com sucesso!"
-    });
+      await addGoal(newGoal);
 
-    if (onSuccess) {
-      onSuccess();
+      toast({
+        title: "Sucesso",
+        description: "Meta adicionada com sucesso!"
+      });
+
+      // Reset form
+      setTitle('');
+      setTarget('');
+      setCurrent('');
+      setType('income');
+      setPeriod('monthly');
+      setStartDate(new Date());
+      setEndDate(undefined);
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error("Erro ao salvar meta:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a meta.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -203,12 +221,19 @@ const GoalForm: React.FC<GoalFormProps> = ({ onSuccess, onCancel }) => {
 
           <div className="flex justify-end space-x-2 pt-4">
             {onCancel && (
-              <Button variant="outline" onClick={onCancel}>
+              <Button variant="outline" onClick={onCancel} type="button" disabled={loading}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit">
-              Adicionar Meta
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                "Adicionar Meta"
+              )}
             </Button>
           </div>
         </form>

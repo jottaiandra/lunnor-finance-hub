@@ -1,16 +1,31 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import GoalsList from '@/components/GoalsList';
 import GoalForm from '@/components/GoalForm';
+import { useFinance } from '@/contexts/FinanceContext';
+import { Loader2 } from 'lucide-react';
 
 const GoalsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const { state, fetchGoals } = useFinance();
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
   };
+
+  if (state.loading.goals) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

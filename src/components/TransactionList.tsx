@@ -14,13 +14,14 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
-import { CalendarIcon, CircleDollarSign, Pencil, Search, Trash } from 'lucide-react';
+import { CalendarIcon, CircleDollarSign, Loader2, Pencil, Search, Trash } from 'lucide-react';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
+import { toast } from '@/components/ui/sonner';
 
 interface TransactionListProps {
   limit?: number;
@@ -29,10 +30,20 @@ interface TransactionListProps {
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = true, title = "Transações Recentes" }) => {
-  const { state, dispatch, getFilteredTransactions } = useFinance();
+  const { state, dispatch, getFilteredTransactions, deleteTransaction } = useFinance();
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
-  const handleDelete = (id: string) => {
-    dispatch({ type: "DELETE_TRANSACTION", payload: id });
+  const handleDelete = async (id: string) => {
+    try {
+      setDeletingId(id);
+      await deleteTransaction(id);
+      toast.success("Transação excluída com sucesso");
+    } catch (error) {
+      console.error("Erro ao excluir transação:", error);
+      toast.error("Erro ao excluir transação");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const clearAllFilters = () => {
@@ -87,6 +98,16 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
   const displayedTransactions = limit ? filteredTransactions.slice(0, limit) : filteredTransactions;
 
   const allCategories = Array.from(new Set(state.transactions.map(t => t.category)));
+
+  if (state.loading.transactions) {
+    return (
+      <Card className="w-full">
+        <div className="p-8 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -186,9 +207,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
           </div>
         )}
 
-        {displayedTransactions.length === 0 ? (
+        {state.transactions.length === 0 && !state.loading.transactions ? (
           <div className="text-center py-8 text-muted-foreground">
-            Nenhuma transação encontrada.
+            Nenhuma transação encontrada. Comece adicionando uma receita ou despesa!
+          </div>
+        ) : displayedTransactions.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhuma transação encontrada com os filtros atuais.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -235,9 +260,19 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                           <DropdownMenuItem 
                             className="flex items-center text-destructive focus:text-destructive" 
                             onClick={() => handleDelete(transaction.id)}
+                            disabled={deletingId === transaction.id}
                           >
-                            <Trash className="h-4 w-4 mr-2" />
-                            Excluir
+                            {deletingId === transaction.id ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Excluindo...
+                              </>
+                            ) : (
+                              <>
+                                <Trash className="h-4 w-4 mr-2" />
+                                Excluir
+                              </>
+                            )}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

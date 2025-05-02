@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,12 +7,17 @@ import TransactionList from '@/components/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import { TransactionType } from '@/types';
 import { useFinance } from '@/contexts/FinanceContext';
+import { Loader2 } from 'lucide-react';
 
 const TransactionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('all');
   const [activeForm, setActiveForm] = React.useState<TransactionType | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { dispatch } = useFinance();
+  const { dispatch, fetchTransactions, state } = useFinance();
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
 
   const handleOpenIncomeForm = () => {
     setActiveForm(TransactionType.INCOME);
@@ -41,6 +46,14 @@ const TransactionsPage: React.FC = () => {
       payload: { type }
     });
   };
+
+  if (state.loading.transactions) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

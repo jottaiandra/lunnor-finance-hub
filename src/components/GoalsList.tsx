@@ -4,20 +4,49 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Progress } from '@/components/ui/progress';
 import { format } from 'date-fns';
-import { AlertCircle, Check, Trash } from 'lucide-react';
+import { AlertCircle, Check, Trash, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
+import { toast } from '@/components/ui/sonner';
 
 const GoalsList: React.FC = () => {
-  const { state, dispatch } = useFinance();
+  const { state, deleteGoal } = useFinance();
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
   
-  const handleDeleteGoal = (id: string) => {
-    dispatch({ type: "DELETE_GOAL", payload: id });
+  const handleDeleteGoal = async (id: string) => {
+    try {
+      setDeletingId(id);
+      await deleteGoal(id);
+      toast.success("Meta excluída com sucesso");
+    } catch (error) {
+      console.error("Erro ao excluir meta:", error);
+      toast.error("Erro ao excluir meta");
+    } finally {
+      setDeletingId(null);
+    }
   };
   
   const calculateProgress = (goal: typeof state.goals[0]) => {
     const percentage = (goal.current / goal.target) * 100;
     return Math.min(100, Math.max(0, percentage));
   };
+  
+  if (state.loading.goals) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  if (state.goals.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Nenhuma meta encontrada. Crie sua primeira meta financeira!</p>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -30,8 +59,17 @@ const GoalsList: React.FC = () => {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{goal.title}</CardTitle>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)}>
-                  <Trash className="h-4 w-4" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleDeleteGoal(goal.id)}
+                  disabled={deletingId === goal.id}
+                >
+                  {deletingId === goal.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </CardHeader>

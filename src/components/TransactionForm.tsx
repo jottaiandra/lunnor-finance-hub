@@ -9,9 +9,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Transaction, TransactionType, PaymentMethod, IncomeCategory, ExpenseCategory } from '@/types';
 
@@ -28,11 +27,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
   const [category, setCategory] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState('');
   const [contact, setContact] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   const { toast } = useToast();
-  const { dispatch } = useFinance();
+  const { addTransaction } = useFinance();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!date || !description || !amount || !category || !paymentMethod) {
@@ -44,29 +44,46 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
       return;
     }
 
-    const newTransaction: Transaction = {
-      id: uuidv4(),
-      date: date,
-      description,
-      amount: Number(amount),
-      category,
-      paymentMethod: paymentMethod as PaymentMethod,
-      type,
-      contact: contact || undefined
-    };
+    try {
+      setLoading(true);
 
-    dispatch({
-      type: "ADD_TRANSACTION",
-      payload: newTransaction
-    });
+      const newTransaction: Omit<Transaction, "id"> = {
+        date: date,
+        description,
+        amount: Number(amount),
+        category,
+        paymentMethod: paymentMethod as PaymentMethod,
+        type,
+        contact: contact || undefined
+      };
 
-    toast({
-      title: "Sucesso",
-      description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
-    });
+      await addTransaction(newTransaction);
 
-    if (onSuccess) {
-      onSuccess();
+      toast({
+        title: "Sucesso",
+        description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
+      });
+
+      // Reset form
+      setDate(new Date());
+      setDescription('');
+      setAmount('');
+      setCategory('');
+      setPaymentMethod('');
+      setContact('');
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error("Erro ao salvar transação:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a transação.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,12 +202,23 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
 
           <div className="flex justify-end space-x-2 pt-4">
             {onCancel && (
-              <Button variant="outline" onClick={onCancel}>
+              <Button variant="outline" onClick={onCancel} type="button" disabled={loading}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit" className={type === TransactionType.INCOME ? "bg-positive hover:bg-positive/80" : "bg-negative hover:bg-negative/80"}>
-              {type === TransactionType.INCOME ? "Adicionar Receita" : "Adicionar Despesa"}
+            <Button 
+              type="submit" 
+              className={type === TransactionType.INCOME ? "bg-positive hover:bg-positive/80" : "bg-negative hover:bg-negative/80"}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                type === TransactionType.INCOME ? "Adicionar Receita" : "Adicionar Despesa"
+              )}
             </Button>
           </div>
         </form>
