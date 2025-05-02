@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,8 @@ import { TransactionType } from '@/types';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import TransactionList from './TransactionList';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const OverviewCard = ({ title, amount, icon, colorClass, isNegative = false }: { 
   title: string; 
@@ -36,19 +38,54 @@ const OverviewCard = ({ title, amount, icon, colorClass, isNegative = false }: {
 
 const Dashboard: React.FC = () => {
   const { getTotalIncome, getTotalExpense, getCurrentBalance, state } = useFinance();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = React.useState('overview');
+  const [userName, setUserName] = useState<string>('');
   
   const balance = getCurrentBalance();
   const totalIncomeMonth = getTotalIncome('month');
   const totalExpenseMonth = getTotalExpense('month');
   
-  // Prepare data for charts
-  const barChartData = [
-    { name: 'Receitas', value: totalIncomeMonth, fill: '#28a745' },
-    { name: 'Despesas', value: totalExpenseMonth, fill: '#dc3545' },
-  ];
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (user) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            if (data.first_name || data.last_name) {
+              setUserName(data.first_name || '');
+            } else {
+              // If no name is found, use email
+              setUserName(user.email?.split('@')[0] || 'Usuário');
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao buscar nome do usuário:', error);
+          // Fallback to email if error
+          setUserName(user.email?.split('@')[0] || 'Usuário');
+        }
+      }
+    };
+    
+    fetchUserName();
+  }, [user]);
   
-  // Create category summary for pie chart
+  // Prepare data for charts (fixed to ensure all months are shown)
+  const getBarChartData = () => {
+    return [
+      { name: 'Receitas', value: totalIncomeMonth, fill: '#28a745' },
+      { name: 'Despesas', value: totalExpenseMonth, fill: '#dc3545' },
+    ];
+  };
+  
+  // Create category summary for pie chart with improved handling
   const getCategorySummary = () => {
     const categorySummary: Record<string, number> = {};
     const monthlyExpenses = state.transactions.filter(t => 
@@ -69,15 +106,25 @@ const Dashboard: React.FC = () => {
     }));
   };
   
+  const barChartData = getBarChartData();
   const pieChartData = getCategorySummary();
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A28BFF', '#FF6B6B'];
   
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">Confira o resumo das suas finanças.</p>
       </div>
+      
+      {/* Welcome message */}
+      <Card className="mb-6">
+        <CardContent className="py-4">
+          <h2 className="text-xl font-medium">
+            Seja bem-vindo(a), {userName}!
+          </h2>
+        </CardContent>
+      </Card>
       
       <div className="grid gap-4 md:grid-cols-3">
         <OverviewCard 

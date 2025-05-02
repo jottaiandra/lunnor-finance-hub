@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,19 +22,19 @@ const ExportData: React.FC = () => {
   const [exportFormat, setExportFormat] = useState<'excel' | 'pdf'>('excel');
   const [isExporting, setIsExporting] = useState(false);
 
-  const { state, getFilteredTransactions } = useFinance();
+  const { state } = useFinance();
 
   const getDataToExport = () => {
     let transactions = state.transactions || [];
     
-    // Filtrar por tipo de transação
+    // Filter by transaction type
     if (dataType === 'income') {
       transactions = transactions.filter(t => t.type === 'income');
     } else if (dataType === 'expense') {
       transactions = transactions.filter(t => t.type === 'expense');
     }
     
-    // Filtrar por data
+    // Filter by date
     if (startDate) {
       transactions = transactions.filter(t => new Date(t.date) >= startDate);
     }
@@ -41,7 +42,7 @@ const ExportData: React.FC = () => {
       transactions = transactions.filter(t => new Date(t.date) <= endDate);
     }
     
-    // Mapear para o formato de exportação
+    // Map to the export format
     return transactions.map(t => ({
       Tipo: t.type === 'income' ? 'Receita' : 'Despesa',
       Descrição: t.description,
@@ -65,15 +66,15 @@ const ExportData: React.FC = () => {
         return;
       }
       
-      // Criar uma nova planilha
+      // Create a new spreadsheet
       const ws = XLSX.utils.json_to_sheet(data);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Transações");
       
-      // Gerar nome do arquivo com data
+      // Generate filename with date
       const fileName = `transacoes_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
       
-      // Salvar arquivo
+      // Save file
       XLSX.writeFile(wb, fileName);
       
       toast.success("Exportação concluída", {
@@ -101,14 +102,14 @@ const ExportData: React.FC = () => {
         return;
       }
       
-      // Criar documento PDF
+      // Create PDF document
       const doc = new jsPDF();
       
-      // Adicionar título
+      // Add title
       doc.setFontSize(18);
       doc.text("Relatório de Transações", 14, 22);
       
-      // Adicionar filtros aplicados
+      // Add applied filters
       doc.setFontSize(11);
       let yPos = 30;
       
@@ -126,11 +127,11 @@ const ExportData: React.FC = () => {
         yPos += 6;
       }
       
-      // Adicionar data e hora da exportação
+      // Add export date and time
       doc.text(`Exportado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, yPos);
       yPos += 10;
       
-      // Preparar dados para a tabela
+      // Prepare data for the table
       const tableColumn = ["Tipo", "Descrição", "Categoria", "Valor", "Data"];
       const tableRows = data.map(item => [
         item.Tipo,
@@ -140,7 +141,7 @@ const ExportData: React.FC = () => {
         item.Data
       ]);
       
-      // Usar autoTable com tipagem correta
+      // Use autoTable with correct typing
       doc.autoTable({
         startY: yPos,
         head: [tableColumn],
@@ -150,10 +151,10 @@ const ExportData: React.FC = () => {
         styles: { fontSize: 9 }
       });
       
-      // Gerar nome do arquivo com data
+      // Generate filename with date
       const fileName = `transacoes_${format(new Date(), 'dd-MM-yyyy')}.pdf`;
       
-      // Salvar arquivo
+      // Save file
       doc.save(fileName);
       
       toast.success("Exportação concluída", {
@@ -162,7 +163,7 @@ const ExportData: React.FC = () => {
     } catch (error) {
       console.error("Erro ao exportar PDF:", error);
       toast.error("Erro na exportação", {
-        description: "Ocorreu um erro ao exportar os dados para PDF."
+        description: "Ocorreu um erro ao exportar os dados para PDF. Verifique se a biblioteca jspdf-autotable está instalada corretamente."
       });
     } finally {
       setIsExporting(false);

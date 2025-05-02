@@ -21,6 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const { user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState('UN');
   const [navItems, setNavItems] = useState([
     { title: 'Dashboard', icon: <Home size={20} />, href: '/app' },
     { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/app/transactions' },
@@ -44,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
         const isUserAdmin = data || false;
         setIsAdmin(isUserAdmin);
         
-        // Atualizar os itens de navegação se for admin
+        // Update navigation items if admin
         if (isUserAdmin && !navItems.some(item => item.title === 'Administração')) {
           setNavItems(prev => [
             ...prev,
@@ -60,10 +61,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       if (!user) return;
       
       try {
-        // Verificando se o perfil existe antes de buscar a imagem
+        // Check if profile exists before fetching the image
         const { data, error } = await supabase
           .from('profiles')
-          .select('profile_image_url')
+          .select('profile_image_url, first_name, last_name, email')
           .eq('id', user.id)
           .maybeSingle();
           
@@ -72,9 +73,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           return;
         }
         
-        // Verificar se o data existe e tem a propriedade profile_image_url
-        if (data && 'profile_image_url' in data && data.profile_image_url) {
-          setProfileImage(data.profile_image_url);
+        // Check if data exists and has the profile_image_url property
+        if (data) {
+          if (data.profile_image_url) {
+            setProfileImage(data.profile_image_url);
+          }
+          
+          // Set initials based on name or email
+          if (data.first_name && data.last_name) {
+            setUserInitials(`${data.first_name.charAt(0)}${data.last_name.charAt(0)}`);
+          } else if (data.first_name) {
+            setUserInitials(data.first_name.substring(0, 2).toUpperCase());
+          } else if (user.email) {
+            setUserInitials(user.email.substring(0, 2).toUpperCase());
+          }
         }
       } catch (error) {
         console.error('Erro ao buscar imagem de perfil:', error);
@@ -87,6 +99,32 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     }
   }, [user?.id]);
 
+  // Set up a subscription to profile changes to update the image in real-time
+  useEffect(() => {
+    if (!user) return;
+    
+    const profileChanges = supabase
+      .channel('profile-changes')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        }, 
+        (payload) => {
+          if (payload.new && 'profile_image_url' in payload.new) {
+            setProfileImage(payload.new.profile_image_url as string);
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(profileChanges);
+    };
+  }, [user?.id]);
+
   const handleSignOut = () => {
     signOut();
   };
@@ -94,10 +132,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   if (isMobile && isCollapsed) {
     return null;
   }
-
-  const userInitials = user?.email 
-    ? user.email.substring(0, 2).toUpperCase() 
-    : 'UN';
 
   return (
     <div className={cn(
@@ -164,14 +198,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-red-500" 
-                    onClick={handleSignOut}
-                  >
-                    <LogOut size={20} />
-                  </Button>
+                  <div className="flex flex-col items-center gap-2">
+                    <Avatar className="h-10 w-10">
+                      {profileImage ? (
+                        <AvatarImage src={profileImage} alt="Foto de perfil" />
+                      ) : (
+                        <AvatarFallback className="bg-primary text-white">
+                          {userInitials}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-red-500" 
+                      onClick={handleSignOut}
+                    >
+                      <LogOut size={20} />
+                    </Button>
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent side="right">Sair da conta</TooltipContent>
               </Tooltip>

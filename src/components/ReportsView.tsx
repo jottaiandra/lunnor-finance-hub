@@ -13,15 +13,16 @@ const ReportsView: React.FC = () => {
   const { state } = useFinance();
   const [activeTab, setActiveTab] = React.useState('overview');
   
-  // Helper to group transactions by month
+  // Helper to group transactions by month - improved to ensure all months are shown
   const getMonthlyData = () => {
-    const now = new Date();
     const monthlyData = [];
+    const now = new Date();
     
-    // Create data for last 6 months
+    // Create data for last 6 months, ensuring all months are included
     for (let i = 5; i >= 0; i--) {
       const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const monthName = month.toLocaleDateString('pt-BR', { month: 'short' });
+      const monthYear = month.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
       
       const income = state.transactions
         .filter(t => 
@@ -40,7 +41,9 @@ const ReportsView: React.FC = () => {
         .reduce((sum, t) => sum + t.amount, 0);
       
       monthlyData.push({
-        name: monthName,
+        name: monthYear, // Include year in label for clarity
+        month: month.getMonth(),
+        year: month.getFullYear(),
         income,
         expense,
         balance: income - expense
@@ -50,42 +53,50 @@ const ReportsView: React.FC = () => {
     return monthlyData;
   };
   
-  // Get income by category
+  // Get income by category with improved handling
   const getIncomeByCategory = () => {
     const categorySummary: Record<string, number> = {};
     
     state.transactions
       .filter(t => t.type === TransactionType.INCOME)
       .forEach(transaction => {
-        if (!categorySummary[transaction.category]) {
-          categorySummary[transaction.category] = 0;
+        const category = transaction.category || 'Não categorizado';
+        if (!categorySummary[category]) {
+          categorySummary[category] = 0;
         }
-        categorySummary[transaction.category] += transaction.amount;
+        categorySummary[category] += transaction.amount;
       });
     
-    return Object.entries(categorySummary).map(([name, value]) => ({
+    // Ensure we return data even if empty
+    const result = Object.entries(categorySummary).map(([name, value]) => ({
       name,
       value
     }));
+    
+    return result.length ? result : [{ name: 'Sem dados', value: 0 }];
   };
   
-  // Get expense by category
+  // Get expense by category with improved handling
   const getExpenseByCategory = () => {
     const categorySummary: Record<string, number> = {};
     
     state.transactions
       .filter(t => t.type === TransactionType.EXPENSE)
       .forEach(transaction => {
-        if (!categorySummary[transaction.category]) {
-          categorySummary[transaction.category] = 0;
+        const category = transaction.category || 'Não categorizado';
+        if (!categorySummary[category]) {
+          categorySummary[category] = 0;
         }
-        categorySummary[transaction.category] += transaction.amount;
+        categorySummary[category] += transaction.amount;
       });
     
-    return Object.entries(categorySummary).map(([name, value]) => ({
+    // Ensure we return data even if empty
+    const result = Object.entries(categorySummary).map(([name, value]) => ({
       name,
       value
     }));
+    
+    return result.length ? result : [{ name: 'Sem dados', value: 0 }];
   };
   
   const monthlyData = getMonthlyData();
@@ -170,7 +181,7 @@ const ReportsView: React.FC = () => {
                     outerRadius={120}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => percent > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
                   >
                     {incomeByCategory.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -180,6 +191,11 @@ const ReportsView: React.FC = () => {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              {incomeByCategory.length === 1 && incomeByCategory[0].name === 'Sem dados' && (
+                <div className="text-center mt-4 text-muted-foreground">
+                  Não há dados de receita para exibir
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -200,7 +216,7 @@ const ReportsView: React.FC = () => {
                     outerRadius={120}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => percent > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''}
                   >
                     {expenseByCategory.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -210,6 +226,11 @@ const ReportsView: React.FC = () => {
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
+              {expenseByCategory.length === 1 && expenseByCategory[0].name === 'Sem dados' && (
+                <div className="text-center mt-4 text-muted-foreground">
+                  Não há dados de despesas para exibir
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
