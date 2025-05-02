@@ -30,7 +30,8 @@ const GoalsList: React.FC = () => {
     return Math.min(100, Math.max(0, percentage));
   };
   
-  if (state.loading.goals) {
+  // Verificação adicional para garantir que state.goals existe antes de tentar acessá-lo
+  if (!state.goals || state.loading.goals) {
     return (
       <div className="flex justify-center items-center h-40">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
