@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import GoalsList from '@/components/GoalsList';
@@ -7,24 +7,35 @@ import GoalForm from '@/components/GoalForm';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const GoalsPage: React.FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { state, fetchGoals } = useFinance();
+  const [fetchAttempted, setFetchAttempted] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   
-  // Load goals when the component mounts
+  // Load goals only once when the component mounts
   useEffect(() => {
+    if (fetchAttempted) return; // Prevent multiple fetch attempts
+
     console.log("GoalsPage mounted, fetching goals...");
+    setFetchAttempted(true);
+    
     fetchGoals().catch(error => {
       console.error("Error in initial goals fetch:", error);
+      setFetchError("Erro ao carregar metas. Por favor, tente novamente.");
       toast.error("Erro ao carregar metas. Por favor, tente novamente.");
     });
-  }, [fetchGoals]);
+  }, [fetchGoals, fetchAttempted]);
 
   const handleRefresh = () => {
+    setFetchError(null);
     toast.info("Recarregando metas...");
+    
     fetchGoals().catch(error => {
       console.error("Error refreshing goals:", error);
+      setFetchError("Erro ao recarregar metas");
       toast.error("Erro ao recarregar metas");
     });
   };
@@ -61,14 +72,34 @@ const GoalsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Display error message if fetch failed */}
+      {fetchError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertTitle>Erro</AlertTitle>
+          <AlertDescription>
+            {fetchError}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh} 
+              className="ml-2"
+            >
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Pass the loading state directly to GoalsList */}
       <GoalsList />
       
-      {/* Debug information */}
-      <div className="text-xs text-muted-foreground mt-8">
-        <p>Estado de carregamento: {state.loading.goals ? 'Carregando' : 'Pronto'}</p>
-        <p>Metas carregadas: {state.goals.length}</p>
-      </div>
+      {/* Debug information - only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-muted-foreground mt-8">
+          <p>Estado de carregamento: {state.loading.goals ? 'Carregando' : 'Pronto'}</p>
+          <p>Metas carregadas: {state.goals.length}</p>
+        </div>
+      )}
     </div>
   );
 };
