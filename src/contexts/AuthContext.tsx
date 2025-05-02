@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/');
+          navigate('/app');
           toast.success('Login realizado com sucesso!');
         }
         

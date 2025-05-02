@@ -19,6 +19,7 @@ import ExportPage from "@/pages/ExportPage";
 import AdminPage from "@/pages/AdminPage";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ProfilePage from "@/pages/ProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="goals" element={<GoalsPage />} />
               <Route path="export" element={<ExportPage />} />
               <Route path="admin" element={<AdminPage />} />
+              <Route path="profile" element={<ProfilePage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

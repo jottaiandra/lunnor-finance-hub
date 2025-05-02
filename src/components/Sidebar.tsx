@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ChartPie, CircleDollarSign, FileText, Flag, Home, LogOut, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChartPie, CircleDollarSign, FileText, Flag, Home, LogOut, Users, ChevronLeft, ChevronRight, UserCircle } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from './ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Avatar, AvatarFallback } from './ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const isMobile = useIsMobile();
   const { user, signOut } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -34,20 +35,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       }
     };
     
+    const fetchProfileImage = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('profile_image_url')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        if (data && data.profile_image_url) {
+          setProfileImage(data.profile_image_url);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar imagem de perfil:', error);
+      }
+    };
+    
     checkAdminStatus();
+    fetchProfileImage();
   }, [user]);
 
   const navItems = [
-    { title: 'Dashboard', icon: <Home size={20} />, href: '/' },
-    { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/transactions' },
-    { title: 'Relatórios', icon: <ChartPie size={20} />, href: '/reports' },
-    { title: 'Metas', icon: <Flag size={20} />, href: '/goals' },
-    { title: 'Exportar', icon: <FileText size={20} />, href: '/export' },
+    { title: 'Dashboard', icon: <Home size={20} />, href: '/app' },
+    { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/app/transactions' },
+    { title: 'Relatórios', icon: <ChartPie size={20} />, href: '/app/reports' },
+    { title: 'Metas', icon: <Flag size={20} />, href: '/app/goals' },
+    { title: 'Exportar', icon: <FileText size={20} />, href: '/app/export' },
+    { title: 'Perfil', icon: <UserCircle size={20} />, href: '/app/profile' },
   ];
 
   // Adiciona item de administração apenas se o usuário for admin
   if (isAdmin) {
-    navItems.push({ title: 'Administração', icon: <Users size={20} />, href: '/admin' });
+    navItems.push({ title: 'Administração', icon: <Users size={20} />, href: '/app/admin' });
   }
 
   const handleSignOut = () => {
@@ -103,9 +125,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           {!isCollapsed ? (
             <div className="flex items-center space-x-3">
               <Avatar>
-                <AvatarFallback className="bg-primary text-white">
-                  {userInitials}
-                </AvatarFallback>
+                {profileImage ? (
+                  <AvatarImage src={profileImage} alt="Foto de perfil" />
+                ) : (
+                  <AvatarFallback className="bg-primary text-white">
+                    {userInitials}
+                  </AvatarFallback>
+                )}
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{user?.email}</p>
