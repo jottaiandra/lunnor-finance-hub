@@ -58,9 +58,9 @@ const HomePage: React.FC = () => {
             </div>
             <div className="hidden md:block">
               <img 
-                src="/placeholder.svg" 
-                className="w-full max-w-lg mx-auto" 
-                alt="Dashboard ilustrativo" 
+                src="/assets/finance-dashboard.jpg" 
+                className="w-full max-w-lg mx-auto rounded-lg shadow-xl" 
+                alt="Dashboard financeiro" 
               />
             </div>
           </div>
