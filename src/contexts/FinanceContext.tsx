@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Transaction } from "@/types";
+import { Transaction, Goal } from "@/types";
 import { FinanceContextType } from "./finance/types";
 import { initialState, financeReducer } from "./finance/reducer";
 import { 
@@ -47,9 +46,8 @@ const FinanceContext = createContext<FinanceContextType>({
   addTransaction: async () => {},
   updateTransaction: async () => {},
   deleteTransaction: async () => {},
-  addGoal: async () => {},
-  updateGoal: async () => {},
-  deleteGoal: async () => {},
+  addGoal: async (goal: Omit<Goal, "id">) => null,
+  updateGoal: async (goal: Goal) => null,
   markAlertRead: async () => {},
   markNotificationRead: async () => {},
   hasUnreadNotifications: () => false
@@ -121,11 +119,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     await fetchGoals(user.id, dispatch);
   };
 
-  const handleAddGoal = async (goalData: Omit<any, "id">) => {
+  const handleAddGoal = async (goal: Omit<Goal, "id">): Promise<Goal | null> => {
     if (!user) return null;
     try {
       // Make sure addGoal returns the actual goal object
-      const newGoal = await addGoal(goalData, user.id, dispatch);
+      const newGoal = await addGoal(goal, user.id, dispatch);
       
       // Send WhatsApp notification for new goal
       if (newGoal && typeof newGoal === 'object') {
@@ -143,11 +141,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  const handleUpdateGoal = async (goalData: any) => {
+  const handleUpdateGoal = async (goal: Goal): Promise<Goal | null> => {
     if (!user) return null;
     try {
       // Make sure updateGoal returns the actual goal object
-      const updatedGoal = await updateGoal(goalData, user.id, dispatch);
+      const updatedGoal = await updateGoal(goal, user.id, dispatch);
       
       // Send WhatsApp notification for goal updates
       if (updatedGoal && typeof updatedGoal === 'object') {
@@ -177,11 +175,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.error("Error in handleUpdateGoal:", error);
       return null;
     }
-  };
-
-  const handleDeleteGoal = async (id: string) => {
-    if (!user) return;
-    await deleteGoal(id, user.id, dispatch);
   };
 
   // Handle notification functions
