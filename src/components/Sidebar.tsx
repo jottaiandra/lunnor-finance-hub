@@ -2,9 +2,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ChartPie, CircleDollarSign, FileText, Flag, Home } from 'lucide-react';
+import { ChartPie, CircleDollarSign, FileText, Flag, Home, LogOut, User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from './ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,6 +17,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { title: 'Dashboard', icon: <Home size={20} />, href: '/' },
@@ -23,9 +27,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
     { title: 'Exportar', icon: <FileText size={20} />, href: '/export' },
   ];
 
+  const handleSignOut = () => {
+    signOut();
+  };
+
   if (isMobile && isCollapsed) {
     return null;
   }
+
+  const userInitials = user?.email 
+    ? user.email.substring(0, 2).toUpperCase() 
+    : 'UN';
 
   return (
     <div className={cn(
@@ -64,12 +76,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
       </nav>
 
       <div className="p-4 border-t">
-        {!isCollapsed && (
-          <div className="text-sm text-gray-500">
-            <p className="font-medium">Lunnor Caixa</p>
-            <p>v1.0.0</p>
-          </div>
-        )}
+        <div className="flex items-center justify-between">
+          {!isCollapsed ? (
+            <div className="flex items-center space-x-3">
+              <Avatar>
+                <AvatarFallback className="bg-primary text-white">
+                  {userInitials}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium">{user?.email}</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-500 p-0 h-auto text-xs hover:text-red-600 hover:bg-transparent"
+                  onClick={handleSignOut}
+                >
+                  Sair da conta
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-red-500" 
+                    onClick={handleSignOut}
+                  >
+                    <LogOut size={20} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Sair da conta</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </div>
     </div>
   );
