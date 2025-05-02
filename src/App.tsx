@@ -20,6 +20,7 @@ import AdminPage from "@/pages/AdminPage";
 import NotFound from "@/pages/NotFound";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ProfilePage from "@/pages/ProfilePage";
+import WhatsAppPage from "@/pages/WhatsAppPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="export" element={<ExportPage />} />
               <Route path="admin" element={<AdminPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="whatsapp" element={<WhatsAppPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

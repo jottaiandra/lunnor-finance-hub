@@ -217,6 +217,102 @@ export type Database = {
           },
         ]
       }
+      whatsapp_config: {
+        Row: {
+          api_token: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          notification_frequency: string
+          recipient_numbers: string[]
+          sender_number: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          api_token: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_frequency?: string
+          recipient_numbers: string[]
+          sender_number: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          api_token?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_frequency?: string
+          recipient_numbers?: string[]
+          sender_number?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_logs: {
+        Row: {
+          error_message: string | null
+          event_type: string
+          id: string
+          message: string
+          recipient: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_type: string
+          id?: string
+          message: string
+          recipient: string
+          sent_at?: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          message?: string
+          recipient?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      whatsapp_templates: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          message_template: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          message_template: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          message_template?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

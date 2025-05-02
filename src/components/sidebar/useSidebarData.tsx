@@ -1,129 +1,116 @@
 
-import { useState, useEffect } from 'react';
-import { ChartPie, CircleDollarSign, FileText, Flag, Home, Users, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Home, Receipt, BarChart3, Target, FileDown, Shield, UserCircle, MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { NavItem } from './types';
 
 export const useSidebarData = () => {
   const { user, signOut } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [userInitials, setUserInitials] = useState('UN');
-  const [navItems, setNavItems] = useState<NavItem[]>([
-    { title: 'Dashboard', icon: <Home size={20} />, href: '/app' },
-    { title: 'Transações', icon: <CircleDollarSign size={20} />, href: '/app/transactions' },
-    { title: 'Relatórios', icon: <ChartPie size={20} />, href: '/app/reports' },
-    { title: 'Metas', icon: <Flag size={20} />, href: '/app/goals' },
-    { title: 'Exportar', icon: <FileText size={20} />, href: '/app/export' },
-    { title: 'Perfil', icon: <UserCircle size={20} />, href: '/app/profile' },
-  ]);
+  const [userInitials, setUserInitials] = useState<string>('');
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase.rpc('is_admin', { user_id: user.id });
-        if (error) {
-          console.error('Erro ao verificar status de admin:', error);
-          return;
-        }
-        
-        const isUserAdmin = data || false;
-        setIsAdmin(isUserAdmin);
-        
-        // Update navigation items if admin
-        if (isUserAdmin && !navItems.some(item => item.title === 'Administração')) {
-          setNavItems(prev => [
-            ...prev,
-            { title: 'Administração', icon: <Users size={20} />, href: '/app/admin' }
-          ]);
-        }
-      } catch (error) {
-        console.error('Erro ao verificar status de admin:', error);
-      }
-    };
-    
-    const fetchProfileImage = async () => {
-      if (!user) return;
-      
-      try {
-        // Check if profile exists before fetching the image
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('profile_image_url, first_name, last_name, email')
-          .eq('id', user.id)
-          .maybeSingle();
-          
-        if (error) {
-          console.error('Erro ao buscar imagem de perfil:', error);
-          return;
-        }
-        
-        // Check if data exists and has the profile_image_url property
-        if (data) {
-          if (data.profile_image_url) {
-            setProfileImage(data.profile_image_url);
-          } else {
-            setProfileImage(null);
-          }
-          
-          // Set initials based on name or email
-          if (data.first_name && data.last_name) {
-            setUserInitials(`${data.first_name.charAt(0)}${data.last_name.charAt(0)}`);
-          } else if (data.first_name) {
-            setUserInitials(data.first_name.substring(0, 2).toUpperCase());
-          } else if (user.email) {
-            setUserInitials(user.email.substring(0, 2).toUpperCase());
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao buscar imagem de perfil:', error);
-      }
-    };
-    
     if (user) {
-      checkAdminStatus();
-      fetchProfileImage();
-    }
-  }, [user?.id]);
+      const fetchProfileData = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, profile_image_url')
+            .eq('id', user.id)
+            .single();
 
-  // Set up a subscription to profile changes to update the image in real-time
-  useEffect(() => {
-    if (!user) return;
-    
-    const profileChanges = supabase
-      .channel('profile-changes')
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'profiles',
-          filter: `id=eq.${user.id}`
-        }, 
-        (payload) => {
-          if (payload.new && 'profile_image_url' in payload.new) {
-            setProfileImage(payload.new.profile_image_url as string);
+          if (error) throw error;
+
+          if (data) {
+            if (data.profile_image_url) {
+              setProfileImage(data.profile_image_url);
+            }
+
+            let initials = '';
+            if (data.first_name) {
+              initials += data.first_name[0].toUpperCase();
+            }
+            if (data.last_name) {
+              initials += data.last_name[0].toUpperCase();
+            }
+
+            if (initials) {
+              setUserInitials(initials);
+            } else if (user.email) {
+              setUserInitials(user.email[0].toUpperCase());
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+          if (user.email) {
+            setUserInitials(user.email[0].toUpperCase());
           }
         }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(profileChanges);
-    };
-  }, [user?.id]);
+      };
 
-  const handleSignOut = () => {
-    signOut();
+      fetchProfileData();
+    }
+  }, [user]);
+
+  const navItems: NavItem[] = [
+    {
+      title: 'Dashboard',
+      href: '/app',
+      icon: <Home className="h-5 w-5" />
+    },
+    {
+      title: 'Transações',
+      href: '/app/transactions',
+      icon: <Receipt className="h-5 w-5" />
+    },
+    {
+      title: 'Relatórios',
+      href: '/app/reports',
+      icon: <BarChart3 className="h-5 w-5" />
+    },
+    {
+      title: 'Metas',
+      href: '/app/goals',
+      icon: <Target className="h-5 w-5" />
+    },
+    {
+      title: 'Exportar Dados',
+      href: '/app/export',
+      icon: <FileDown className="h-5 w-5" />
+    },
+    {
+      title: 'WhatsApp',
+      href: '/app/whatsapp',
+      icon: <MessageCircle className="h-5 w-5" />
+    },
+    {
+      title: 'Perfil',
+      href: '/app/profile',
+      icon: <UserCircle className="h-5 w-5" />
+    }
+  ];
+
+  // Only show admin link if user has admin role
+  if (user) {
+    navItems.push({
+      title: 'Admin',
+      href: '/app/admin',
+      icon: <Shield className="h-5 w-5" />
+    });
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   return {
-    isAdmin,
+    navItems,
     profileImage,
     userInitials,
-    navItems,
     handleSignOut
   };
 };

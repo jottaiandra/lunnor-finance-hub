@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +30,7 @@ import {
   getTotalExpense,
   getCurrentBalance
 } from "./finance/statsService";
+import { processNotification } from "./finance/whatsappService";
 
 const FinanceContext = createContext<FinanceContextType>({
   state: initialState,
@@ -70,6 +70,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (!user) return;
     const newTransaction = await addTransaction(transactionData, user.id, dispatch);
     
+    // Send WhatsApp notification
+    if (newTransaction) {
+      const eventType = newTransaction.type === 'income' ? 'new_income' : 'new_expense';
+      await processNotification(user.id, eventType, {
+        descricao: newTransaction.description,
+        valor: newTransaction.amount,
+        categoria: newTransaction.category,
+        data: newTransaction.date,
+        nome: user.email?.split('@')[0] || 'Usuário'
+      });
+    }
+    
     // If this is a recurring transaction, generate future occurrences
     if (newTransaction?.isRecurrent && newTransaction?.recurrenceFrequency) {
       const newTransactions = await generateRecurringTransactions(newTransaction, user.id, dispatch);
@@ -86,6 +98,15 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const handleUpdateTransaction = async (transaction: Transaction, updateOptions?: { updateAllFuture?: boolean }) => {
     if (!user) return;
     await updateTransaction(transaction, user.id, dispatch, updateOptions);
+    
+    // Send WhatsApp notification for transaction updates
+    await processNotification(user.id, 'transaction_updated', {
+      descricao: transaction.description,
+      valor: transaction.amount,
+      categoria: transaction.category,
+      data: transaction.date,
+      nome: user.email?.split('@')[0] || 'Usuário'
+    });
   };
 
   const handleDeleteTransaction = async (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => {
@@ -101,12 +122,42 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const handleAddGoal = async (goalData: Omit<any, "id">) => {
     if (!user) return;
-    await addGoal(goalData, user.id, dispatch);
+    const newGoal = await addGoal(goalData, user.id, dispatch);
+    
+    // Send WhatsApp notification for new goal
+    if (newGoal) {
+      await processNotification(user.id, 'goal_updated', {
+        titulo: newGoal.title,
+        progresso: 0,
+        nome: user.email?.split('@')[0] || 'Usuário'
+      });
+    }
   };
 
   const handleUpdateGoal = async (goalData: any) => {
     if (!user) return;
-    await updateGoal(goalData, user.id, dispatch);
+    const updatedGoal = await updateGoal(goalData, user.id, dispatch);
+    
+    // Send WhatsApp notification for goal updates
+    if (updatedGoal) {
+      const progress = Math.round((updatedGoal.current / updatedGoal.target) * 100);
+      
+      // If goal is achieved, send achievement notification
+      if (updatedGoal.current >= updatedGoal.target) {
+        await processNotification(user.id, 'goal_achieved', {
+          titulo: updatedGoal.title,
+          progresso: progress,
+          nome: user.email?.split('@')[0] || 'Usuário'
+        });
+      } else {
+        // Otherwise send regular update notification
+        await processNotification(user.id, 'goal_updated', {
+          titulo: updatedGoal.title,
+          progresso: progress,
+          nome: user.email?.split('@')[0] || 'Usuário'
+        });
+      }
+    }
   };
 
   const handleDeleteGoal = async (id: string) => {
@@ -167,6 +218,48 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       handleFetchGoals();
       handleFetchAlerts();
       handleFetchNotifications();
+      
+      // Check for upcoming expenses and send WhatsApp notification if needed
+      const checkUpcomingExpenses = async () => {
+        const today = new Date();
+        const threeDaysLater = new Date();
+        threeDaysLater.setDate(today.getDate() + 3);
+        
+        const upcomingExpenses = state.transactions.filter(t => 
+          t.type === 'expense' && 
+          new Date(t.date) >= today && 
+          new Date(t.date) <= threeDaysLater
+        );
+        
+        if (upcomingExpenses.length > 0) {
+          const total = upcomingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+          await processNotification(user.id, 'upcoming_expense', {
+            count: upcomingExpenses.length,
+            valor: total,
+            nome: user.email?.split('@')[0] || 'Usuário'
+          });
+        }
+      };
+      
+      // Check balance threshold and send notification if necessary
+      const checkBalanceThreshold = async () => {
+        const balance = getCurrentBalance(state.transactions);
+        // Default threshold is 1000, but this could be configurable
+        const threshold = 1000; 
+        
+        if (balance < threshold) {
+          await processNotification(user.id, 'low_balance', {
+            valor: balance,
+            nome: user.email?.split('@')[0] || 'Usuário'
+          });
+        }
+      };
+      
+      // Run initial checks
+      setTimeout(() => {
+        checkUpcomingExpenses();
+        checkBalanceThreshold();
+      }, 2000); // Delay to ensure data is loaded
       
       // Set up real-time subscriptions for updates
       const transactionsChannel = supabase
