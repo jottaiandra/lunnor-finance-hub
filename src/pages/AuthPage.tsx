@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -71,10 +70,12 @@ const AuthPage: React.FC = () => {
     defaultValues: { email: '' },
   });
 
+  // Ensure the user is redirected to the app route
   const onLogin = async (data: LoginFormValues) => {
     setIsProcessing(true);
     try {
       await signIn(data.email, data.password);
+      // This redirect will be handled by the AuthContext onAuthStateChange
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -102,6 +103,7 @@ const AuthPage: React.FC = () => {
       
       // Se chegou aqui, é um admin, então faz login
       await signIn(data.email, data.password);
+      // Redirect is handled by AuthContext
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -114,6 +116,7 @@ const AuthPage: React.FC = () => {
     try {
       await signUp(data.email, data.password, data.firstName, data.lastName);
       setActiveTab('login');
+      toast.success('Conta criada! Verifique seu email para confirmar.');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -126,6 +129,7 @@ const AuthPage: React.FC = () => {
     try {
       await resetPassword(data.email);
       setShowResetForm(false);
+      toast.success('Email de recuperação enviado!');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -142,7 +146,7 @@ const AuthPage: React.FC = () => {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   return (
