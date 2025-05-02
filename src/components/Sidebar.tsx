@@ -45,7 +45,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleSidebar }) => {
           .eq('id', user.id)
           .single();
           
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao buscar imagem de perfil:', error);
+          return;
+        }
+        
         if (data && data.profile_image_url) {
           setProfileImage(data.profile_image_url);
         }

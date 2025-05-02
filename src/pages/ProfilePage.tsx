@@ -73,18 +73,27 @@ const ProfilePage: React.FC = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, email, address, profile_image_url')
+        .select('*')
         .eq('id', user?.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar dados do perfil:', error);
+        return;
+      }
       
       if (data) {
+        // Safe access to potentially missing fields
+        const firstName = data.first_name || '';
+        const lastName = data.last_name || '';
+        const email = data.email || user?.email || '';
+        const address = data.address || '';
+        
         profileForm.reset({
-          firstName: data.first_name || '',
-          lastName: data.last_name || '',
-          email: data.email || user?.email || '',
-          address: data.address || '',
+          firstName,
+          lastName,
+          email,
+          address,
         });
         
         if (data.profile_image_url) {
