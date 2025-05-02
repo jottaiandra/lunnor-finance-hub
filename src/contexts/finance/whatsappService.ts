@@ -1,6 +1,9 @@
 
-import { fetchWhatsappConfig } from "./whatsapp/configService";
-import { sendWhatsappMessage } from "./whatsapp/messageService";
+import { WhatsappConfig, WhatsappTemplate, WhatsappLog } from './whatsapp/types';
+import { fetchWhatsappConfig, saveWhatsappConfig, testWhatsappConnection } from './whatsapp/configService';
+import { fetchWhatsappTemplates, saveWhatsappTemplate, getDefaultTemplate } from './whatsapp/templateService';
+import { fetchWhatsappLogs, logWhatsappMessage } from './whatsapp/logsService';
+import { sendWhatsappMessage } from './whatsapp/messageService';
 
 // Process notification by notification frequency
 export const processNotification = async (
@@ -41,8 +44,18 @@ export const processNotification = async (
   }
 };
 
+// Re-export types
+export type { WhatsappConfig, WhatsappTemplate, WhatsappLog };
+
 // Re-export all WhatsApp related services
-export * from './whatsapp/configService';
-export * from './whatsapp/templateService';
-export * from './whatsapp/logsService';
-export * from './whatsapp/messageService';
+export {
+  fetchWhatsappConfig,
+  saveWhatsappConfig,
+  testWhatsappConnection,
+  fetchWhatsappTemplates,
+  saveWhatsappTemplate,
+  getDefaultTemplate,
+  fetchWhatsappLogs,
+  logWhatsappMessage,
+  sendWhatsappMessage
+};
