@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,7 +45,7 @@ const ExportData: React.FC = () => {
       Tipo: t.type === 'income' ? 'Receita' : 'Despesa',
       Descrição: t.description,
       Categoria: t.category,
-      'Método de Pagamento': t.payment_method,
+      'Método de Pagamento': t.paymentMethod,
       Valor: t.type === 'expense' ? `-${t.amount}` : t.amount,
       Data: format(new Date(t.date), 'dd/MM/yyyy'),
       Contato: t.contact || '-'
