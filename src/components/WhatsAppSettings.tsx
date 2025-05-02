@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,11 +17,9 @@ import {
   testWhatsappConnection,
   fetchWhatsappTemplates,
   saveWhatsappTemplate,
-  fetchWhatsappLogs,
-  WhatsappConfig,
-  WhatsappTemplate,
-  WhatsappLog
+  fetchWhatsappLogs
 } from '@/contexts/finance/whatsappService';
+import { WhatsappConfig, WhatsappTemplate, WhatsappLog } from '@/contexts/finance/whatsapp/types';
 
 const EVENT_TYPES = [
   { id: 'new_income', name: 'Nova receita' },
