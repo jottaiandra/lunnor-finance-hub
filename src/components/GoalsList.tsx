@@ -1,0 +1,85 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useFinance } from '@/contexts/FinanceContext';
+import { Progress } from '@/components/ui/progress';
+import { format } from 'date-fns';
+import { AlertCircle, Check, Trash } from 'lucide-react';
+import { Button } from './ui/button';
+
+const GoalsList: React.FC = () => {
+  const { state, dispatch } = useFinance();
+  
+  const handleDeleteGoal = (id: string) => {
+    dispatch({ type: "DELETE_GOAL", payload: id });
+  };
+  
+  const calculateProgress = (goal: typeof state.goals[0]) => {
+    const percentage = (goal.current / goal.target) * 100;
+    return Math.min(100, Math.max(0, percentage));
+  };
+  
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {state.goals.map((goal) => {
+        const progress = calculateProgress(goal);
+        const isComplete = progress >= 100;
+        
+        return (
+          <Card key={goal.id}>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">{goal.title}</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)}>
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Progresso:</span>
+                  <span className={isComplete ? 'text-positive font-medium' : 'font-medium'}>
+                    {progress.toFixed(0)}%
+                  </span>
+                </div>
+                
+                <Progress value={progress} className="h-2" />
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Atual:</span>
+                  <span className="font-medium">R$ {goal.current.toFixed(2).replace('.', ',')}</span>
+                </div>
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Meta:</span>
+                  <span className="font-medium">R$ {goal.target.toFixed(2).replace('.', ',')}</span>
+                </div>
+                
+                <div className="text-xs text-muted-foreground">
+                  <span>Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - {format(new Date(goal.endDate), "dd/MM/yyyy")}</span>
+                </div>
+                
+                <div className="pt-2 flex items-center">
+                  {isComplete ? (
+                    <div className="text-positive text-sm font-medium flex items-center">
+                      <Check className="h-4 w-4 mr-1" />
+                      Meta alcançada!
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      Faltam R$ {(goal.target - goal.current).toFixed(2).replace('.', ',')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+export default GoalsList;
