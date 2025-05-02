@@ -58,14 +58,14 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
   const handleTypeChange = (value: string) => {
     dispatch({
       type: "SET_FILTER",
-      payload: { type: value || null }
+      payload: { type: value === "all" ? null : value }
     });
   };
 
   const handleCategoryChange = (value: string) => {
     dispatch({
       type: "SET_FILTER",
-      payload: { category: value || null }
+      payload: { category: value === "all" ? null : value }
     });
   };
 
@@ -108,23 +108,29 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                 </div>
               </div>
 
-              <Select value={state.currentFilter.type || ""} onValueChange={handleTypeChange}>
+              <Select 
+                value={state.currentFilter.type || "all"} 
+                onValueChange={handleTypeChange}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value={TransactionType.INCOME}>Receitas</SelectItem>
                   <SelectItem value={TransactionType.EXPENSE}>Despesas</SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={state.currentFilter.category || ""} onValueChange={handleCategoryChange}>
+              <Select 
+                value={state.currentFilter.category || "all"} 
+                onValueChange={handleCategoryChange}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {allCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}

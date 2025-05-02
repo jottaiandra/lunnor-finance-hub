@@ -6,11 +6,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TransactionList from '@/components/TransactionList';
 import TransactionForm from '@/components/TransactionForm';
 import { TransactionType } from '@/types';
+import { useFinance } from '@/contexts/FinanceContext';
 
 const TransactionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('all');
   const [activeForm, setActiveForm] = React.useState<TransactionType | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const { dispatch } = useFinance();
 
   const handleOpenIncomeForm = () => {
     setActiveForm(TransactionType.INCOME);
@@ -24,6 +26,20 @@ const TransactionsPage: React.FC = () => {
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    // Update filter based on tab
+    const type = value === 'all' ? null : 
+                value === 'income' ? TransactionType.INCOME : 
+                TransactionType.EXPENSE;
+    
+    dispatch({
+      type: "SET_FILTER",
+      payload: { type }
+    });
   };
 
   return (
@@ -43,7 +59,7 @@ const TransactionsPage: React.FC = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">Todas</TabsTrigger>
           <TabsTrigger value="income">Receitas</TabsTrigger>
@@ -55,11 +71,11 @@ const TransactionsPage: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="income">
-          <TransactionList />
+          <TransactionList title="Receitas" />
         </TabsContent>
         
         <TabsContent value="expense">
-          <TransactionList />
+          <TransactionList title="Despesas" />
         </TabsContent>
       </Tabs>
 
