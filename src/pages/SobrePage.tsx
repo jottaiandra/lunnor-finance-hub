@@ -56,9 +56,9 @@ const SobrePage: React.FC = () => {
           </div>
           <div className="flex justify-center">
             <img 
-              src="/placeholder.svg" 
-              alt="Nossa história" 
-              className="rounded-lg shadow-md" 
+              src="/lovable-uploads/8f1d9d45-930f-451d-83fb-88fe97ea42e9.png" 
+              alt="Fundadores do Lunnor Caixa" 
+              className="rounded-lg shadow-md object-cover max-h-96" 
             />
           </div>
         </div>
