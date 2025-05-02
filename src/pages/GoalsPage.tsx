@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import GoalsList from '@/components/GoalsList';
@@ -12,35 +12,39 @@ const GoalsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { state, fetchGoals } = useFinance();
 
+  // Use useCallback to prevent the function from being recreated on each render
+  const loadData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await fetchGoals();
+    } catch (error) {
+      console.error("Erro ao carregar metas:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchGoals]);
+
   useEffect(() => {
-    // Evita chamadas repetidas adicionando uma flag de verificação
+    // Avoid repeated calls by adding a flag check
     let isMounted = true;
     
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        await fetchGoals();
-      } catch (error) {
-        console.error("Erro ao carregar metas:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    // Call the memoized function
+    loadData().then(() => {
+      if (isMounted) {
+        setIsLoading(false);
       }
-    };
-    
-    loadData();
+    });
     
     return () => {
       isMounted = false;
     };
-  }, [fetchGoals]);
+  }, [loadData]); // Only depend on the memoized function
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
   };
 
-  // Simplify loading check - only use local state to avoid conflicts
+  // Use only local loading state to prevent conflicts with context state
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">

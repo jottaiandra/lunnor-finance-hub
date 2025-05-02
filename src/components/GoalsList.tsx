@@ -30,7 +30,7 @@ const GoalsList: React.FC = () => {
     return Math.min(100, Math.max(0, percentage));
   };
   
-  // Check if goals are loading or if the goals array doesn't exist yet
+  // First check if the goals are still loading
   if (state.loading.goals) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -39,8 +39,8 @@ const GoalsList: React.FC = () => {
     );
   }
   
-  // Ensure goals array exists before trying to check its length
-  if (!state.goals || state.goals.length === 0) {
+  // Then check if goals array exists and has items
+  if (!Array.isArray(state.goals) || state.goals.length === 0) {
     return (
       <Card>
         <CardContent className="py-10 text-center">
