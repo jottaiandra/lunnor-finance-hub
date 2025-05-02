@@ -34,7 +34,7 @@ const GoalsPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchGoals]);
 
   const handleFormSuccess = () => {
     setDialogOpen(false);
