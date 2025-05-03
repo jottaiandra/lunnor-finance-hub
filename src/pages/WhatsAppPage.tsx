@@ -3,7 +3,9 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import WhatsAppSettings from '@/components/WhatsAppSettings';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
+
+const EVOLUTION_API_BASE_URL = "https://evolution.anayaatendente.online";
 
 const WhatsAppPage: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +30,14 @@ const WhatsAppPage: React.FC = () => {
           Configure suas notificações automáticas via WhatsApp usando a Evolution API.
         </p>
       </div>
+      
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertTitle>Atualização da API</AlertTitle>
+        <AlertDescription>
+          A Evolution API está disponível em: {EVOLUTION_API_BASE_URL}
+        </AlertDescription>
+      </Alert>
       
       <WhatsAppSettings />
     </div>

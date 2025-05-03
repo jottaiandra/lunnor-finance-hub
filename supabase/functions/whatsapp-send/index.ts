@@ -16,6 +16,8 @@ interface RequestData {
   eventType: string;
 }
 
+const EVOLUTION_API_BASE_URL = "https://evolution.anayaatendente.online";
+
 serve(async (req) => {
   // Handle CORS preflight request
   if (req.method === "OPTIONS") {
@@ -46,8 +48,8 @@ serve(async (req) => {
     let errorMessage = null;
 
     try {
-      // Actual call to Evolution API
-      const evolutionResponse = await fetch(`https://evolution-api.com/message/sendText/${senderNumber}`, {
+      // Actual call to Evolution API - using the new base URL
+      const evolutionResponse = await fetch(`${EVOLUTION_API_BASE_URL}/message/sendText/${senderNumber}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
