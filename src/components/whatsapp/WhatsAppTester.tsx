@@ -101,7 +101,7 @@ const WhatsAppTester: React.FC = () => {
           </Button>
 
           {result && (
-            <Alert variant={result.success ? "success" : "destructive"}>
+            <Alert variant={result.success ? "default" : "destructive"}>
               <AlertTitle>{result.success ? "Sucesso!" : "Erro!"}</AlertTitle>
               <AlertDescription>
                 <p>{result.message || (result.success ? "Mensagem enviada com sucesso" : "Erro ao enviar mensagem")}</p>

@@ -1,27 +1,28 @@
+
 import React from 'react';
 import {
   BrowserRouter,
   Routes,
   Route,
 } from "react-router-dom";
-import { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from "@/components/theme-provider"
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from "../src/components/theme-provider"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from './contexts/AuthContext';
-import { Layout } from './components/Layout';
-import { HomePage } from './pages/HomePage';
-import { AuthPage } from './pages/AuthPage';
-import { SobrePage } from './pages/SobrePage';
-import { ContatoPage } from './pages/ContatoPage';
-import { TransactionsPage } from './pages/TransactionsPage';
-import { ReportsPage } from './pages/ReportsPage';
-import { GoalsPage } from './pages/GoalsPage';
-import { ExportPage } from './pages/ExportPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { NotFound } from './pages/NotFound';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { AdminPage } from './pages/AdminPage';
+import Layout from './pages/Layout';
+import HomePage from './pages/HomePage';
+import AuthPage from './pages/AuthPage';
+import SobrePage from './pages/SobrePage';
+import ContatoPage from './pages/ContatoPage';
+import TransactionsPage from './pages/TransactionsPage';
+import ReportsPage from './pages/ReportsPage';
+import GoalsPage from './pages/GoalsPage';
+import ExportPage from './pages/ExportPage';
+import ProfilePage from './pages/ProfilePage';
+import NotFound from './pages/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminPage from './pages/AdminPage';
 import WhatsAppPage from './pages/WhatsAppPage';
 import WhatsAppTestPage from './pages/WhatsAppTestPage';
 

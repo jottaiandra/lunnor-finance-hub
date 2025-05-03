@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
@@ -18,7 +19,7 @@ interface NavigationLink {
 }
 
 export const useSidebarData = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { currentProfile } = useProfiles();
   const isAdmin = currentProfile?.role === 'admin';
   
@@ -69,19 +70,38 @@ export const useSidebarData = () => {
     {
       title: "Notificações WhatsApp",
       href: "/whatsapp",
-      icon: <MessageCircle className="h-5 w-5" />,
+      icon: MessageCircle,
       visible: true
     },
     {
       title: "Testes WhatsApp",
       href: "/whatsapp-test",
-      icon: <TestTube className="h-5 w-5" />,
+      icon: TestTube,
       visible: isAdmin // Opcional: limitar acesso a administradores
     },
   ];
 
+  // Determine user initials from email
+  const userEmail = user?.email || '';
+  const userInitials = userEmail.charAt(0).toUpperCase();
+  
+  // Get profile image if available
+  const profileImage = currentProfile?.avatar_url || null;
+  
+  // Combine navigation items
+  const navItems = [...mainNav, ...settingsNav].filter(item => item.visible);
+  
+  // Handle sign out
+  const handleSignOut = () => {
+    if (signOut) signOut();
+  };
+
   return {
     mainNav,
     settingsNav,
+    navItems,
+    profileImage,
+    userInitials,
+    handleSignOut
   };
 };
