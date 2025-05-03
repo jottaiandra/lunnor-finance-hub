@@ -8,41 +8,14 @@ import {
   CardContent 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/sonner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import { 
-  AlertCircle, 
-  CheckCircle, 
   RefreshCw,
-  Calendar,
   Download
 } from 'lucide-react';
-import { formatDistance } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import WhatsAppLogsFilter from './WhatsAppLogsFilter';
+import WhatsAppLogsTable from './WhatsAppLogsTable';
+import WhatsAppLogsPagination from './WhatsAppLogsPagination';
 
 interface MessageLog {
   id: string;
@@ -139,24 +112,7 @@ const WhatsAppMessageLogs: React.FC = () => {
     setFilterDateTo('');
     setCurrentPage(1);
   };
-  
-  const formatTimestamp = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      return (
-        <>
-          <span className="block">{date.toLocaleDateString('pt-BR')}</span>
-          <span className="block text-xs text-muted-foreground">{date.toLocaleTimeString('pt-BR')}</span>
-          <span className="block text-xs italic mt-1">
-            {formatDistance(date, new Date(), { addSuffix: true, locale: ptBR })}
-          </span>
-        </>
-      );
-    } catch (e) {
-      return timestamp;
-    }
-  };
-  
+
   const exportToCSV = () => {
     // Convert logs to CSV
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -214,195 +170,29 @@ const WhatsAppMessageLogs: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filtros */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Input
-              placeholder="Filtrar por número..."
-              value={filterNumber}
-              onChange={(e) => setFilterNumber(e.target.value)}
-            />
-          </div>
-          <div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos os status</SelectItem>
-                <SelectItem value="success">Sucesso</SelectItem>
-                <SelectItem value="failed">Falha</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <Input
-              type="date"
-              placeholder="Data inicial"
-              value={filterDateFrom}
-              onChange={(e) => setFilterDateFrom(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <Input
-              type="date"
-              placeholder="Data final"
-              value={filterDateTo}
-              onChange={(e) => setFilterDateTo(e.target.value)}
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-end">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleClearFilters}
-          >
-            Limpar filtros
-          </Button>
-        </div>
+        <WhatsAppLogsFilter
+          filterNumber={filterNumber}
+          setFilterNumber={setFilterNumber}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          filterDateFrom={filterDateFrom}
+          setFilterDateFrom={setFilterDateFrom}
+          filterDateTo={filterDateTo}
+          setFilterDateTo={setFilterDateTo}
+          handleClearFilters={handleClearFilters}
+        />
         
         {/* Tabela de Logs */}
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data/Hora</TableHead>
-                <TableHead>Número</TableHead>
-                <TableHead>Mensagem</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Detalhes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center p-8">
-                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
-                    <span className="mt-2 block">Carregando logs...</span>
-                  </TableCell>
-                </TableRow>
-              ) : logs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center p-8 text-muted-foreground">
-                    Nenhum log de mensagem encontrado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                logs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {formatTimestamp(log.created_at)}
-                    </TableCell>
-                    <TableCell>{log.number}</TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate" title={log.message}>
-                        {log.message}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        {log.status === 'success' ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" /> Sucesso
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <AlertCircle className="w-3 h-3 mr-1" /> Falha
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <details className="text-sm">
-                        <summary className="cursor-pointer text-primary">Ver resposta</summary>
-                        <div className="mt-2 p-2 bg-muted rounded text-xs whitespace-pre-wrap max-h-32 overflow-auto">
-                          {JSON.stringify(log.response, null, 2)}
-                        </div>
-                      </details>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <WhatsAppLogsTable logs={logs} loading={loading} />
         
         {/* Paginação */}
-        {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                {currentPage > 1 ? (
-                  <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
-                ) : (
-                  <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                    <span className="sr-only">Previous</span>
-                  </Button>
-                )}
-              </PaginationItem>
-              
-              {[...Array(totalPages)].map((_, index) => {
-                const page = index + 1;
-                
-                // Show current page, first page, last page, and one page before and after current
-                if (
-                  page === 1 || 
-                  page === totalPages || 
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                ) {
-                  return (
-                    <PaginationItem key={page}>
-                      <PaginationLink 
-                        isActive={page === currentPage}
-                        onClick={() => handlePageChange(page)}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                }
-                
-                // Show ellipsis for gaps
-                if (page === 2 || page === totalPages - 1) {
-                  return (
-                    <PaginationItem key={`ellipsis-${page}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  );
-                }
-                
-                return null;
-              })}
-              
-              <PaginationItem>
-                {currentPage < totalPages ? (
-                  <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
-                ) : (
-                  <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                    <span className="sr-only">Next</span>
-                  </Button>
-                )}
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
-        
-        <div className="text-xs text-muted-foreground text-center">
-          {totalItems > 0 ? (
-            <>Mostrando {Math.min(ITEMS_PER_PAGE, logs.length)} de {totalItems} registros</>
-          ) : (
-            <>Nenhum registro encontrado</>
-          )}
-        </div>
+        <WhatsAppLogsPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={handlePageChange}
+        />
       </CardContent>
     </Card>
   );
