@@ -4,6 +4,7 @@ import { fetchWhatsappConfig } from "./configService";
 import { getDefaultTemplate } from "./templateService";
 import { logWhatsappMessage } from "./logsService";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 
 // Send WhatsApp message
 export const sendWhatsappMessage = async (
@@ -44,18 +45,30 @@ export const sendWhatsappMessage = async (
       message = message.replace(`{${key}}`, String(value));
     });
     
-    // In a real implementation, this would call the Evolution API to send the message
-    // For now, we'll just log the message
-    console.log(`WhatsApp message to ${config.recipientNumbers[0]}: ${message}`);
-    
-    // Log the sending attempt
+    // Send message via Edge Function
     for (const recipient of config.recipientNumbers) {
-      await logWhatsappMessage(userId, {
-        eventType,
-        message,
-        recipient,
-        status: 'sent' // In a real implementation, this would be 'pending' until confirmed
-      });
+      try {
+        const response = await supabase.functions.invoke('whatsapp-send', {
+          body: {
+            apiToken: config.apiToken,
+            senderNumber: config.senderNumber,
+            recipientNumber: recipient,
+            message: message,
+            userId: userId,
+            eventType: eventType
+          }
+        });
+        
+        console.log('Edge function response:', response);
+        
+        if (response.error) {
+          throw new Error(response.error);
+        }
+        
+      } catch (error) {
+        console.error("Error calling WhatsApp send function:", error);
+        toast.error(`Erro ao enviar mensagem para ${recipient}`);
+      }
     }
     
     return true;

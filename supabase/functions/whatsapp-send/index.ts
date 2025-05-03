@@ -40,37 +40,43 @@ serve(async (req) => {
       );
     }
 
-    // Here you would normally call the Evolution API
-    // For this implementation, we'll simulate a successful API call
-    
-    // In a real implementation, you would do something like:
-    /*
-    const response = await fetch("https://evolution-api.example.com/message/sendText", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiToken}`
-      },
-      body: JSON.stringify({
-        number: recipientNumber,
-        options: {
-          delay: 1200
+    // Setup for Evolution API call
+    let success = false;
+    let responseData = null;
+    let errorMessage = null;
+
+    try {
+      // Actual call to Evolution API
+      const evolutionResponse = await fetch(`https://evolution-api.com/message/sendText/${senderNumber}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": apiToken
         },
-        textMessage: {
-          text: message
-        }
-      })
-    });
+        body: JSON.stringify({
+          number: recipientNumber,
+          options: {
+            delay: 1200
+          },
+          textMessage: {
+            text: message
+          }
+        })
+      });
+      
+      responseData = await evolutionResponse.json();
+      success = evolutionResponse.ok && responseData?.status === 'success';
+      
+      if (!success) {
+        errorMessage = responseData?.error?.message || "Falha ao enviar mensagem";
+      }
+    } catch (apiError) {
+      console.error("Evolution API error:", apiError);
+      errorMessage = apiError.message;
+      responseData = { error: apiError.message };
+    }
     
-    const result = await response.json();
-    const success = result.status === 'success';
-    */
-    
-    // Simulating success for now
-    const success = true;
-    const errorMessage = success ? null : "Falha ao enviar mensagem";
-    
-    // Log the message in the database
+    // Log the message in whatsapp_logs for user interface
     const { error: logError } = await supabase
       .from('whatsapp_logs')
       .insert({
@@ -83,7 +89,21 @@ serve(async (req) => {
       });
       
     if (logError) {
-      console.error("Error logging message:", logError);
+      console.error("Error logging message to whatsapp_logs:", logError);
+    }
+    
+    // Log detailed message data in whatsapp_message_logs for admin
+    const { error: detailedLogError } = await supabase
+      .from('whatsapp_message_logs')
+      .insert({
+        number: recipientNumber,
+        message: message,
+        status: success ? 'success' : 'failed',
+        response: responseData
+      });
+      
+    if (detailedLogError) {
+      console.error("Error logging detailed message:", detailedLogError);
     }
 
     // Return response

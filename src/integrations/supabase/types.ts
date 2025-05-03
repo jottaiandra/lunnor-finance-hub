@@ -286,6 +286,33 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_message_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          number: string
+          response: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          number: string
+          response?: Json | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          number?: string
+          response?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
       whatsapp_templates: {
         Row: {
           created_at: string
