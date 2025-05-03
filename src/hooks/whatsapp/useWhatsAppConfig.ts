@@ -1,34 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+
+import { useState } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { 
   fetchWhatsappConfig, 
   saveWhatsappConfig,
   testWhatsappConnection,
-  configureWebhook,
-  fetchWhatsappTemplates,
-  saveWhatsappTemplate,
-  fetchWhatsappLogs
+  configureWebhook
 } from '@/contexts/finance/whatsappService';
-import { WhatsappConfig, WhatsappTemplate, WhatsappLog } from '@/contexts/finance/whatsapp/types';
+import { WhatsappConfig } from '@/contexts/finance/whatsapp/types';
 
-export const EVENT_TYPES = [
-  { id: 'new_income', name: 'Nova receita' },
-  { id: 'new_expense', name: 'Nova despesa' },
-  { id: 'upcoming_expense', name: 'Despesas a vencer' },
-  { id: 'goal_achieved', name: 'Meta alcançada' },
-  { id: 'low_balance', name: 'Saldo baixo' },
-  { id: 'goal_updated', name: 'Meta atualizada' },
-  { id: 'transaction_updated', name: 'Transação atualizada' }
-];
-
-export const useWhatsAppSettings = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('config');
+export const useWhatsAppConfig = (userId: string | undefined) => {
   const [loading, setLoading] = useState(true);
   const [testingConnection, setTestingConnection] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
-  const [savingTemplate, setSavingTemplate] = useState(false);
   const [configuringWebhook, setConfiguringWebhook] = useState(false);
   
   // Config state
@@ -41,66 +25,12 @@ export const useWhatsAppSettings = () => {
     webhookUrl: ''
   });
   
-  // Templates state
-  const [templates, setTemplates] = useState<WhatsappTemplate[]>([]);
-  const [activeTemplate, setActiveTemplate] = useState<string>('new_income');
-  const [templateText, setTemplateText] = useState<string>('');
-  
-  // Logs state
-  const [logs, setLogs] = useState<WhatsappLog[]>([]);
-  
-  useEffect(() => {
-    if (user) {
-      loadConfig();
-      loadTemplates();
-      loadLogs();
-    }
-  }, [user]);
-  
-  useEffect(() => {
-    // When active template changes, load the template text
-    const template = templates.find(t => t.eventType === activeTemplate);
-    if (template) {
-      setTemplateText(template.messageTemplate);
-    } else {
-      // Load default template
-      const defaultTemplate = EVENT_TYPES.find(et => et.id === activeTemplate);
-      if (defaultTemplate) {
-        switch (defaultTemplate.id) {
-          case 'new_income':
-            setTemplateText("Olá {nome}! Uma nova receita de {valor} foi registrada com a descrição: {descricao}.");
-            break;
-          case 'new_expense':
-            setTemplateText("Atenção {nome}! Uma nova despesa de {valor} foi registrada com a descrição: {descricao}.");
-            break;
-          case 'upcoming_expense':
-            setTemplateText("Lembrete: Você tem {count} despesa(s) a vencer nos próximos dias, totalizando {valor}.");
-            break;
-          case 'goal_achieved':
-            setTemplateText("Parabéns {nome}! Sua meta '{titulo}' foi atingida com sucesso!");
-            break;
-          case 'low_balance':
-            setTemplateText("Alerta! Seu saldo atual de {valor} está abaixo do limite definido.");
-            break;
-          case 'goal_updated':
-            setTemplateText("A meta '{titulo}' foi atualizada. Progresso atual: {progresso}%.");
-            break;
-          case 'transaction_updated':
-            setTemplateText("Uma transação foi atualizada: {descricao} - {valor}");
-            break;
-          default:
-            setTemplateText("Notificação do Lunnor Caixa: {mensagem}");
-        }
-      }
-    }
-  }, [activeTemplate, templates]);
-  
   const loadConfig = async () => {
-    if (!user) return;
+    if (!userId) return;
     
     setLoading(true);
     try {
-      const data = await fetchWhatsappConfig(user.id);
+      const data = await fetchWhatsappConfig(userId);
       if (data) {
         setConfig({
           apiToken: data.apiToken,
@@ -118,30 +48,8 @@ export const useWhatsAppSettings = () => {
     }
   };
   
-  const loadTemplates = async () => {
-    if (!user) return;
-    
-    try {
-      const data = await fetchWhatsappTemplates(user.id);
-      setTemplates(data);
-    } catch (error) {
-      console.error("Error loading WhatsApp templates:", error);
-    }
-  };
-  
-  const loadLogs = async () => {
-    if (!user) return;
-    
-    try {
-      const data = await fetchWhatsappLogs(user.id);
-      setLogs(data);
-    } catch (error) {
-      console.error("Error loading WhatsApp logs:", error);
-    }
-  };
-  
   const handleSaveConfig = async () => {
-    if (!user) return;
+    if (!userId) return;
     
     setSavingConfig(true);
     try {
@@ -164,7 +72,7 @@ export const useWhatsAppSettings = () => {
       // Filter out empty recipient numbers
       const filteredRecipients = config.recipientNumbers.filter(num => num.trim() !== '');
       
-      const result = await saveWhatsappConfig(user.id, {
+      const result = await saveWhatsappConfig(userId, {
         apiToken: config.apiToken || '',
         senderNumber: config.senderNumber || '',
         recipientNumbers: filteredRecipients,
@@ -185,7 +93,7 @@ export const useWhatsAppSettings = () => {
   };
   
   const handleConfigureWebhook = async () => {
-    if (!user || !config.apiToken || !config.senderNumber) {
+    if (!userId || !config.apiToken || !config.senderNumber) {
       toast.error("Preencha o token da API e o número remetente antes de configurar o webhook");
       return;
     }
@@ -228,7 +136,7 @@ export const useWhatsAppSettings = () => {
   };
   
   const handleTestConnection = async () => {
-    if (!user) return;
+    if (!userId) return;
     
     if (!config.apiToken || !config.senderNumber || !config.recipientNumbers || config.recipientNumbers.length === 0) {
       toast.error("Preencha todos os campos antes de testar a conexão");
@@ -301,53 +209,20 @@ export const useWhatsAppSettings = () => {
       };
     });
   };
-  
-  const handleSaveTemplate = async () => {
-    if (!user || !activeTemplate) return;
-    
-    setSavingTemplate(true);
-    try {
-      const result = await saveWhatsappTemplate(user.id, {
-        eventType: activeTemplate,
-        messageTemplate: templateText
-      });
-      
-      if (result) {
-        // Update templates list
-        await loadTemplates();
-        toast.success("Modelo de mensagem salvo com sucesso!");
-      }
-    } catch (error) {
-      console.error("Error saving template:", error);
-      toast.error("Erro ao salvar modelo de mensagem");
-    } finally {
-      setSavingTemplate(false);
-    }
-  };
 
   return {
-    user,
     loading,
-    activeTab,
-    setActiveTab,
     config,
     setConfig,
-    templates,
-    activeTemplate,
-    setActiveTemplate,
-    templateText,
-    setTemplateText,
-    logs,
     testingConnection,
     savingConfig,
-    savingTemplate,
     configuringWebhook,
+    loadConfig,
     handleSaveConfig,
     handleTestConnection,
     handleConfigureWebhook,
     handleAddRecipient,
     handleRemoveRecipient,
     handleRecipientChange,
-    handleSaveTemplate,
   };
 };
