@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { WhatsappLog } from '@/contexts/finance/whatsapp/types';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface EventType {
   id: string;
@@ -11,12 +12,33 @@ interface EventType {
 interface WhatsAppLogsProps {
   logs: WhatsappLog[];
   eventTypes: EventType[];
+  loading?: boolean;
+  onRefresh?: () => void;
 }
 
-const WhatsAppLogs: React.FC<WhatsAppLogsProps> = ({ logs, eventTypes }) => {
+const WhatsAppLogs: React.FC<WhatsAppLogsProps> = ({ logs, eventTypes, loading = false, onRefresh }) => {
   return (
     <div className="space-y-4">
-      {logs.length > 0 ? (
+      {onRefresh && (
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
+      )}
+      
+      {loading ? (
+        <div className="flex items-center justify-center h-32">
+          <RefreshCw className="h-6 w-6 animate-spin" />
+          <span className="ml-2">Carregando logs...</span>
+        </div>
+      ) : logs.length > 0 ? (
         <div className="border rounded-md">
           <table className="w-full">
             <thead>

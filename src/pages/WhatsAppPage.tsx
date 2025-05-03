@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import WhatsAppSettings from '@/components/WhatsAppSettings';
@@ -109,15 +109,15 @@ const WhatsAppPage: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="pt-4">
             <WhatsAppSettings />
           </TabsContent>
           
-          <TabsContent value="logs">
+          <TabsContent value="logs" className="pt-4">
             <WhatsAppMessageLogs />
           </TabsContent>
           
-          <TabsContent value="webhook-logs">
+          <TabsContent value="webhook-logs" className="pt-4">
             <WhatsAppWebhookLogs />
           </TabsContent>
         </Tabs>

@@ -13,7 +13,7 @@ export const useWhatsAppSettings = () => {
   const [activeTab, setActiveTab] = useState('config');
   
   const {
-    loading,
+    loading: loadingConfig,
     config,
     setConfig,
     testingConnection,
@@ -41,7 +41,8 @@ export const useWhatsAppSettings = () => {
   
   const {
     logs,
-    loadLogs
+    loadLogs,
+    loading: loadingLogs
   } = useWhatsAppLogs(user?.id);
   
   useEffect(() => {
@@ -51,6 +52,15 @@ export const useWhatsAppSettings = () => {
       loadLogs();
     }
   }, [user]);
+
+  // Função para atualizar os logs quando solicitado
+  const refreshLogs = () => {
+    if (user) {
+      loadLogs();
+    }
+  };
+
+  const loading = loadingConfig || loadingLogs;
 
   return {
     user,
@@ -65,6 +75,8 @@ export const useWhatsAppSettings = () => {
     templateText,
     setTemplateText,
     logs,
+    loadingLogs,
+    refreshLogs,
     testingConnection,
     savingConfig,
     savingTemplate,

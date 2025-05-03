@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
@@ -21,6 +22,8 @@ const WhatsAppSettings: React.FC = () => {
     templateText,
     setTemplateText,
     logs,
+    loadingLogs,
+    refreshLogs,
     testingConnection,
     savingConfig,
     savingTemplate,
@@ -34,7 +37,7 @@ const WhatsAppSettings: React.FC = () => {
     handleSaveTemplate,
   } = useWhatsAppSettings();
   
-  if (loading) {
+  if (loading && !config) {
     return (
       <div className="flex items-center justify-center h-48">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -90,6 +93,8 @@ const WhatsAppSettings: React.FC = () => {
             <WhatsAppLogs 
               logs={logs}
               eventTypes={EVENT_TYPES}
+              loading={loadingLogs}
+              onRefresh={refreshLogs}
             />
           </TabsContent>
         </Tabs>
