@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
@@ -6,6 +5,7 @@ import {
   fetchWhatsappConfig, 
   saveWhatsappConfig,
   testWhatsappConnection,
+  configureWebhook,
   fetchWhatsappTemplates,
   saveWhatsappTemplate,
   fetchWhatsappLogs
@@ -29,6 +29,7 @@ export const useWhatsAppSettings = () => {
   const [testingConnection, setTestingConnection] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [configuringWebhook, setConfiguringWebhook] = useState(false);
   
   // Config state
   const [config, setConfig] = useState<Partial<WhatsappConfig>>({
@@ -36,7 +37,8 @@ export const useWhatsAppSettings = () => {
     senderNumber: '',
     recipientNumbers: [''],
     isEnabled: true,
-    notificationFrequency: 'immediate'
+    notificationFrequency: 'immediate',
+    webhookUrl: ''
   });
   
   // Templates state
@@ -105,7 +107,8 @@ export const useWhatsAppSettings = () => {
           senderNumber: data.senderNumber,
           recipientNumbers: data.recipientNumbers,
           isEnabled: data.isEnabled,
-          notificationFrequency: data.notificationFrequency
+          notificationFrequency: data.notificationFrequency,
+          webhookUrl: data.webhookUrl
         });
       }
     } catch (error) {
@@ -166,7 +169,8 @@ export const useWhatsAppSettings = () => {
         senderNumber: config.senderNumber || '',
         recipientNumbers: filteredRecipients,
         isEnabled: config.isEnabled ?? true,
-        notificationFrequency: config.notificationFrequency as 'immediate' | 'daily' | 'critical' || 'immediate'
+        notificationFrequency: config.notificationFrequency as 'immediate' | 'daily' | 'critical' || 'immediate',
+        webhookUrl: config.webhookUrl || ''
       });
       
       if (result) {
@@ -177,6 +181,49 @@ export const useWhatsAppSettings = () => {
       toast.error("Erro ao salvar configurações do WhatsApp");
     } finally {
       setSavingConfig(false);
+    }
+  };
+  
+  const handleConfigureWebhook = async () => {
+    if (!user || !config.apiToken || !config.senderNumber) {
+      toast.error("Preencha o token da API e o número remetente antes de configurar o webhook");
+      return;
+    }
+    
+    setConfiguringWebhook(true);
+    try {
+      // Webhook URL from environment
+      const webhookUrl = `https://dpfteiyxodigjvzzrwbt.supabase.co/functions/v1/evolution-webhook`;
+      
+      console.log("Configurando webhook:", {
+        senderNumber: config.senderNumber,
+        apiToken: config.apiToken.substring(0, 5) + '...',
+        webhookUrl
+      });
+      
+      // Save webhook URL in config
+      setConfig(prev => ({
+        ...prev,
+        webhookUrl
+      }));
+      
+      // Configure webhook in Evolution API
+      const success = await configureWebhook(
+        config.senderNumber,
+        config.apiToken,
+        webhookUrl
+      );
+      
+      if (success) {
+        toast.success("Webhook configurado com sucesso na Evolution API");
+      } else {
+        toast.error("Falha ao configurar webhook na Evolution API");
+      }
+    } catch (error) {
+      console.error("Error configuring webhook:", error);
+      toast.error("Erro ao configurar webhook: " + (error instanceof Error ? error.message : "Erro desconhecido"));
+    } finally {
+      setConfiguringWebhook(false);
     }
   };
   
@@ -294,8 +341,10 @@ export const useWhatsAppSettings = () => {
     testingConnection,
     savingConfig,
     savingTemplate,
+    configuringWebhook,
     handleSaveConfig,
     handleTestConnection,
+    handleConfigureWebhook,
     handleAddRecipient,
     handleRemoveRecipient,
     handleRecipientChange,

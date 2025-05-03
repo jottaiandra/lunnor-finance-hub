@@ -11,6 +11,11 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from 'lucide-react';
 
+interface StatusOption {
+  value: string;
+  label: string;
+}
+
 interface WhatsAppLogsFilterProps {
   filterNumber: string;
   setFilterNumber: (value: string) => void;
@@ -21,6 +26,8 @@ interface WhatsAppLogsFilterProps {
   filterDateTo: string;
   setFilterDateTo: (value: string) => void;
   handleClearFilters: () => void;
+  statusLabel?: string;
+  statusOptions?: StatusOption[];
 }
 
 const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
@@ -32,7 +39,13 @@ const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
   setFilterDateFrom,
   filterDateTo,
   setFilterDateTo,
-  handleClearFilters
+  handleClearFilters,
+  statusLabel = "Status",
+  statusOptions = [
+    { value: "", label: "Todos os status" },
+    { value: "success", label: "Sucesso" },
+    { value: "failed", label: "Falha" }
+  ]
 }) => {
   return (
     <div className="space-y-4">
@@ -48,12 +61,14 @@ const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
         <div>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder={statusLabel} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
-              <SelectItem value="success">Sucesso</SelectItem>
-              <SelectItem value="failed">Falha</SelectItem>
+              {statusOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

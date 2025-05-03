@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { WhatsappConfig } from "./types";
@@ -30,6 +31,7 @@ export const fetchWhatsappConfig = async (userId: string): Promise<WhatsappConfi
       recipientNumbers: data.recipient_numbers,
       isEnabled: data.is_enabled,
       notificationFrequency: data.notification_frequency as 'immediate' | 'daily' | 'critical',
+      webhookUrl: data.webhook_url || '', // Added webhook URL field
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
@@ -61,6 +63,7 @@ export const saveWhatsappConfig = async (
       recipient_numbers: config.recipientNumbers,
       is_enabled: config.isEnabled,
       notification_frequency: config.notificationFrequency,
+      webhook_url: config.webhookUrl || '', // Added webhook URL field
       updated_at: new Date().toISOString()
     };
     
@@ -83,6 +86,7 @@ export const saveWhatsappConfig = async (
         recipientNumbers: data.recipient_numbers,
         isEnabled: data.is_enabled,
         notificationFrequency: data.notification_frequency as 'immediate' | 'daily' | 'critical',
+        webhookUrl: data.webhook_url || '',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at)
       };
@@ -104,6 +108,7 @@ export const saveWhatsappConfig = async (
         recipientNumbers: data.recipient_numbers,
         isEnabled: data.is_enabled,
         notificationFrequency: data.notification_frequency as 'immediate' | 'daily' | 'critical',
+        webhookUrl: data.webhook_url || '',
         createdAt: new Date(data.created_at),
         updatedAt: new Date(data.updated_at)
       };
@@ -112,6 +117,44 @@ export const saveWhatsappConfig = async (
     console.error("Error saving WhatsApp config:", error);
     toast.error("Erro ao salvar configuração do WhatsApp");
     return null;
+  }
+};
+
+// Configure webhook URL for a specific instance
+export const configureWebhook = async (
+  instanceNumber: string,
+  apiToken: string,
+  webhookUrl: string
+): Promise<boolean> => {
+  const EVOLUTION_API_BASE_URL = "https://evolution.anayaatendente.online";
+  
+  try {
+    // Configure webhook in Evolution API
+    const evolutionResponse = await fetch(`${EVOLUTION_API_BASE_URL}/webhook/set/${instanceNumber}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": apiToken
+      },
+      body: JSON.stringify({
+        webhook: webhookUrl,
+        events: [
+          "messages.upsert",
+          "messages.update",
+          "qr",
+          "connection.update",
+          "status.instance"
+        ]
+      })
+    });
+    
+    const responseData = await evolutionResponse.json();
+    console.log('Resposta da configuração de webhook:', responseData);
+    
+    return evolutionResponse.ok && responseData?.webhook === webhookUrl;
+  } catch (error) {
+    console.error("Erro ao configurar webhook:", error);
+    return false;
   }
 };
 

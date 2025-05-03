@@ -8,6 +8,7 @@ export interface WhatsappConfig {
   recipientNumbers: string[];
   isEnabled: boolean;
   notificationFrequency: 'immediate' | 'daily' | 'critical';
+  webhookUrl: string; // Added webhook URL
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,4 +33,17 @@ export interface WhatsappLog {
   status: string;
   sentAt: Date;
   errorMessage?: string;
+}
+
+// Types for webhook events
+export interface WhatsappWebhookEvent {
+  id: string;
+  eventType: string;
+  senderNumber: string;
+  recipientNumber: string;
+  content: string;
+  messageType: string;
+  status: string;
+  rawData: any;
+  createdAt: Date;
 }

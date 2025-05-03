@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
@@ -7,6 +7,7 @@ import { useWhatsAppSettings, EVENT_TYPES } from './useWhatsAppSettings';
 import WhatsAppConfig from './WhatsAppConfig';
 import WhatsAppTemplates from './WhatsAppTemplates';
 import WhatsAppLogs from './WhatsAppLogs';
+import { Badge } from '@/components/ui/badge';
 
 const WhatsAppSettings: React.FC = () => {
   const {
@@ -24,8 +25,10 @@ const WhatsAppSettings: React.FC = () => {
     testingConnection,
     savingConfig,
     savingTemplate,
+    configuringWebhook,
     handleSaveConfig,
     handleTestConnection,
+    handleConfigureWebhook,
     handleAddRecipient,
     handleRemoveRecipient,
     handleRecipientChange,
@@ -42,8 +45,11 @@ const WhatsAppSettings: React.FC = () => {
   
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Configurações do WhatsApp</CardTitle>
+        <Badge variant={config.isEnabled ? "default" : "outline"}>
+          {config.isEnabled ? "Ativo" : "Inativo"}
+        </Badge>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -59,11 +65,13 @@ const WhatsAppSettings: React.FC = () => {
               setConfig={setConfig}
               handleSaveConfig={handleSaveConfig}
               handleTestConnection={handleTestConnection}
+              handleConfigureWebhook={handleConfigureWebhook}
               handleAddRecipient={handleAddRecipient}
               handleRemoveRecipient={handleRemoveRecipient}
               handleRecipientChange={handleRecipientChange}
               savingConfig={savingConfig}
               testingConnection={testingConnection}
+              configuringWebhook={configuringWebhook}
             />
           </TabsContent>
           

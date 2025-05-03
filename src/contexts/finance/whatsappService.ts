@@ -1,6 +1,6 @@
 
 import { WhatsappConfig, WhatsappTemplate, WhatsappLog } from './whatsapp/types';
-import { fetchWhatsappConfig, saveWhatsappConfig, testWhatsappConnection } from './whatsapp/configService';
+import { fetchWhatsappConfig, saveWhatsappConfig, testWhatsappConnection, configureWebhook } from './whatsapp/configService';
 import { fetchWhatsappTemplates, saveWhatsappTemplate, getDefaultTemplate } from './whatsapp/templateService';
 import { fetchWhatsappLogs, logWhatsappMessage } from './whatsapp/logsService';
 import { sendWhatsappMessage } from './whatsapp/messageService';
@@ -52,6 +52,7 @@ export {
   fetchWhatsappConfig,
   saveWhatsappConfig,
   testWhatsappConnection,
+  configureWebhook,
   fetchWhatsappTemplates,
   saveWhatsappTemplate,
   getDefaultTemplate,
