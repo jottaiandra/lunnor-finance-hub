@@ -4,6 +4,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from "react-router-dom";
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from "./components/theme-provider"
@@ -54,6 +55,9 @@ function App() {
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="admin" element={<AdminPage />} />
                 </Route>
+                
+                {/* Redirect from root to dashboard if accessed directly */}
+                <Route path="/index" element={<Navigate to="/" replace />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

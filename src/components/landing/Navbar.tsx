@@ -3,9 +3,11 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   return (
     <header className="fixed w-full bg-white/80 backdrop-blur-md border-b border-gray-100 z-50">
@@ -18,23 +20,42 @@ const Navbar: React.FC = () => {
           <NavLink href="/">Início</NavLink>
           <NavLink href="/sobre">Sobre</NavLink>
           <NavLink href="/contato">Contato</NavLink>
-          <Button 
-            onClick={() => navigate('/auth')} 
-            className="bg-primary hover:bg-primary/90 text-white font-medium"
-          >
-            Entrar
-          </Button>
+          {user ? (
+            <Button 
+              onClick={() => navigate('/dashboard')} 
+              className="bg-primary hover:bg-primary/90 text-white font-medium"
+            >
+              Dashboard
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => navigate('/auth')} 
+              className="bg-primary hover:bg-primary/90 text-white font-medium"
+            >
+              Entrar
+            </Button>
+          )}
         </nav>
         
         {/* Mobile menu button */}
         <div className="md:hidden">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/auth')}
-            className="bg-primary hover:bg-primary/90 text-white font-medium ml-2"
-          >
-            Entrar
-          </Button>
+          {user ? (
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="bg-primary hover:bg-primary/90 text-white font-medium ml-2"
+            >
+              Dashboard
+            </Button>
+          ) : (
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/auth')}
+              className="bg-primary hover:bg-primary/90 text-white font-medium ml-2"
+            >
+              Entrar
+            </Button>
+          )}
         </div>
       </div>
     </header>

@@ -17,22 +17,22 @@ export const useSidebarData = () => {
   const mainNav: NavItem[] = [
     {
       title: "Dashboard",
-      href: "/",
+      href: "/dashboard",
       icon: LayoutDashboard,
     },
     {
       title: "Transações",
-      href: "/transactions",
+      href: "/dashboard/transactions",
       icon: FileText,
     },
     {
       title: "Relatórios",
-      href: "/reports",
+      href: "/dashboard/reports",
       icon: FileText,
     },
     {
       title: "Metas",
-      href: "/goals",
+      href: "/dashboard/goals",
       icon: FileText,
     },
   ];
@@ -41,12 +41,12 @@ export const useSidebarData = () => {
   const settingsNav: NavItem[] = [
     {
       title: "Perfil",
-      href: "/profile",
+      href: "/dashboard/profile",
       icon: Settings,
     },
     {
       title: "Exportar Dados",
-      href: "/export",
+      href: "/dashboard/export",
       icon: Plus,
     }
   ];
@@ -55,7 +55,7 @@ export const useSidebarData = () => {
   if (isAdmin) {
     settingsNav.push({
       title: "Administração",
-      href: "/admin",
+      href: "/dashboard/admin",
       icon: Settings
     });
   }
