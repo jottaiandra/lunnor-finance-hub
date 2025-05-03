@@ -36,18 +36,18 @@ const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <Input
             placeholder="Filtrar por número..."
             value={filterNumber}
             onChange={(e) => setFilterNumber(e.target.value)}
+            className="w-full"
           />
         </div>
         <div>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -64,6 +64,7 @@ const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
             placeholder="Data inicial"
             value={filterDateFrom}
             onChange={(e) => setFilterDateFrom(e.target.value)}
+            className="w-full"
           />
         </div>
         <div className="flex items-center space-x-2">
@@ -73,6 +74,7 @@ const WhatsAppLogsFilter: React.FC<WhatsAppLogsFilterProps> = ({
             placeholder="Data final"
             value={filterDateTo}
             onChange={(e) => setFilterDateTo(e.target.value)}
+            className="w-full"
           />
         </div>
       </div>

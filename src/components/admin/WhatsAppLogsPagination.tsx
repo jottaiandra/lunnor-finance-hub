@@ -28,21 +28,40 @@ const WhatsAppLogsPagination: React.FC<WhatsAppLogsPaginationProps> = ({
 }) => {
   if (totalPages <= 1) return null;
 
+  // Create a button for pagination navigation
+  const createNavButton = (isPrevious: boolean) => {
+    const isDisabled = isPrevious ? currentPage <= 1 : currentPage >= totalPages;
+    
+    if (isDisabled) {
+      return (
+        <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
+          {isPrevious ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          )}
+          <span className="sr-only">{isPrevious ? "Previous" : "Next"}</span>
+        </Button>
+      );
+    }
+    
+    return isPrevious ? (
+      <PaginationPrevious onClick={() => onPageChange(currentPage - 1)} />
+    ) : (
+      <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
+    );
+  };
+
   return (
     <>
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            {currentPage > 1 ? (
-              <PaginationPrevious onClick={() => onPageChange(currentPage - 1)} />
-            ) : (
-              <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-                <span className="sr-only">Previous</span>
-              </Button>
-            )}
+            {createNavButton(true)}
           </PaginationItem>
           
           {[...Array(totalPages)].map((_, index) => {
@@ -79,16 +98,7 @@ const WhatsAppLogsPagination: React.FC<WhatsAppLogsPaginationProps> = ({
           })}
           
           <PaginationItem>
-            {currentPage < totalPages ? (
-              <PaginationNext onClick={() => onPageChange(currentPage + 1)} />
-            ) : (
-              <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-                <span className="sr-only">Next</span>
-              </Button>
-            )}
+            {createNavButton(false)}
           </PaginationItem>
         </PaginationContent>
       </Pagination>

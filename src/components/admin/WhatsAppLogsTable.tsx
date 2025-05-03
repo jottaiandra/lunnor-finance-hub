@@ -99,7 +99,10 @@ const WhatsAppLogsTable: React.FC<WhatsAppLogsTableProps> = ({ logs, loading }) 
                   <details className="text-sm">
                     <summary className="cursor-pointer text-primary">Ver resposta</summary>
                     <div className="mt-2 p-2 bg-muted rounded text-xs whitespace-pre-wrap max-h-32 overflow-auto">
-                      {JSON.stringify(log.response, null, 2)}
+                      {typeof log.response === 'object' 
+                        ? JSON.stringify(log.response, null, 2)
+                        : log.response
+                      }
                     </div>
                   </details>
                 </TableCell>
