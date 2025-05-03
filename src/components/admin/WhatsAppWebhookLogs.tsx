@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -207,7 +208,7 @@ const WhatsAppWebhookLogs: React.FC = () => {
           filterNumber={filterNumber}
           setFilterNumber={setFilterNumber}
           filterStatus={filterEventType}
-          setFilterStatus={setFilterStatus}
+          setFilterStatus={setFilterEventType}
           filterDateFrom={filterDateFrom}
           setFilterDateFrom={setFilterDateFrom}
           filterDateTo={filterDateTo}
