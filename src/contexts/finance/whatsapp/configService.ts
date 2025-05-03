@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
 import { WhatsappConfig } from "./types";
@@ -123,29 +122,28 @@ export const testWhatsappConnection = async (
   recipientNumber: string
 ): Promise<boolean> => {
   try {
-    // In a real implementation, this would call the Evolution API
-    // For now, we'll simulate a successful connection
-    const response = await fetch('https://api.example.com/evolution/test', {
-      method: 'POST',
+    // Fazendo uma chamada real para a Evolution API para verificar o status da instância
+    const instanceName = senderNumber.trim();
+    const response = await fetch(`https://evolution-api.com/instance/connectionState/${instanceName}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`
-      },
-      body: JSON.stringify({
-        sender: senderNumber,
-        recipient: recipientNumber,
-        message: "Teste de conexão do Lunnor Caixa"
-      })
+        'apikey': apiToken
+      }
     });
     
-    // Since this is a simulation, we'll just return true
-    return true;
+    if (!response.ok) {
+      console.error('Erro na resposta da API:', response.status, response.statusText);
+      return false;
+    }
     
-    // In a real application, you'd check the response like this:
-    // const data = await response.json();
-    // return data.success === true;
+    const data = await response.json();
+    console.log('Resposta da API Evolution:', data);
+    
+    // Verificar se a instância está conectada
+    return data.state === 'open' || data.state === 'connected';
   } catch (error) {
-    console.error("Error testing WhatsApp connection:", error);
+    console.error("Erro ao testar conexão WhatsApp:", error);
     return false;
   }
 };
