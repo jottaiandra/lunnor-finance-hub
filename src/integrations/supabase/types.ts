@@ -36,6 +36,42 @@ export type Database = {
         }
         Relationships: []
       }
+      evolution_webhook_events: {
+        Row: {
+          content: string | null
+          created_at: string
+          event_type: string
+          id: string
+          message_type: string | null
+          raw_data: Json | null
+          recipient_number: string | null
+          sender_number: string | null
+          status: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          message_type?: string | null
+          raw_data?: Json | null
+          recipient_number?: string | null
+          sender_number?: string | null
+          status?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          message_type?: string | null
+          raw_data?: Json | null
+          recipient_number?: string | null
+          sender_number?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           created_at: string
@@ -228,6 +264,7 @@ export type Database = {
           sender_number: string
           updated_at: string
           user_id: string
+          webhook_url: string | null
         }
         Insert: {
           api_token: string
@@ -239,6 +276,7 @@ export type Database = {
           sender_number: string
           updated_at?: string
           user_id: string
+          webhook_url?: string | null
         }
         Update: {
           api_token?: string
@@ -250,6 +288,7 @@ export type Database = {
           sender_number?: string
           updated_at?: string
           user_id?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }

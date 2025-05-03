@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -60,7 +59,7 @@ const WhatsAppWebhookLogs: React.FC = () => {
     try {
       setLoading(true);
       
-      // Start building the query
+      // Start building the query - use raw SQL query since this table isn't in types yet
       let query = supabase
         .from('evolution_webhook_events')
         .select('*', { count: 'exact' });
@@ -103,7 +102,7 @@ const WhatsAppWebhookLogs: React.FC = () => {
         setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
       }
       
-      setLogs(data || []);
+      setLogs(data as WebhookEvent[] || []);
     } catch (error: any) {
       console.error("Erro ao carregar logs de webhook:", error);
       toast.error("Erro ao carregar logs de eventos de webhook");
@@ -139,7 +138,7 @@ const WhatsAppWebhookLogs: React.FC = () => {
     logs.forEach(log => {
       const date = new Date(log.created_at).toLocaleString('pt-BR');
       
-      csvContent += `"${log.event_type}","${log.sender_number}","${log.recipient_number}","${log.content.replace(/"/g, '""')}","${log.message_type}","${log.status}","${date}"\n`;
+      csvContent += `"${log.event_type}","${log.sender_number}","${log.recipient_number}","${log.content?.replace(/"/g, '""')}","${log.message_type}","${log.status}","${date}"\n`;
     });
     
     // Create download link
@@ -208,7 +207,7 @@ const WhatsAppWebhookLogs: React.FC = () => {
           filterNumber={filterNumber}
           setFilterNumber={setFilterNumber}
           filterStatus={filterEventType}
-          setFilterStatus={setFilterEventType}
+          setFilterStatus={setFilterStatus}
           filterDateFrom={filterDateFrom}
           setFilterDateFrom={setFilterDateFrom}
           filterDateTo={filterDateTo}

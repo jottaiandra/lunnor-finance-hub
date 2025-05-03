@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,6 +8,7 @@ import { Loader2, Plus, Send, Trash2, Webhook } from 'lucide-react';
 import { WhatsappConfig } from '@/contexts/finance/whatsapp/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/sonner';
 
 interface WhatsAppConfigProps {
   config: Partial<WhatsappConfig>;
