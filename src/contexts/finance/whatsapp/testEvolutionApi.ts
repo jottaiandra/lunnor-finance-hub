@@ -5,7 +5,7 @@ const EVOLUTION_API_BASE_URL = "https://evolution.anayaatendente.online";
 
 export const testEvolutionApi = async () => {
   const apiToken = "DF53146D34F6-4999-A172-475485A2AC7C";
-  const senderNumber = "5583991618969";
+  const senderNumber = "558391618969";
   const recipientNumber = "5587996605453";
   const message = "Teste de conexão com a Evolution API realizado por Lovable.";
 
