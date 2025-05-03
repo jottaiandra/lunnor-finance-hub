@@ -35,7 +35,11 @@ function App() {
           <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
               <Routes>
                 <Route path="/" element={<Layout />}>
-                  <Route index element={<HomePage />} />
+                  <Route index element={
+                    <ProtectedRoute>
+                      <HomePage />
+                    </ProtectedRoute>
+                  } />
                   <Route path="auth" element={<AuthPage />} />
                   <Route path="sobre" element={<SobrePage />} />
                   <Route path="contato" element={<ContatoPage />} />
