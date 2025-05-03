@@ -31,12 +31,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/');
+          navigate('/dashboard');
           toast.success('Login realizado com sucesso!');
         }
         
         if (event === 'SIGNED_OUT') {
-          navigate('/auth');
+          navigate('/');
           toast.info('Você saiu da sua conta');
         }
       }
@@ -47,6 +47,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
+      
+      // If user is logged in but on auth page, redirect to dashboard
+      if (currentSession && window.location.pathname === '/auth') {
+        navigate('/dashboard');
+      }
     });
 
     return () => {

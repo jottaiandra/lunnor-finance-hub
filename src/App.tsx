@@ -23,6 +23,7 @@ import ProfilePage from './pages/ProfilePage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
+import Index from './pages/Index';
 
 const queryClient = new QueryClient();
 
@@ -33,23 +34,28 @@ function App() {
         <AuthProvider>
           <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
               <Routes>
+                {/* Páginas públicas */}
+                <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<AuthPage />} />
-                <Route path="/" element={
+                <Route path="/sobre" element={<SobrePage />} />
+                <Route path="/contato" element={<ContatoPage />} />
+                
+                {/* Páginas protegidas */}
+                <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout />
                   </ProtectedRoute>
                 }>
                   <Route index element={<HomePage />} />
-                  <Route path="sobre" element={<SobrePage />} />
-                  <Route path="contato" element={<ContatoPage />} />
                   <Route path="transactions" element={<TransactionsPage />} />
                   <Route path="reports" element={<ReportsPage />} />
                   <Route path="goals" element={<GoalsPage />} />
                   <Route path="export" element={<ExportPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="admin" element={<AdminPage />} />
-                  <Route path="*" element={<NotFound />} />
                 </Route>
+                
+                <Route path="*" element={<NotFound />} />
               </Routes>
             <Toaster />
           </ThemeProvider>
