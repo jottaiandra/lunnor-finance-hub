@@ -1,57 +1,63 @@
+import React from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+} from "react-router-dom";
+import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from "@/components/theme-provider"
+import { QueryClient, QueryClientProvider } from 'react-query';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-import { AuthProvider } from "@/contexts/AuthContext";
-import Layout from "@/pages/Layout";
-import AuthPage from "@/pages/AuthPage";
-import HomePage from "@/pages/HomePage";
-import SobrePage from "@/pages/SobrePage";
-import ContatoPage from "@/pages/ContatoPage";
-import Index from "@/pages/Index";
-import TransactionsPage from "@/pages/TransactionsPage";
-import ReportsPage from "@/pages/ReportsPage";
-import GoalsPage from "@/pages/GoalsPage";
-import ExportPage from "@/pages/ExportPage";
-import AdminPage from "@/pages/AdminPage";
-import NotFound from "@/pages/NotFound";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import ProfilePage from "@/pages/ProfilePage";
-import WhatsAppPage from "@/pages/WhatsAppPage";
+import { AuthProvider } from './contexts/AuthContext';
+import { Layout } from './components/Layout';
+import { HomePage } from './pages/HomePage';
+import { AuthPage } from './pages/AuthPage';
+import { SobrePage } from './pages/SobrePage';
+import { ContatoPage } from './pages/ContatoPage';
+import { TransactionsPage } from './pages/TransactionsPage';
+import { ReportsPage } from './pages/ReportsPage';
+import { GoalsPage } from './pages/GoalsPage';
+import { ExportPage } from './pages/ExportPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { NotFound } from './pages/NotFound';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminPage } from './pages/AdminPage';
+import WhatsAppPage from './pages/WhatsAppPage';
+import WhatsAppTestPage from './pages/WhatsAppTestPage';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/sobre" element={<SobrePage />} />
-            <Route path="/contato" element={<ContatoPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Index />} />
-              <Route path="transactions" element={<TransactionsPage />} />
-              <Route path="reports" element={<ReportsPage />} />
-              <Route path="goals" element={<GoalsPage />} />
-              <Route path="export" element={<ExportPage />} />
-              <Route path="admin" element={<AdminPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="whatsapp" element={<WhatsAppPage />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="auth" element={<AuthPage />} />
+                  <Route path="sobre" element={<SobrePage />} />
+                  <Route path="contato" element={<ContatoPage />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="transactions" element={<TransactionsPage />} />
+                    <Route path="reports" element={<ReportsPage />} />
+                    <Route path="goals" element={<GoalsPage />} />
+                    <Route path="export" element={<ExportPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="whatsapp" element={<WhatsAppPage />} />
+                    <Route path="whatsapp-test" element={<WhatsAppTestPage />} />
+                    <Route path="admin" element={<AdminPage />} />
+                  </Route>
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            <Toaster />
+          </ThemeProvider>
         </AuthProvider>
-      </TooltipProvider>
-      <Toaster />
-      <Sonner />
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
