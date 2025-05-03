@@ -4,6 +4,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Outlet,
 } from "react-router-dom";
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from "../src/components/theme-provider"
@@ -40,7 +41,7 @@ function App() {
                   <Route path="auth" element={<AuthPage />} />
                   <Route path="sobre" element={<SobrePage />} />
                   <Route path="contato" element={<ContatoPage />} />
-                  <Route element={<ProtectedRoute />}>
+                  <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="goals" element={<GoalsPage />} />
