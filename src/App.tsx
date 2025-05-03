@@ -34,23 +34,21 @@ function App() {
         <AuthProvider>
           <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
               <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={
-                    <ProtectedRoute>
-                      <HomePage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="auth" element={<AuthPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<HomePage />} />
                   <Route path="sobre" element={<SobrePage />} />
                   <Route path="contato" element={<ContatoPage />} />
-                  <Route element={<ProtectedRoute children={<Outlet />} />}>
-                    <Route path="transactions" element={<TransactionsPage />} />
-                    <Route path="reports" element={<ReportsPage />} />
-                    <Route path="goals" element={<GoalsPage />} />
-                    <Route path="export" element={<ExportPage />} />
-                    <Route path="profile" element={<ProfilePage />} />
-                    <Route path="admin" element={<AdminPage />} />
-                  </Route>
+                  <Route path="transactions" element={<TransactionsPage />} />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="goals" element={<GoalsPage />} />
+                  <Route path="export" element={<ExportPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                  <Route path="admin" element={<AdminPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
