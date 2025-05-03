@@ -3,7 +3,6 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { NavItem } from './types';
-import { LucideIcon } from 'lucide-react';
 
 interface NavigationProps {
   navItems: NavItem[];

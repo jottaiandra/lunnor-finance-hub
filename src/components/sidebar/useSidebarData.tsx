@@ -4,83 +4,62 @@ import {
   LayoutDashboard, 
   Settings, 
   FileText, 
-  Plus, 
-  LucideIcon,
-  MessageCircle,
-  TestTube
+  Plus
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
-
-interface NavigationLink {
-  title: string;
-  href: string;
-  icon: LucideIcon;
-  visible: boolean;
-}
+import { NavItem } from "./types";
 
 export const useSidebarData = () => {
   const { user, signOut } = useAuth();
-  const { currentProfile } = useProfiles();
-  const isAdmin = currentProfile?.role === 'admin';
-  
-  const ProtectedRoute = true;
+  const { currentProfile, isAdmin } = useProfiles();
   
   // Navegação principal
-  const mainNav: NavigationLink[] = [
+  const mainNav: NavItem[] = [
     {
       title: "Dashboard",
       href: "/",
       icon: LayoutDashboard,
-      visible: ProtectedRoute
     },
     {
       title: "Transações",
       href: "/transactions",
       icon: FileText,
-      visible: ProtectedRoute
     },
     {
       title: "Relatórios",
       href: "/reports",
       icon: FileText,
-      visible: ProtectedRoute
     },
     {
       title: "Metas",
       href: "/goals",
       icon: FileText,
-      visible: ProtectedRoute
     },
   ];
 
   // Navegação de configurações
-  const settingsNav: NavigationLink[] = [
+  const settingsNav: NavItem[] = [
     {
       title: "Perfil",
       href: "/profile",
       icon: Settings,
-      visible: ProtectedRoute
     },
     {
       title: "Exportar Dados",
       href: "/export",
       icon: Plus,
-      visible: ProtectedRoute
-    },
-    {
-      title: "Notificações WhatsApp",
-      href: "/whatsapp",
-      icon: MessageCircle,
-      visible: true
-    },
-    {
-      title: "Testes WhatsApp",
-      href: "/whatsapp-test",
-      icon: TestTube,
-      visible: isAdmin // Opcional: limitar acesso a administradores
-    },
+    }
   ];
 
+  // Adicionar página de admin apenas para administradores
+  if (isAdmin) {
+    settingsNav.push({
+      title: "Administração",
+      href: "/admin",
+      icon: Settings
+    });
+  }
+  
   // Determine user initials from email
   const userEmail = user?.email || '';
   const userInitials = userEmail.charAt(0).toUpperCase();
@@ -89,7 +68,7 @@ export const useSidebarData = () => {
   const profileImage = currentProfile?.avatar_url || null;
   
   // Combine navigation items
-  const navItems = [...mainNav, ...settingsNav].filter(item => item.visible);
+  const navItems = [...mainNav, ...settingsNav];
   
   // Handle sign out
   const handleSignOut = () => {

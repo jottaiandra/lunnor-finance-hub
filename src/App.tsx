@@ -7,7 +7,7 @@ import {
   Outlet,
 } from "react-router-dom";
 import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from "../src/components/theme-provider"
+import { ThemeProvider } from "./components/theme-provider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from './contexts/AuthContext';
@@ -24,8 +24,6 @@ import ProfilePage from './pages/ProfilePage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
-import WhatsAppPage from './pages/WhatsAppPage';
-import WhatsAppTestPage from './pages/WhatsAppTestPage';
 
 const queryClient = new QueryClient();
 
@@ -41,14 +39,12 @@ function App() {
                   <Route path="auth" element={<AuthPage />} />
                   <Route path="sobre" element={<SobrePage />} />
                   <Route path="contato" element={<ContatoPage />} />
-                  <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+                  <Route element={<ProtectedRoute children={<Outlet />} />}>
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="goals" element={<GoalsPage />} />
                     <Route path="export" element={<ExportPage />} />
                     <Route path="profile" element={<ProfilePage />} />
-                    <Route path="whatsapp" element={<WhatsAppPage />} />
-                    <Route path="whatsapp-test" element={<WhatsAppTestPage />} />
                     <Route path="admin" element={<AdminPage />} />
                   </Route>
                   <Route path="*" element={<NotFound />} />
