@@ -187,9 +187,26 @@ export const useWhatsAppSettings = () => {
       toast.error("Preencha todos os campos antes de testar a conexão");
       return;
     }
+
+    // Validate input formats
+    if (!config.senderNumber.trim().match(/^\d+$/)) {
+      toast.error("Número remetente deve conter apenas dígitos");
+      return;
+    }
+
+    if (!config.recipientNumbers[0].trim().match(/^\d+$/)) {
+      toast.error("Número destinatário deve conter apenas dígitos");
+      return;
+    }
     
     setTestingConnection(true);
     try {
+      console.log("Testando conexão com:", {
+        apiToken: config.apiToken.substring(0, 5) + '...',
+        senderNumber: config.senderNumber,
+        recipientNumber: config.recipientNumbers[0]
+      });
+      
       const result = await testWhatsappConnection(
         config.apiToken,
         config.senderNumber,
@@ -197,13 +214,13 @@ export const useWhatsAppSettings = () => {
       );
       
       if (result) {
-        toast.success("Conexão testada com sucesso!");
+        toast.success("Conexão testada com sucesso! Uma mensagem de teste foi enviada.");
       } else {
-        toast.error("Falha ao conectar com a Evolution API");
+        toast.error("Falha ao conectar com a Evolution API. Verifique os dados informados.");
       }
     } catch (error) {
       console.error("Error testing connection:", error);
-      toast.error("Erro ao testar conexão");
+      toast.error("Erro ao testar conexão: " + (error instanceof Error ? error.message : "Erro desconhecido"));
     } finally {
       setTestingConnection(false);
     }
