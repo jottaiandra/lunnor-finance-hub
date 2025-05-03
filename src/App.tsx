@@ -4,7 +4,6 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Outlet,
 } from "react-router-dom";
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from "./components/theme-provider"

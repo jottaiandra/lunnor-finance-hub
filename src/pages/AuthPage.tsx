@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/components/ui/sonner';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const loginSchema = z.object({
@@ -49,6 +49,7 @@ const AuthPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('login');
+  const navigate = useNavigate();
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -69,6 +70,11 @@ const AuthPage: React.FC = () => {
     resolver: zodResolver(resetSchema),
     defaultValues: { email: '' },
   });
+
+  // Função para navegar para a página inicial
+  const handleBackToHome = () => {
+    navigate('/');
+  };
 
   // Ensure the user is redirected to the app route
   const onLogin = async (data: LoginFormValues) => {
@@ -146,16 +152,20 @@ const AuthPage: React.FC = () => {
   }
 
   if (user) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <div className="p-4">
-        <Link to="/" className="inline-flex items-center text-gray-600 hover:text-primary transition-colors">
+        <Button 
+          onClick={handleBackToHome}
+          variant="ghost"
+          className="inline-flex items-center text-gray-600 hover:text-primary transition-colors"
+        >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Voltar para a página inicial
-        </Link>
+        </Button>
       </div>
       
       <div className="flex-1 flex items-center justify-center p-4">

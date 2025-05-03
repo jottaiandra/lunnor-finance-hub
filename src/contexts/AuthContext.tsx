@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user ?? null);
         
         if (event === 'SIGNED_IN') {
-          navigate('/app');
+          navigate('/');
           toast.success('Login realizado com sucesso!');
         }
         
@@ -47,11 +47,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
-      
-      // If user is logged in but on auth page, redirect to dashboard
-      if (currentSession && window.location.pathname === '/auth') {
-        navigate('/app');
-      }
     });
 
     return () => {
