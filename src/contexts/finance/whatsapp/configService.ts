@@ -115,33 +115,37 @@ export const saveWhatsappConfig = async (
   }
 };
 
-// Test WhatsApp configuration
+// Test WhatsApp connection
 export const testWhatsappConnection = async (
   apiToken: string,
   senderNumber: string,
   recipientNumber: string
 ): Promise<boolean> => {
+  const EVOLUTION_API_BASE_URL = "https://evolution.anayaatendente.online";
+  
   try {
-    // Fazendo uma chamada real para a Evolution API para verificar o status da instância
-    const instanceName = senderNumber.trim();
-    const response = await fetch(`https://evolution-api.com/instance/connectionState/${instanceName}`, {
-      method: 'GET',
+    // Fazer uma chamada para a Evolution API para enviar uma mensagem de teste
+    const evolutionResponse = await fetch(`${EVOLUTION_API_BASE_URL}/message/sendText/${senderNumber}`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiToken
-      }
+        "Content-Type": "application/json",
+        "apikey": apiToken
+      },
+      body: JSON.stringify({
+        number: recipientNumber,
+        options: {
+          delay: 1200
+        },
+        textMessage: {
+          text: "Teste de conexão com a Evolution API realizado com sucesso."
+        }
+      })
     });
     
-    if (!response.ok) {
-      console.error('Erro na resposta da API:', response.status, response.statusText);
-      return false;
-    }
+    const responseData = await evolutionResponse.json();
+    console.log('Resposta da API Evolution (teste):', responseData);
     
-    const data = await response.json();
-    console.log('Resposta da API Evolution:', data);
-    
-    // Verificar se a instância está conectada
-    return data.state === 'open' || data.state === 'connected';
+    return evolutionResponse.ok && responseData?.status === 'success';
   } catch (error) {
     console.error("Erro ao testar conexão WhatsApp:", error);
     return false;
