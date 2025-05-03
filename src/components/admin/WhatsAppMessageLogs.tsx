@@ -335,10 +335,16 @@ const WhatsAppMessageLogs: React.FC = () => {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))} 
-                  disabled={currentPage === 1}
-                />
+                {currentPage > 1 ? (
+                  <PaginationPrevious onClick={() => handlePageChange(currentPage - 1)} />
+                ) : (
+                  <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                    <span className="sr-only">Previous</span>
+                  </Button>
+                )}
               </PaginationItem>
               
               {[...Array(totalPages)].map((_, index) => {
@@ -375,10 +381,16 @@ const WhatsAppMessageLogs: React.FC = () => {
               })}
               
               <PaginationItem>
-                <PaginationNext 
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))} 
-                  disabled={currentPage === totalPages}
-                />
+                {currentPage < totalPages ? (
+                  <PaginationNext onClick={() => handlePageChange(currentPage + 1)} />
+                ) : (
+                  <Button variant="outline" size="icon" disabled className="opacity-50 cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                    <span className="sr-only">Next</span>
+                  </Button>
+                )}
               </PaginationItem>
             </PaginationContent>
           </Pagination>
