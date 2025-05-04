@@ -15,6 +15,7 @@ interface ProfileImageSectionProps {
 
 const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profileImage, setProfileImage }) => {
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(profileImage);
   
   const userInitials = user?.email 
     ? user.email.substring(0, 2).toUpperCase() 
@@ -42,12 +43,33 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
         return;
       }
       
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          setPreviewImage(result);
+        }
+      };
+      reader.readAsDataURL(file);
+      
       // Upload the file
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}_${Date.now()}.${fileExt}`;
       const filePath = `profile_images/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      // Check if avatars bucket exists, attempt to create it if not
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarBucket = buckets?.find(bucket => bucket.name === 'avatars');
+      
+      if (!avatarBucket) {
+        // If bucket doesn't exist, inform the user there's a configuration issue
+        toast.error('Erro de configuração: Bucket de avatares não encontrado');
+        setUploadingImage(false);
+        return;
+      }
+      
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
       
@@ -56,7 +78,7 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
       }
       
       // Get public URL
-      const { data: publicUrl } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
         
@@ -64,7 +86,7 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          profile_image_url: publicUrl.publicUrl,
+          avatar_url: publicUrlData.publicUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
@@ -74,12 +96,14 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
       }
       
       // Update local state
-      setProfileImage(publicUrl.publicUrl);
+      setProfileImage(publicUrlData.publicUrl);
       toast.success('Foto de perfil atualizada com sucesso');
       
     } catch (error: any) {
       console.error('Erro ao fazer upload da imagem:', error);
       toast.error('Erro ao atualizar foto de perfil');
+      // Restore original image if upload fails
+      setPreviewImage(profileImage);
     } finally {
       setUploadingImage(false);
     }
@@ -88,15 +112,15 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({ user, profile
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <Avatar className="h-32 w-32">
-        {profileImage ? (
+        {previewImage ? (
           <AvatarImage 
-            src={profileImage} 
+            src={previewImage} 
             className="object-cover" 
             alt="Foto de perfil" 
             onError={() => {
               console.log('Error loading profile image');
               // Fall back to initials if image fails to load
-              setProfileImage('');
+              setPreviewImage(null);
             }}
           />
         ) : (

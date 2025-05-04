@@ -3,8 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Settings, 
-  FileText, 
-  Plus
+  BarChart2, 
+  Target,
+  UserRound,
+  FileExport,
+  ShieldCheck
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { NavItem } from "./types";
@@ -23,17 +26,17 @@ export const useSidebarData = () => {
     {
       title: "Transações",
       href: "/dashboard/transactions",
-      icon: FileText,
+      icon: FileExport,
     },
     {
       title: "Relatórios",
       href: "/dashboard/reports",
-      icon: FileText,
+      icon: BarChart2,
     },
     {
       title: "Metas",
       href: "/dashboard/goals",
-      icon: FileText,
+      icon: Target,
     },
   ];
 
@@ -42,12 +45,12 @@ export const useSidebarData = () => {
     {
       title: "Perfil",
       href: "/dashboard/profile",
-      icon: Settings,
+      icon: UserRound,
     },
     {
       title: "Exportar Dados",
       href: "/dashboard/export",
-      icon: Plus,
+      icon: FileExport,
     }
   ];
 
@@ -56,7 +59,7 @@ export const useSidebarData = () => {
     settingsNav.push({
       title: "Administração",
       href: "/dashboard/admin",
-      icon: Settings
+      icon: ShieldCheck
     });
   }
   
