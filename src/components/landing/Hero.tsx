@@ -46,7 +46,12 @@ const Hero: React.FC = () => {
             <img 
               src="/assets/finance-dashboard.jpg" 
               alt="Lunnor Caixa Dashboard" 
-              className="rounded-lg w-full"
+              className="rounded-lg w-full h-auto"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.11&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max";
+              }}
             />
           </div>
           <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-primary rounded-full opacity-20 blur-xl"></div>
