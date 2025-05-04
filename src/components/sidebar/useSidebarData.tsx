@@ -6,7 +6,7 @@ import {
   BarChart2, 
   Target,
   UserRound,
-  FileExport,
+  FileText,
   ShieldCheck
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
@@ -26,7 +26,7 @@ export const useSidebarData = () => {
     {
       title: "Transações",
       href: "/dashboard/transactions",
-      icon: FileExport,
+      icon: FileText,
     },
     {
       title: "Relatórios",
@@ -50,7 +50,7 @@ export const useSidebarData = () => {
     {
       title: "Exportar Dados",
       href: "/dashboard/export",
-      icon: FileExport,
+      icon: FileText,
     }
   ];
 
