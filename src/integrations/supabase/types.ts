@@ -36,6 +36,45 @@ export type Database = {
         }
         Relationships: []
       }
+      customization_settings: {
+        Row: {
+          accent_color: string
+          bottom_gradient: string
+          id: number
+          negative_color: string
+          platform_name: string
+          positive_color: string
+          primary_color: string
+          secondary_color: string
+          top_gradient: string
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string
+          bottom_gradient?: string
+          id?: number
+          negative_color?: string
+          platform_name?: string
+          positive_color?: string
+          primary_color?: string
+          secondary_color?: string
+          top_gradient?: string
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string
+          bottom_gradient?: string
+          id?: number
+          negative_color?: string
+          platform_name?: string
+          positive_color?: string
+          primary_color?: string
+          secondary_color?: string
+          top_gradient?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       evolution_webhook_events: {
         Row: {
           content: string | null
