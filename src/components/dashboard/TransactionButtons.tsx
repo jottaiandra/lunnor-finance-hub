@@ -9,7 +9,7 @@ const TransactionButtons: React.FC = () => (
   <div className="grid gap-4 md:grid-cols-2">
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-positive hover:bg-positive/80">Nova Receita</Button>
+        <Button className="bg-positive hover:bg-positive/80 text-white">Nova Receita</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <TransactionForm type={TransactionType.INCOME} />
@@ -18,7 +18,7 @@ const TransactionButtons: React.FC = () => (
     
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-negative hover:bg-negative/80">Nova Despesa</Button>
+        <Button className="bg-negative hover:bg-negative/80 text-white">Nova Despesa</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <TransactionForm type={TransactionType.EXPENSE} />

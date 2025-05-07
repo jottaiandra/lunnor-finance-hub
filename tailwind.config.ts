@@ -25,10 +25,10 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
-				positive: '#28a745',
-				negative: '#dc3545',
+				positive: '#28C76F',
+				negative: '#EA5455',
 				primary: {
-					DEFAULT: '#007bff',
+					DEFAULT: '#7367F0',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
