@@ -1,16 +1,18 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useCustomization } from '@/contexts/CustomizationContext';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
+  const { settings } = useCustomization();
   
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-xl font-bold mb-4">Lunnor Caixa</h3>
+            <h3 className="text-xl font-bold mb-4">{settings.platformName}</h3>
             <p className="text-gray-400">
               Simplificando a gestão financeira para empresas de todos os tamanhos.
             </p>
@@ -45,7 +47,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="pt-8 border-t border-gray-800 text-center text-gray-400">
-          <p>© {currentYear} Lunnor Caixa. Todos os direitos reservados.</p>
+          <p>© {currentYear} {settings.platformName}. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

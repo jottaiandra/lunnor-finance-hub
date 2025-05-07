@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
-import { Loader2, User, Shield, UserX, MessageSquare } from 'lucide-react';
+import { Loader2, User, Shield, UserX, MessageSquare, Paintbrush } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppMessageLogs from '@/components/admin/WhatsAppMessageLogs';
+import CustomizationSettings from '@/components/admin/CustomizationSettings';
 
 interface UserProfile {
   id: string;
@@ -198,6 +200,9 @@ const AdminPage: React.FC = () => {
           <TabsTrigger value="users">
             <User className="h-4 w-4 mr-2" /> Usuários
           </TabsTrigger>
+          <TabsTrigger value="customization">
+            <Paintbrush className="h-4 w-4 mr-2" /> Personalização
+          </TabsTrigger>
           <TabsTrigger value="whatsapp">
             <MessageSquare className="h-4 w-4 mr-2" /> Logs de WhatsApp
           </TabsTrigger>
@@ -304,6 +309,10 @@ const AdminPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="customization">
+          <CustomizationSettings />
         </TabsContent>
         
         <TabsContent value="whatsapp">

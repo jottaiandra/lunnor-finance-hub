@@ -11,6 +11,7 @@ import { ThemeProvider } from "./components/theme-provider"
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider } from './contexts/AuthContext';
+import { CustomizationProvider } from './contexts/CustomizationContext';
 import Layout from './pages/Layout';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
@@ -33,36 +34,38 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-              <Routes>
-                {/* Páginas públicas */}
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/sobre" element={<SobrePage />} />
-                <Route path="/contato" element={<ContatoPage />} />
-                
-                {/* Páginas protegidas */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<HomePage />} />
-                  <Route path="transactions" element={<TransactionsPage />} />
-                  <Route path="reports" element={<ReportsPage />} />
-                  <Route path="goals" element={<GoalsPage />} />
-                  <Route path="export" element={<ExportPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="admin" element={<AdminPage />} />
-                </Route>
-                
-                {/* Redirect from root to dashboard if accessed directly */}
-                <Route path="/index" element={<Navigate to="/" replace />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            <Toaster />
-          </ThemeProvider>
+          <CustomizationProvider>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <Routes>
+                  {/* Páginas públicas */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/sobre" element={<SobrePage />} />
+                  <Route path="/contato" element={<ContatoPage />} />
+                  
+                  {/* Páginas protegidas */}
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  }>
+                    <Route index element={<HomePage />} />
+                    <Route path="transactions" element={<TransactionsPage />} />
+                    <Route path="reports" element={<ReportsPage />} />
+                    <Route path="goals" element={<GoalsPage />} />
+                    <Route path="export" element={<ExportPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
+                    <Route path="admin" element={<AdminPage />} />
+                  </Route>
+                  
+                  {/* Redirect from root to dashboard if accessed directly */}
+                  <Route path="/index" element={<Navigate to="/" replace />} />
+                  
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              <Toaster />
+            </ThemeProvider>
+          </CustomizationProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

@@ -1,18 +1,21 @@
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCustomization } from '@/contexts/CustomizationContext';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { settings } = useCustomization();
   
   return (
     <header className="fixed w-full bg-white/80 backdrop-blur-md border-b border-gray-100 z-50">
       <div className="container mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold text-primary">Lunnor Caixa</h1>
+          <h1 className="text-2xl font-bold text-primary">{settings.platformName}</h1>
         </div>
         
         <nav className="hidden md:flex items-center space-x-6">

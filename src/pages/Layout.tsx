@@ -5,10 +5,12 @@ import Sidebar from '@/components/Sidebar';
 import { FinanceProvider } from '@/contexts/FinanceContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import { useCustomization } from '@/contexts/CustomizationContext';
 
 const Layout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
+  const { settings } = useCustomization();
   
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => !prev);
@@ -17,6 +19,12 @@ const Layout: React.FC = () => {
   return (
     <FinanceProvider>
       <div className="flex h-screen overflow-hidden bg-gray-50">
+        {/* Top gradient */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-8 z-10"
+          style={{ background: settings.topGradient }}
+        ></div>
+        
         {/* Sidebar */}
         <Sidebar isCollapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
         
@@ -28,7 +36,7 @@ const Layout: React.FC = () => {
               <Button variant="ghost" size="sm" onClick={toggleSidebar}>
                 {sidebarCollapsed ? "☰" : "✕"}
               </Button>
-              <h1 className="ml-2 text-xl font-bold text-primary">Lunnor Caixa</h1>
+              <h1 className="ml-2 text-xl font-bold text-primary">{settings.platformName}</h1>
             </div>
           )}
           
@@ -36,6 +44,12 @@ const Layout: React.FC = () => {
           <main className="flex-1 overflow-y-auto p-6">
             <Outlet />
           </main>
+          
+          {/* Bottom gradient */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 h-8 z-10"
+            style={{ background: settings.bottomGradient }}
+          ></div>
         </div>
       </div>
     </FinanceProvider>
