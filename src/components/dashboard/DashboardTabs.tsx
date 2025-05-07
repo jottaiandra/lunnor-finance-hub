@@ -21,25 +21,33 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ barChartData, pieChartDat
   const [activeTab, setActiveTab] = React.useState('overview');
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-        <TabsTrigger value="transactions">Transações</TabsTrigger>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="bg-white border border-gray-100 p-1 shadow-sm">
+        <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+          Visão Geral
+        </TabsTrigger>
+        <TabsTrigger value="transactions" className="data-[state=active]:bg-primary data-[state=active]:text-white">
+          Transações
+        </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="overview" className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+      <TabsContent value="overview" className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2">
           <ExpenseVsIncomeChart data={barChartData} />
           <ExpenseByCategoryChart data={pieChartData} />
         </div>
         
         <TransactionButtons />
         
-        <TransactionList limit={5} showFilters={false} title="Transações Recentes" />
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <TransactionList limit={5} showFilters={false} title="Transações Recentes" />
+        </div>
       </TabsContent>
       
       <TabsContent value="transactions">
-        <TransactionList showFilters={true} title="Todas as Transações" />
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <TransactionList showFilters={true} title="Todas as Transações" />
+        </div>
       </TabsContent>
     </Tabs>
   );

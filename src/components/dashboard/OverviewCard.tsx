@@ -17,10 +17,11 @@ const OverviewCard: React.FC<OverviewCardProps> = ({
   colorClass, 
   isNegative = false 
 }) => (
-  <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+  <Card className="overflow-hidden border-none shadow-lg">
+    <div className={`${colorClass} absolute top-0 left-0 w-2 h-full rounded-l-lg`}></div>
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-6">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <div className={`rounded-full p-2 ${colorClass}`}>
+      <div className={`rounded-full p-2.5 ${colorClass} shadow-md`}>
         {icon}
       </div>
     </CardHeader>

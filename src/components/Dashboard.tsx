@@ -56,8 +56,8 @@ const Dashboard: React.FC = () => {
   // Prepare data for charts
   const getBarChartData = () => {
     return [
-      { name: 'Receitas', value: totalIncomeMonth, fill: '#28a745' },
-      { name: 'Despesas', value: totalExpenseMonth, fill: '#dc3545' },
+      { name: 'Receitas', value: totalIncomeMonth, fill: '#28C76F' },
+      { name: 'Despesas', value: totalExpenseMonth, fill: '#EA5455' },
     ];
   };
   
@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
   const pieChartData = getCategorySummary();
   
   return (
-    <>
+    <div className="px-1 py-2 bg-gray-50">
       <DashboardHeader 
         showAlertSettings={showAlertSettings}
         setShowAlertSettings={setShowAlertSettings}
@@ -96,19 +96,21 @@ const Dashboard: React.FC = () => {
       
       <DashboardAlerts />
       
-      <FinancialOverview
-        totalIncomeMonth={totalIncomeMonth}
-        totalExpenseMonth={totalExpenseMonth}
-        balance={balance}
-      />
+      <div className="mb-6">
+        <FinancialOverview
+          totalIncomeMonth={totalIncomeMonth}
+          totalExpenseMonth={totalExpenseMonth}
+          balance={balance}
+        />
+      </div>
       
-      <div className="mt-4">
+      <div className="mt-6">
         <DashboardTabs 
           barChartData={barChartData}
           pieChartData={pieChartData}
         />
       </div>
-    </>
+    </div>
   );
 };
 

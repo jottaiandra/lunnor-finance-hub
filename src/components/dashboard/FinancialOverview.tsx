@@ -20,14 +20,14 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
       <OverviewCard 
         title="Receitas do Mês" 
         amount={totalIncomeMonth} 
-        icon={<CircleDollarSign className="h-4 w-4 text-white" />} 
+        icon={<CircleDollarSign className="h-5 w-5 text-white" />} 
         colorClass="bg-positive text-white" 
       />
       
       <OverviewCard 
         title="Despesas do Mês" 
         amount={totalExpenseMonth} 
-        icon={<CircleDollarSign className="h-4 w-4 text-white" />} 
+        icon={<CircleDollarSign className="h-5 w-5 text-white" />} 
         colorClass="bg-negative text-white" 
         isNegative={true}
       />
