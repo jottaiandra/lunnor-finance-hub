@@ -13,11 +13,7 @@ const LandingPage: React.FC = () => {
   
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Top gradient */}
-      <div 
-        className="absolute top-0 left-0 right-0 h-16 z-10 pointer-events-none"
-        style={{ background: settings.topGradient }}
-      ></div>
+      {/* Removed top gradient */}
       
       <Navbar />
       <main className="flex-grow">
