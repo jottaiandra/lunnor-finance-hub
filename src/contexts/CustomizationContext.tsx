@@ -47,8 +47,8 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        // Use rpc call instead of direct table query to avoid type checking issues
-        const { data, error } = await supabase.rpc('get_customization_settings');
+        // Call the edge function to get customization settings
+        const { data, error } = await supabase.functions.invoke('get_customization_settings');
 
         if (error) {
           console.error('Error fetching customization settings:', error);
@@ -113,15 +113,19 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
         bottom_gradient: updatedSettings.bottomGradient
       };
       
-      // Update using stored procedure to avoid type errors
-      const { error } = await supabase.rpc('update_customization_settings', dbSettings);
+      // Call the edge function to update the settings
+      const { error } = await supabase.functions.invoke('update_customization_settings', {
+        body: dbSettings
+      });
 
       if (error) throw error;
       
       setSettings(updatedSettings);
+      toast.success('Configurações atualizadas com sucesso');
       return;
     } catch (err) {
       console.error('Failed to update customization settings:', err);
+      toast.error('Falha ao atualizar as configurações de customização');
       throw err;
     }
   };
