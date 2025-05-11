@@ -41,11 +41,7 @@ const Layout: React.FC = () => {
             <Outlet />
           </main>
           
-          {/* Bottom gradient */}
-          <div 
-            className="absolute bottom-0 left-0 right-0 h-8 z-10"
-            style={{ background: settings.bottomGradient }}
-          ></div>
+          {/* Removed bottom gradient */}
         </div>
       </div>
     </FinanceProvider>

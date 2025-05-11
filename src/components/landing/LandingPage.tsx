@@ -24,11 +24,7 @@ const LandingPage: React.FC = () => {
       </main>
       <Footer />
       
-      {/* Bottom gradient */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 h-16 z-10 pointer-events-none"
-        style={{ background: settings.bottomGradient }}
-      ></div>
+      {/* Removed bottom gradient */}
     </div>
   );
 };
