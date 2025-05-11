@@ -19,8 +19,6 @@ const Layout: React.FC = () => {
   return (
     <FinanceProvider>
       <div className="flex h-screen overflow-hidden bg-gray-50">
-        {/* Removed top gradient */}
-        
         {/* Sidebar */}
         <Sidebar isCollapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
         
@@ -40,8 +38,6 @@ const Layout: React.FC = () => {
           <main className="flex-1 overflow-y-auto p-6">
             <Outlet />
           </main>
-          
-          {/* Removed bottom gradient */}
         </div>
       </div>
     </FinanceProvider>

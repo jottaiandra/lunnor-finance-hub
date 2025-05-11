@@ -43,10 +43,6 @@
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 252 86% 67%;
-    
-    /* New custom gradient variables */
-    --top-gradient: linear-gradient(to right, rgba(115, 103, 240, 0.2), rgba(115, 103, 240, 0.05));
-    --bottom-gradient: linear-gradient(to right, rgba(115, 103, 240, 0.1), rgba(115, 103, 240, 0.02));
   }
 
   .dark {
@@ -86,10 +82,6 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
     --sidebar-ring: 252 86% 67%;
-    
-    /* Same gradient variables for dark mode */
-    --top-gradient: linear-gradient(to right, rgba(115, 103, 240, 0.2), rgba(115, 103, 240, 0.05));
-    --bottom-gradient: linear-gradient(to right, rgba(115, 103, 240, 0.1), rgba(115, 103, 240, 0.02));
   }
 }
 

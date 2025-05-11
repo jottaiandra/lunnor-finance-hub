@@ -10,8 +10,6 @@ interface CustomizationSettings {
   accentColor: string;
   positiveColor: string;
   negativeColor: string;
-  topGradient: string;
-  bottomGradient: string;
 }
 
 interface CustomizationContextType {
@@ -26,9 +24,7 @@ const defaultSettings: CustomizationSettings = {
   secondaryColor: '#28C76F',
   accentColor: '#EA5455',
   positiveColor: '#28C76F',
-  negativeColor: '#EA5455',
-  topGradient: 'linear-gradient(to right, rgba(115, 103, 240, 0.2), rgba(115, 103, 240, 0.05))',
-  bottomGradient: 'linear-gradient(to right, rgba(115, 103, 240, 0.1), rgba(115, 103, 240, 0.02))'
+  negativeColor: '#EA5455'
 };
 
 const CustomizationContext = createContext<CustomizationContextType>({
@@ -63,9 +59,7 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
             secondaryColor: data.secondary_color || defaultSettings.secondaryColor,
             accentColor: data.accent_color || defaultSettings.accentColor,
             positiveColor: data.positive_color || defaultSettings.positiveColor,
-            negativeColor: data.negative_color || defaultSettings.negativeColor,
-            topGradient: data.top_gradient || defaultSettings.topGradient,
-            bottomGradient: data.bottom_gradient || defaultSettings.bottomGradient
+            negativeColor: data.negative_color || defaultSettings.negativeColor
           });
         }
       } catch (err) {
@@ -82,7 +76,7 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const root = document.documentElement;
     
-    // Convert hex to hsl for primary color (simplified approach)
+    // Apply colors
     const applyColorToRoot = (colorName: string, hexValue: string) => {
       root.style.setProperty(`--${colorName}`, hexValue);
     };
@@ -90,10 +84,6 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
     applyColorToRoot('primary', settings.primaryColor);
     applyColorToRoot('positive', settings.positiveColor);
     applyColorToRoot('negative', settings.negativeColor);
-    
-    // Apply gradients
-    root.style.setProperty('--top-gradient', settings.topGradient);
-    root.style.setProperty('--bottom-gradient', settings.bottomGradient);
     
   }, [settings]);
 
@@ -108,9 +98,7 @@ export const CustomizationProvider: React.FC<{ children: React.ReactNode }> = ({
         secondary_color: updatedSettings.secondaryColor,
         accent_color: updatedSettings.accentColor,
         positive_color: updatedSettings.positiveColor,
-        negative_color: updatedSettings.negativeColor,
-        top_gradient: updatedSettings.topGradient,
-        bottom_gradient: updatedSettings.bottomGradient
+        negative_color: updatedSettings.negativeColor
       };
       
       // Call the edge function to update the settings

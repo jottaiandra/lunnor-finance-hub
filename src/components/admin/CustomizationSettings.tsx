@@ -56,10 +56,6 @@ const CustomizationSettings: React.FC = () => {
                 <Palette className="mr-2 h-4 w-4" />
                 Cores
               </TabsTrigger>
-              <TabsTrigger value="gradients">
-                <Palette className="mr-2 h-4 w-4" />
-                Gradientes
-              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="branding" className="space-y-4">
@@ -131,35 +127,6 @@ const CustomizationSettings: React.FC = () => {
                 <p className="text-sm text-muted-foreground mt-2">
                   Estas cores serão aplicadas em toda a plataforma incluindo botões, links e indicadores.
                 </p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="gradients" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="topGradient">Gradiente do Topo</Label>
-                <Input
-                  id="topGradient"
-                  value={form.topGradient}
-                  onChange={(e) => handleChange('topGradient', e.target.value)}
-                  placeholder="linear-gradient(to right, rgba(115, 103, 240, 0.2), rgba(115, 103, 240, 0.05))"
-                />
-                <div 
-                  className="h-16 w-full rounded-md mt-2"
-                  style={{ background: form.topGradient }}
-                ></div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bottomGradient">Gradiente do Rodapé</Label>
-                <Input
-                  id="bottomGradient"
-                  value={form.bottomGradient}
-                  onChange={(e) => handleChange('bottomGradient', e.target.value)}
-                  placeholder="linear-gradient(to right, rgba(115, 103, 240, 0.1), rgba(115, 103, 240, 0.02))"
-                />
-                <div 
-                  className="h-16 w-full rounded-md mt-2"
-                  style={{ background: form.bottomGradient }}
-                ></div>
               </div>
             </TabsContent>
           </Tabs>

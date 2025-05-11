@@ -13,8 +13,6 @@ const LandingPage: React.FC = () => {
   
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Removed top gradient */}
-      
       <Navbar />
       <main className="flex-grow">
         <Hero />
@@ -23,8 +21,6 @@ const LandingPage: React.FC = () => {
         <CTA />
       </main>
       <Footer />
-      
-      {/* Removed bottom gradient */}
     </div>
   );
 };

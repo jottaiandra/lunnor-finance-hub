@@ -45,9 +45,7 @@ serve(async (req) => {
         secondary_color: settings.secondary_color,
         accent_color: settings.accent_color,
         positive_color: settings.positive_color,
-        negative_color: settings.negative_color,
-        top_gradient: settings.top_gradient,
-        bottom_gradient: settings.bottom_gradient
+        negative_color: settings.negative_color
       })
       .eq('id', 1)
       .single();
