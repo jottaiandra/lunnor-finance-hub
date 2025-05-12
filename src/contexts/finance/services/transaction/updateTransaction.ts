@@ -1,17 +1,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types";
+import { mapTransactionFromDB } from "../../mappers";
 import { toast } from "@/components/ui/sonner";
-import { fetchTransactions } from "./fetchTransactions";
 
 // Update a transaction
 export const updateTransaction = async (
-  transaction: Transaction,
-  userId: string,
+  transaction: Transaction, 
+  userId: string, 
   dispatch: any,
   updateOptions?: { updateAllFuture?: boolean }
-) => {
-  if (!userId) return;
+): Promise<Transaction | null> => { // Make return type explicit
+  if (!userId) return null;
   
   try {
     // Prepare data for Supabase
@@ -30,43 +30,37 @@ export const updateTransaction = async (
       recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
     };
     
-    if (updateOptions?.updateAllFuture && transaction.isRecurrent) {
-      // Update this and all future transactions
-      const { error } = await supabase
-        .from('transactions')
-        .update(transactionData)
-        .eq('parent_transaction_id', transaction.parentTransactionId || transaction.id)
-        .gte('date', transaction.date.toISOString());
+    // Update in Supabase
+    let query = supabase
+      .from('transactions')
+      .update(transactionData);
+    
+    // If this is a recurring transaction update and user wants to update all future occurrences
+    if (transaction.isRecurrent && updateOptions?.updateAllFuture) {
+      // Get base date for comparison (today or transaction date)
+      const baseDate = transaction.date.toISOString();
+      const parentId = transaction.parentTransactionId || transaction.id;
       
-      if (error) throw error;
-      
-      // Also update the original transaction if this is not it
-      if (transaction.parentTransactionId) {
-        const { error: origError } = await supabase
-          .from('transactions')
-          .update(transactionData)
-          .eq('id', transaction.parentTransactionId);
-        
-        if (origError) throw origError;
-      }
-      
-      // Refresh transactions to get updated data
-      return fetchTransactions(userId, dispatch);
+      query = query.or(`id.eq.${transaction.id},and(parent_transaction_id.eq.${parentId},date.gte.${baseDate})`);
     } else {
-      // Update only this transaction
-      const { error } = await supabase
-        .from('transactions')
-        .update(transactionData)
-        .eq('id', transaction.id);
-      
-      if (error) throw error;
-      
-      // Update local state
-      dispatch({ type: "UPDATE_TRANSACTION", payload: transaction });
+      // Standard update for single transaction
+      query = query.eq('id', transaction.id);
     }
+    
+    // Execute the query
+    const { data, error } = await query.select().single();
+    
+    if (error) throw error;
+    
+    // Update local state
+    const updatedTransaction = mapTransactionFromDB(data);
+    dispatch({ type: "UPDATE_TRANSACTION", payload: updatedTransaction });
+    
+    toast.success("Transação atualizada com sucesso");
+    return updatedTransaction; // Return the updated transaction
   } catch (error: any) {
     console.error("Erro ao atualizar transação:", error);
     toast.error("Erro ao atualizar transação");
-    throw error;
+    return null; // Return null on error
   }
 };
