@@ -1,3 +1,4 @@
+
 import { useReducer, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +10,8 @@ import {
   updateTransaction,
   deleteTransaction,
   generateRecurringTransactions,
-  getFilteredTransactions
+  getFilteredTransactions,
+  sendTransactionWebhook
 } from "./transactionService";
 import {
   fetchGoals,
@@ -55,6 +57,9 @@ export function useFinanceProvider() {
         data: newTransaction.date,
         nome: user.email?.split('@')[0] || 'Usuário'
       });
+      
+      // Send webhook to Make
+      sendTransactionWebhook(newTransaction, user.id);
     }
     
     // If this is a recurring transaction, generate future occurrences

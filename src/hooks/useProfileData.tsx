@@ -11,6 +11,7 @@ const profileSchema = z.object({
   lastName: z.string().min(1, 'Sobrenome é obrigatório'),
   email: z.string().email('Digite um e-mail válido').optional(),
   address: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 const passwordSchema = z.object({
@@ -42,6 +43,7 @@ export const useProfileData = () => {
       lastName: '',
       email: user?.email || '',
       address: '',
+      phoneNumber: '',
     },
   });
   
@@ -102,11 +104,15 @@ export const useProfileData = () => {
         // Verificar se o campo address existe em data
         const address = 'address' in data ? data.address || '' : '';
         
+        // Verificar se o campo phone_number existe em data
+        const phoneNumber = 'phone_number' in data ? data.phone_number || '' : '';
+        
         profileForm.reset({
           firstName,
           lastName,
           email,
           address,
+          phoneNumber,
         });
         
         // Verificar se o campo profile_image_url existe em data

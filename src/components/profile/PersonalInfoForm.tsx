@@ -15,6 +15,7 @@ const profileSchema = z.object({
   lastName: z.string().min(1, 'Sobrenome é obrigatório'),
   email: z.string().email('Digite um e-mail válido').optional(),
   address: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -36,6 +37,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ form, user }) => {
         first_name: data.firstName,
         last_name: data.lastName,
         address: data.address,
+        phone_number: data.phoneNumber,
         updated_at: new Date().toISOString(),
       };
       
@@ -98,6 +100,23 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ form, user }) => {
                 <Input type="email" placeholder="seu@email.com" {...field} disabled />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Telefone (WhatsApp)</FormLabel>
+              <FormControl>
+                <Input placeholder="5598912345678" {...field} />
+              </FormControl>
+              <FormMessage />
+              <p className="text-xs text-muted-foreground mt-1">
+                {!field.value && "Formato: 5598912345678 (DDI+DDD+Número)"}
+              </p>
             </FormItem>
           )}
         />
