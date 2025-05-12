@@ -1,3 +1,4 @@
+
 import { useCallback } from "react";
 import { Goal } from "@/types";
 import { fetchGoals, addGoal, updateGoal, deleteGoal } from "../goalService";
@@ -6,7 +7,14 @@ import { processNotification } from "../whatsappService";
 export function useGoals(user: any, dispatch: any) {
   const handleFetchGoals = useCallback(async () => {
     if (!user) return;
-    await fetchGoals(user.id, dispatch);
+    
+    try {
+      console.log("Fetching goals for user:", user.id);
+      await fetchGoals(user.id, dispatch);
+    } catch (error) {
+      console.error("Error fetching goals:", error);
+      throw error; // Propagate the error so it can be handled by the caller
+    }
   }, [user, dispatch]);
 
   const handleAddGoal = useCallback(async (goal: Omit<Goal, "id">): Promise<Goal | null> => {

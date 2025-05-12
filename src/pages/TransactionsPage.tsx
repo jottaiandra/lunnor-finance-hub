@@ -21,29 +21,27 @@ const TransactionsPage: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('all');
   const [activeForm, setActiveForm] = React.useState<TransactionType | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dataLoaded, setDataLoaded] = React.useState(false);
   const { dispatch, fetchTransactions, fetchNotifications, state, markNotificationRead, hasUnreadNotifications } = useFinance();
 
   useEffect(() => {
     // Evita chamadas repetidas adicionando uma flag de verificação
-    let isMounted = true;
+    if (dataLoaded) return;
     
     const loadData = async () => {
       try {
+        console.log("TransactionsPage: Loading data...");
         await fetchTransactions();
         await fetchNotifications();
+        setDataLoaded(true);
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
+        toast.error("Erro ao carregar dados. Por favor, tente novamente.");
       }
     };
     
-    if (isMounted) {
-      loadData();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    loadData();
+  }, [fetchTransactions, fetchNotifications, dataLoaded]);
 
   const handleOpenIncomeForm = () => {
     setActiveForm(TransactionType.INCOME);
@@ -80,7 +78,8 @@ const TransactionsPage: React.FC = () => {
     markNotificationRead(id);
   };
 
-  if (state.loading.transactions) {
+  // Mostrar estado de carregamento apenas durante carregamento inicial
+  if (!dataLoaded && state.loading.transactions) {
     return (
       <div className="h-full flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

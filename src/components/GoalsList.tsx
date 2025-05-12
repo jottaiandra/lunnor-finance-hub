@@ -26,7 +26,7 @@ const GoalsList: React.FC = () => {
     }
   };
   
-  const calculateProgress = (goal: typeof state.goals[0]) => {
+  const calculateProgress = (goal: any) => {
     if (!goal || typeof goal.current !== 'number' || typeof goal.target !== 'number') {
       return 0;
     }
@@ -75,7 +75,7 @@ const GoalsList: React.FC = () => {
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {state.goals.map((goal) => {
+      {state.goals.map((goal: any) => {
         // Skip rendering if goal data is invalid
         if (!goal || !goal.id) {
           console.warn("Received invalid goal data:", goal);
@@ -127,10 +127,10 @@ const GoalsList: React.FC = () => {
                 
                 <div className="text-xs text-muted-foreground">
                   <span>
-                    {goal.startDate && goal.endDate ? (
+                    {goal.start_date && goal.end_date ? (
                       <>
-                        Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - 
-                        {format(new Date(goal.endDate), "dd/MM/yyyy")}
+                        Período: {format(new Date(goal.start_date), "dd/MM/yyyy")} - 
+                        {format(new Date(goal.end_date), "dd/MM/yyyy")}
                       </>
                     ) : (
                       'Período não definido'

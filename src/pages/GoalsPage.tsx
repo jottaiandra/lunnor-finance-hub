@@ -19,7 +19,7 @@ const GoalsPage: React.FC = () => {
   useEffect(() => {
     if (fetchAttempted) return; // Prevent multiple fetch attempts
 
-    console.log("GoalsPage mounted, fetching goals...");
+    console.log("GoalsPage: fetching goals...");
     setFetchAttempted(true);
     
     fetchGoals().catch(error => {
@@ -90,16 +90,7 @@ const GoalsPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Pass the loading state directly to GoalsList */}
       <GoalsList />
-      
-      {/* Debug information - only show in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-muted-foreground mt-8">
-          <p>Estado de carregamento: {state.loading.goals ? 'Carregando' : 'Pronto'}</p>
-          <p>Metas carregadas: {state.goals.length}</p>
-        </div>
-      )}
     </div>
   );
 };
