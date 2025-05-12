@@ -53,7 +53,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     const updatedTransaction = await updateTransaction(transaction, user.id, dispatch, updateOptions);
     
     // Send webhook to Make for updated transaction
-    // Fix: Check if updatedTransaction exists and is a Transaction object, not void
+    // Check if updatedTransaction exists and is a Transaction object, not void
     if (updatedTransaction && typeof updatedTransaction !== 'undefined') {
       await sendTransactionWebhook(updatedTransaction, user.id);
     }
