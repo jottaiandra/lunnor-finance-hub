@@ -73,32 +73,47 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
       };
 
       await addTransaction(newTransaction);
+      
+      // Envio direto para o Make com log detalhado
+      const makeWebhookUrl = "https://hook.us2.make.com/xvkee5kj7au6i85tb8yvrv682kau9fxm";
+      const webhookData = {
+        nome: contact || "Usuário",
+        tipo: type === TransactionType.INCOME ? "receita" : "despesa",
+        valor: amount,
+        descricao: description,
+        data: date?.toISOString().split("T")[0]
+      };
+      
+      console.log("Enviando dados para Make.com:", JSON.stringify(webhookData));
+      
+      fetch(makeWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(webhookData)
+      })
+      .then(res => {
+        console.log("Status da resposta Make:", res.status);
+        return res.text(); // Usamos text() em vez de json() para ver qualquer resposta
+      })
+      .then(data => {
+        console.log("Resposta completa do Make:", data);
+        try {
+          // Tenta converter para JSON se a resposta for um JSON válido
+          const jsonData = JSON.parse(data);
+          console.log("Resposta do Make como JSON:", jsonData);
+        } catch (e) {
+          // Se não for JSON, já exibimos como texto acima
+        }
+      })
+      .catch(err => {
+        console.error("Erro detalhado no envio ao Make:", err);
+      });
 
-// Envia para o Make
-fetch("https://hook.us2.make.com/xvkee5kj7au6i85tb8yvrv682kau9fxm", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    nome: contact || "Usuário",
-    tipo: type === TransactionType.INCOME ? "receita" : "despesa",
-    valor: amount,
-    descricao: description,
-    data: date?.toISOString().split("T")[0]
-  })
-})
-.then(res => res.json())
-.then(data => {
-  console.log("Enviado para Make:", data);
-})
-.catch(err => {
-  console.error("Erro no envio ao Make:", err);
-});
-
-toast({
-  title: "Sucesso",
-  description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
+      toast({
+        title: "Sucesso",
+        description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
       });
 
       // Reset form
