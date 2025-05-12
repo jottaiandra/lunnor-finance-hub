@@ -20,18 +20,20 @@ export const sendTransactionWebhook = async (
       return false;
     }
     
-    // Format the data for the webhook
+    // Format the data for the webhook exactly as specified
     const webhookData = {
       nome: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
       tipo: transaction.type === 'income' ? 'receita' : 'despesa',
       valor: transaction.amount,
       descricao: transaction.description,
       data: new Date(transaction.date).toISOString().split('T')[0], // Format as YYYY-MM-DD
-      telefone: profileData.phone_number || ''
+      telefone: profileData.phone_number || '' // Extra field that might be useful
     };
     
     // Send the webhook to Make
     const webhookUrl = 'https://hook.us2.make.com/xvkee5kj7au6i85tb8yvrv682kau9fxm';
+    
+    console.log('Enviando webhook para o Make com os dados:', JSON.stringify(webhookData));
     
     const response = await fetch(webhookUrl, {
       method: 'POST',

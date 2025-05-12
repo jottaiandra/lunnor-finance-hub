@@ -32,8 +32,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
         nome: user.email?.split('@')[0] || 'Usuário'
       });
       
-      // Send webhook to Make
-      sendTransactionWebhook(newTransaction, user.id);
+      // Send webhook to Make - This is already called in addTransaction.ts
     }
     
     // If this is a recurring transaction, generate future occurrences
@@ -51,7 +50,12 @@ export function useTransactions(user: any, state: any, dispatch: any) {
 
   const handleUpdateTransaction = useCallback(async (transaction: Transaction, updateOptions?: { updateAllFuture?: boolean }) => {
     if (!user) return;
-    await updateTransaction(transaction, user.id, dispatch, updateOptions);
+    const updatedTransaction = await updateTransaction(transaction, user.id, dispatch, updateOptions);
+    
+    // Send webhook to Make for updated transaction
+    if (updatedTransaction) {
+      await sendTransactionWebhook(updatedTransaction, user.id);
+    }
     
     // Send WhatsApp notification for transaction updates
     await processNotification(user.id, 'transaction_updated', {

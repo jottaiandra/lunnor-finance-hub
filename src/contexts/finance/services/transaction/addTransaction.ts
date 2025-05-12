@@ -46,7 +46,7 @@ export const addTransaction = async (
     dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
     
     // Send webhook to Make
-    sendTransactionWebhook(newTransaction, userId);
+    await sendTransactionWebhook(newTransaction, userId);
     
     return newTransaction;
   } catch (error: any) {
