@@ -74,9 +74,31 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
 
       await addTransaction(newTransaction);
 
-      toast({
-        title: "Sucesso",
-        description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
+// Envia para o Make
+fetch("https://hook.us2.make.com/xvkee5kj7au6i85tb8yvrv682kau9fxm", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    nome: contact || "Usuário",
+    tipo: type === TransactionType.INCOME ? "receita" : "despesa",
+    valor: amount,
+    descricao: description,
+    data: date?.toISOString().split("T")[0]
+  })
+})
+.then(res => res.json())
+.then(data => {
+  console.log("Enviado para Make:", data);
+})
+.catch(err => {
+  console.error("Erro no envio ao Make:", err);
+});
+
+toast({
+  title: "Sucesso",
+  description: type === TransactionType.INCOME ? "Receita adicionada com sucesso!" : "Despesa adicionada com sucesso!",
       });
 
       // Reset form
