@@ -8,6 +8,7 @@ export const fetchWhatsappConfig = async (userId: string): Promise<WhatsappConfi
   if (!userId) return null;
   
   try {
+    // Corrigindo a sintaxe da consulta, usando user_id=eq.userId
     const { data, error } = await supabase
       .from('whatsapp_config')
       .select('*')
@@ -31,7 +32,7 @@ export const fetchWhatsappConfig = async (userId: string): Promise<WhatsappConfi
       recipientNumbers: data.recipient_numbers,
       isEnabled: data.is_enabled,
       notificationFrequency: data.notification_frequency as 'immediate' | 'daily' | 'critical',
-      webhookUrl: data.webhook_url || '', // Added webhook URL field
+      webhookUrl: data.webhook_url || '',
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
