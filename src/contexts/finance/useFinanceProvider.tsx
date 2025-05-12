@@ -12,7 +12,7 @@ import {
   generateRecurringTransactions,
   getFilteredTransactions,
   sendTransactionWebhook
-} from "./transactionService";
+} from "./services/transaction";
 import {
   fetchGoals,
   addGoal,
