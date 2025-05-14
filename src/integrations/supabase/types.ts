@@ -188,6 +188,77 @@ export type Database = {
           },
         ]
       }
+      peace_fund_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+          peace_fund_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          peace_fund_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          peace_fund_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peace_fund_transactions_peace_fund_id_fkey"
+            columns: ["peace_fund_id"]
+            isOneToOne: false
+            referencedRelation: "peace_funds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      peace_funds: {
+        Row: {
+          created_at: string
+          current_amount: number
+          id: string
+          minimum_alert_amount: number | null
+          target_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_amount?: number
+          id?: string
+          minimum_alert_amount?: number | null
+          target_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_amount?: number
+          id?: string
+          minimum_alert_amount?: number | null
+          target_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
