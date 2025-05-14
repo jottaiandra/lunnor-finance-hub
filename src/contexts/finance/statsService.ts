@@ -1,4 +1,51 @@
+
 import { Transaction, Goal } from "@/types";
+
+// Function to filter transactions based on provided filters
+export const getFilteredTransactions = (transactions: Transaction[], filters: any = {}): Transaction[] => {
+  return transactions.filter(transaction => {
+    // Apply type filter (income/expense)
+    if (filters.type && transaction.type !== filters.type) {
+      return false;
+    }
+    
+    // Apply category filter
+    if (filters.category && transaction.category !== filters.category) {
+      return false;
+    }
+    
+    // Apply date range filters
+    if (filters.startDate) {
+      const transactionDate = typeof transaction.date === 'string' 
+        ? new Date(transaction.date) 
+        : transaction.date;
+      if (transactionDate < filters.startDate) {
+        return false;
+      }
+    }
+    
+    if (filters.endDate) {
+      const transactionDate = typeof transaction.date === 'string' 
+        ? new Date(transaction.date) 
+        : transaction.date;
+      if (transactionDate > filters.endDate) {
+        return false;
+      }
+    }
+    
+    // Apply search term filter
+    if (filters.searchTerm) {
+      const searchTermLower = filters.searchTerm.toLowerCase();
+      return (
+        transaction.description.toLowerCase().includes(searchTermLower) ||
+        transaction.category.toLowerCase().includes(searchTermLower) ||
+        (transaction.contact && transaction.contact.toLowerCase().includes(searchTermLower))
+      );
+    }
+    
+    return true;
+  });
+};
 
 // Function to calculate total income
 export const getTotalIncome = (transactions: Transaction[]): number => {
@@ -105,12 +152,22 @@ export const isBalanceTrending = (transactions: Transaction[], months: number): 
   const pastDate = new Date();
   pastDate.setMonth(today.getMonth() - months);
 
-  const recentTransactions = transactions.filter(t => new Date(t.date) >= pastDate && new Date(t.date) <= today);
+  const recentTransactions = transactions.filter(t => {
+    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
+    return transactionDate >= pastDate && transactionDate <= today;
+  });
 
   if (recentTransactions.length === 0) return 'stable';
 
-  const initialBalance = getCurrentBalance(transactions.filter(t => new Date(t.date) < pastDate));
-  const finalBalance = getCurrentBalance(transactions.filter(t => new Date(t.date) <= today));
+  const initialBalance = getCurrentBalance(transactions.filter(t => {
+    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
+    return transactionDate < pastDate;
+  }));
+  
+  const finalBalance = getCurrentBalance(transactions.filter(t => {
+    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
+    return transactionDate <= today;
+  }));
 
   if (finalBalance > initialBalance) {
     return 'up';
@@ -123,6 +180,15 @@ export const isBalanceTrending = (transactions: Transaction[], months: number): 
 
 // Fix the end_date property reference
 export const calculateGoalProgress = (goal: Goal): number => {
+  if (goal.target <= 0) return 0;
+  
+  const progress = (goal.current / goal.target) * 100;
+  return Math.min(progress, 100); // Ensure progress doesn't exceed 100%
+};
+
+// Add the getGoalProgress function that was missing
+export const getGoalProgress = (goal: Goal, transactions: Transaction[]): number => {
+  // Calculate current progress percentage
   if (goal.target <= 0) return 0;
   
   const progress = (goal.current / goal.target) * 100;

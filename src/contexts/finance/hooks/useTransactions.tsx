@@ -12,8 +12,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     
     try {
       dispatch({ type: "SET_LOADING", payload: { key: 'transactions', value: true } });
-      const data = await fetchTransactions(user.id);
-      dispatch({ type: "SET_TRANSACTIONS", payload: data });
+      await fetchTransactions(user.id, dispatch);
     } catch (error: any) {
       console.error("Error fetching transactions:", error);
       dispatch({ type: "SET_ERROR", payload: error.message });
@@ -24,11 +23,10 @@ export function useTransactions(user: any, state: any, dispatch: any) {
 
   // Add transaction with proper type
   const handleAddTransaction = useCallback(async (transaction: Omit<Transaction, "id" | "user_id" | "created_at">) => {
-    if (!user) return;
+    if (!user) return null;
     
     try {
-      const newTransaction = await addTransaction(user.id, transaction);
-      dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
+      const newTransaction = await addTransaction(transaction, user.id, dispatch);
       return newTransaction;
     } catch (error: any) {
       console.error("Error adding transaction:", error);
@@ -38,11 +36,11 @@ export function useTransactions(user: any, state: any, dispatch: any) {
   }, [user, dispatch]);
 
   const handleUpdateTransaction = useCallback(async (transaction: Transaction) => {
-    if (!user) return;
+    if (!user) return null;
     
     try {
-      await updateTransaction(transaction, user.id);
-      dispatch({ type: "UPDATE_TRANSACTION", payload: transaction });
+      const updatedTransaction = await updateTransaction(transaction, user.id, dispatch);
+      return updatedTransaction;
     } catch (error: any) {
       console.error("Error updating transaction:", error);
       dispatch({ type: "SET_ERROR", payload: error.message });
@@ -54,8 +52,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     if (!user) return;
     
     try {
-      await deleteTransaction(id, user.id, deleteOptions);
-      dispatch({ type: "DELETE_TRANSACTION", payload: id });
+      await deleteTransaction(id, user.id, dispatch, deleteOptions);
     } catch (error: any) {
       console.error("Error deleting transaction:", error);
       dispatch({ type: "SET_ERROR", payload: error.message });

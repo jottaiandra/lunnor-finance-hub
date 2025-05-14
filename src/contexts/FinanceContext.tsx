@@ -18,8 +18,8 @@ const FinanceContext = createContext<FinanceContextType>({
   fetchPeaceFund: async () => {},
   fetchPeaceFundTransactions: async () => {},
   getPeaceFundMonthlyData: async () => [],
-  addTransaction: async () => {},
-  updateTransaction: async () => {},
+  addTransaction: async () => null,
+  updateTransaction: async () => null,
   deleteTransaction: async () => {},
   addGoal: async (goal) => null,
   updateGoal: async (goal) => null,
@@ -37,7 +37,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const financeValues = useFinanceProvider();
 
   return (
-    <FinanceContext.Provider value={financeValues}>
+    <FinanceContext.Provider value={financeValues as FinanceContextType}>
       {children}
     </FinanceContext.Provider>
   );

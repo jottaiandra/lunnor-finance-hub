@@ -13,12 +13,12 @@ export function useStats(state: any) {
     return getFilteredTransactions(state.transactions, state.currentFilter);
   }, [state.transactions, state.currentFilter]);
 
-  const handleGetTotalIncome = useCallback((period?: string) => {
-    return getTotalIncome(state.transactions, period);
+  const handleGetTotalIncome = useCallback(() => {
+    return getTotalIncome(state.transactions);
   }, [state.transactions]);
 
-  const handleGetTotalExpense = useCallback((period?: string) => {
-    return getTotalExpense(state.transactions, period);
+  const handleGetTotalExpense = useCallback(() => {
+    return getTotalExpense(state.transactions);
   }, [state.transactions]);
 
   const handleGetCurrentBalance = useCallback(() => {

@@ -10,7 +10,7 @@ export const addTransaction = async (
   transaction: Omit<Transaction, "id">, 
   userId: string, 
   dispatch: any
-) => {
+): Promise<Transaction | null> => {
   if (!userId) return null;
   
   try {

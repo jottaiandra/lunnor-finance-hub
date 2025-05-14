@@ -10,7 +10,7 @@ export const deleteTransaction = async (
   userId: string,
   dispatch: any,
   deleteOptions?: { deleteAllFuture?: boolean }
-) => {
+): Promise<void> => {
   if (!userId) return;
   
   try {
