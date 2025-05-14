@@ -16,7 +16,10 @@ export const generateRecurringTransactions = async (
   try {
     const futureTransactions = [];
     let currentDate = new Date(transaction.date);
-    const endDate = transaction.recurrence_end_date ? new Date(transaction.recurrence_end_date) : null;
+    const endDate = transaction.recurrence_end_date ? 
+      (typeof transaction.recurrence_end_date === 'string' ? 
+        new Date(transaction.recurrence_end_date) : 
+        transaction.recurrence_end_date) : null;
     
     for (let i = 0; i < count; i++) {
       // Calculate next date in the series

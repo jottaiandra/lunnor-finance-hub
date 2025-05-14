@@ -1,5 +1,5 @@
 
-import { Transaction, Goal, PeaceFund, PeaceFundTransaction } from "@/types";
+import { Transaction, Goal, PeaceFund, PeaceFundTransaction, Alert, Notification } from "@/types";
 
 export interface FinanceState {
   transactions: Transaction[];

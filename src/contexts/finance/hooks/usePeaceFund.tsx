@@ -44,21 +44,27 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     }
   };
 
-  const fetchPeaceFundTransactions = async (fundId?: string) => {
-    if (!user || !fundId) return [];
+  const fetchPeaceFundTransactions = async () => {
+    if (!user) return;
+
+    // Utilizando state diretamente do contexto atual
+    const state = await import("@/contexts/FinanceContext").then(module => {
+      const { useFinance } = module;
+      const { state } = useFinance();
+      return state;
+    });
+    
+    if (!state.peaceFund) return;
 
     try {
-      const transactions = await fetchPeaceFundTxs(fundId);
+      const transactions = await fetchPeaceFundTxs(state.peaceFund.id);
       
       dispatch({
         type: "SET_PEACE_FUND_TRANSACTIONS",
         payload: transactions
       });
-      
-      return transactions;
     } catch (error) {
       console.error("Erro ao buscar transações do fundo:", error);
-      return [];
     }
   };
 

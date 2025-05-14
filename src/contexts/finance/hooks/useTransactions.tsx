@@ -17,7 +17,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     await fetchTransactions(user.id, dispatch);
   }, [user, dispatch]);
 
-  const handleAddTransaction = useCallback(async (transactionData: Omit<Transaction, "id">) => {
+  const handleAddTransaction = useCallback(async (transactionData: Omit<Transaction, "id" | "user_id" | "created_at">) => {
     if (!user) return;
     const newTransaction = await addTransaction(transactionData, user.id, dispatch);
     

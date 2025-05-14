@@ -35,7 +35,7 @@ export const deleteTransaction = async (
           .from('transactions')
           .delete()
           .eq('parent_transaction_id', transaction.parent_transaction_id)
-          .gte('date', transaction.date instanceof Date ? transaction.date.toISOString() : transaction.date);
+          .gte('date', typeof transaction.date === 'string' ? transaction.date : transaction.date.toISOString());
         
         if (error) throw error;
       } else {

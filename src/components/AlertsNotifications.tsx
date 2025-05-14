@@ -132,7 +132,7 @@ const AlertsNotifications = () => {
             newAlerts.push({
               id: `goal-risk-${goal.id}`,
               title: 'Meta em risco',
-              message: `No ritmo atual, sua meta "${goal.title}" pode não ser alcançada até ${new Date(goal.endDate).toLocaleDateString()}. Progresso atual: ${progress.toFixed(0)}%.`,
+              message: `No ritmo atual, sua meta "${goal.title}" pode não ser alcançada até ${new Date(goal.end_date).toLocaleDateString()}. Progresso atual: ${progress.toFixed(0)}%.`,
               type: 'warning',
               icon: <TrendingDown className="h-4 w-4" />
             });
