@@ -9,9 +9,26 @@ export const addTransaction = async (
   dispatch: React.Dispatch<FinanceAction>
 ): Promise<Transaction | null> => {
   try {
+    // Convert Date objects to ISO strings for Supabase compatibility
+    const preparedTransaction = {
+      ...transaction,
+      date: transaction.date instanceof Date 
+        ? transaction.date.toISOString() 
+        : transaction.date,
+      created_at: transaction.created_at instanceof Date 
+        ? transaction.created_at.toISOString() 
+        : transaction.created_at,
+      recurrence_start_date: transaction.recurrence_start_date instanceof Date 
+        ? transaction.recurrence_start_date.toISOString() 
+        : transaction.recurrence_start_date,
+      recurrence_end_date: transaction.recurrence_end_date instanceof Date 
+        ? transaction.recurrence_end_date.toISOString() 
+        : transaction.recurrence_end_date
+    };
+
     const { data, error } = await supabase
       .from("transactions")
-      .insert([transaction])
+      .insert(preparedTransaction)
       .select("*")
       .single();
 
