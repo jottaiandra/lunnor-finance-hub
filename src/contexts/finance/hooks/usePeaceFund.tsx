@@ -4,7 +4,7 @@ import {
   fetchOrCreatePeaceFund, 
   updatePeaceFundSettings,
   addPeaceFundTransaction,
-  fetchPeaceFundTransactions,
+  fetchPeaceFundTransactions as fetchPeaceFundTxs,
   fetchMonthlyEvolution
 } from "../peaceFundService";
 import { FinanceAction } from "../types";
@@ -26,7 +26,7 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
       
       // Se o fundo foi encontrado, busque também as transações
       if (fund) {
-        const transactions = await fetchPeaceFundTransactions(fund.id);
+        const transactions = await fetchPeaceFundTxs(fund.id);
         
         dispatch({
           type: "SET_PEACE_FUND_TRANSACTIONS",
@@ -48,7 +48,7 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     if (!user || !fundId) return [];
 
     try {
-      const transactions = await fetchPeaceFundTransactions(fundId);
+      const transactions = await fetchPeaceFundTxs(fundId);
       
       dispatch({
         type: "SET_PEACE_FUND_TRANSACTIONS",
@@ -70,15 +70,23 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
   }) => {
     if (!user || !user.id) return;
     
-    const { peaceFund } = await import("@/contexts/FinanceContext").then(module => module.useFinance());
+    // Utilizando state diretamente do contexto atual
+    const state = await import("@/contexts/FinanceContext").then(module => {
+      const { useFinance } = module;
+      const { state } = useFinance();
+      return state;
+    });
     
-    if (!peaceFund) return;
+    if (!state.peaceFund) return;
     
     try {
       const newTransaction = await addPeaceFundTransaction({
-        peace_fund_id: peaceFund.id,
+        peace_fund_id: state.peaceFund.id,
         user_id: user.id,
-        ...transaction
+        amount: transaction.amount,
+        description: transaction.description,
+        type: transaction.type,
+        date: transaction.date
       });
       
       if (newTransaction) {
@@ -108,7 +116,12 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
   }) => {
     if (!user || !user.id) return;
     
-    const { state } = await import("@/contexts/FinanceContext").then(module => module.useFinance());
+    // Utilizando state diretamente do contexto atual
+    const state = await import("@/contexts/FinanceContext").then(module => {
+      const { useFinance } = module;
+      const { state } = useFinance();
+      return state;
+    });
     
     if (!state.peaceFund) return;
     
@@ -129,7 +142,12 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
   const getPeaceFundMonthlyData = async () => {
     if (!user) return [];
     
-    const { state } = await import("@/contexts/FinanceContext").then(module => module.useFinance());
+    // Utilizando state diretamente do contexto atual
+    const state = await import("@/contexts/FinanceContext").then(module => {
+      const { useFinance } = module;
+      const { state } = useFinance();
+      return state;
+    });
     
     if (!state.peaceFund) return [];
     

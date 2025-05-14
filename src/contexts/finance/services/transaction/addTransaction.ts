@@ -17,19 +17,27 @@ export const addTransaction = async (
     // Prepare data for Supabase
     const transactionData = {
       user_id: userId,
-      date: transaction.date.toISOString(),
+      date: typeof transaction.date === 'string' ? transaction.date : transaction.date.toISOString(),
       description: transaction.description,
       amount: transaction.amount,
       category: transaction.category,
-      payment_method: transaction.paymentMethod,
+      payment_method: transaction.payment_method,
       type: transaction.type,
       contact: transaction.contact || null,
-      is_recurrent: transaction.isRecurrent || false,
-      recurrence_frequency: transaction.recurrenceFrequency || null,
-      recurrence_interval: transaction.recurrenceInterval || null,
-      recurrence_start_date: transaction.recurrenceStartDate ? transaction.recurrenceStartDate.toISOString() : null,
-      recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
-      is_original: transaction.isOriginal !== false
+      is_recurrent: transaction.is_recurrent || false,
+      recurrence_frequency: transaction.recurrence_frequency || null,
+      recurrence_interval: transaction.recurrence_interval || null,
+      recurrence_start_date: transaction.recurrence_start_date 
+        ? typeof transaction.recurrence_start_date === 'string' 
+          ? transaction.recurrence_start_date 
+          : transaction.recurrence_start_date.toISOString() 
+        : null,
+      recurrence_end_date: transaction.recurrence_end_date 
+        ? typeof transaction.recurrence_end_date === 'string' 
+          ? transaction.recurrence_end_date 
+          : transaction.recurrence_end_date.toISOString() 
+        : null,
+      is_original: transaction.is_original !== false
     };
     
     // Insert into Supabase

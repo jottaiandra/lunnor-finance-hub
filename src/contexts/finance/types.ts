@@ -1,3 +1,4 @@
+
 import { Transaction, Goal, PeaceFund, PeaceFundTransaction } from "@/types";
 
 export interface FinanceState {
@@ -58,9 +59,10 @@ export interface FinanceContextType {
   fetchNotifications: () => Promise<void>;
   fetchPeaceFund: () => Promise<void>;
   fetchPeaceFundTransactions: () => Promise<void>;
+  getPeaceFundMonthlyData: () => Promise<any[]>;
   addTransaction: (transaction: Omit<Transaction, "id" | "user_id" | "created_at">) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
+  deleteTransaction: (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => Promise<void>;
   addGoal: (goal: Omit<Goal, "id" | "user_id" | "created_at">) => Promise<Goal | null>;
   updateGoal: (goal: Goal) => Promise<Goal | null>;
   deleteGoal: (id: string) => Promise<void>;

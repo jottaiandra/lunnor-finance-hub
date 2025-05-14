@@ -85,9 +85,18 @@ export const addPeaceFundTransaction = async (transaction: {
   date?: Date | string;
 }): Promise<PeaceFundTransaction | null> => {
   try {
+    const transactionData = {
+      ...transaction,
+      date: transaction.date 
+        ? typeof transaction.date === 'string' 
+          ? transaction.date 
+          : transaction.date.toISOString()
+        : new Date().toISOString()
+    };
+
     const { data, error } = await supabase
       .from('peace_fund_transactions')
-      .insert([transaction])
+      .insert(transactionData)
       .select('*')
       .single();
 

@@ -36,7 +36,7 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     }
     
     // If this is a recurring transaction, generate future occurrences
-    if (newTransaction?.isRecurrent && newTransaction?.recurrenceFrequency) {
+    if (newTransaction?.is_recurrent && newTransaction?.recurrence_frequency) {
       const newTransactions = await generateRecurringTransactions(newTransaction, user.id, dispatch);
       
       if (newTransactions && newTransactions.length > 0) {

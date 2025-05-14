@@ -27,15 +27,15 @@ export const deleteTransaction = async (
     
     const transaction = mapTransactionFromDB(transactionData);
     
-    if (deleteOptions?.deleteAllFuture && transaction.isRecurrent) {
+    if (deleteOptions?.deleteAllFuture && transaction.is_recurrent) {
       // Delete this transaction and all future occurrences
-      if (transaction.parentTransactionId) {
+      if (transaction.parent_transaction_id) {
         // This is a child, delete from this date forward
         const { error } = await supabase
           .from('transactions')
           .delete()
-          .eq('parent_transaction_id', transaction.parentTransactionId)
-          .gte('date', transaction.date.toISOString());
+          .eq('parent_transaction_id', transaction.parent_transaction_id)
+          .gte('date', transaction.date instanceof Date ? transaction.date.toISOString() : transaction.date);
         
         if (error) throw error;
       } else {

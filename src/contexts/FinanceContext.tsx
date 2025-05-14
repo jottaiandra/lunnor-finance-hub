@@ -17,6 +17,7 @@ const FinanceContext = createContext<FinanceContextType>({
   fetchNotifications: async () => {},
   fetchPeaceFund: async () => {},
   fetchPeaceFundTransactions: async () => {},
+  getPeaceFundMonthlyData: async () => [],
   addTransaction: async () => {},
   updateTransaction: async () => {},
   deleteTransaction: async () => {},

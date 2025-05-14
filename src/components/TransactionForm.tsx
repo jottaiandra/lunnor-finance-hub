@@ -56,20 +56,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
     try {
       setLoading(true);
 
-      const newTransaction: Omit<Transaction, "id"> = {
+      const newTransaction: Omit<Transaction, "id" | "user_id" | "created_at"> = {
         date: date,
         description,
         amount: Number(amount),
         category,
-        paymentMethod: paymentMethod as any, // Cast to PaymentMethod
+        payment_method: paymentMethod,
         type,
         contact: contact || undefined,
-        isRecurrent,
-        recurrenceFrequency: isRecurrent ? recurrenceFrequency : undefined,
-        recurrenceInterval: isRecurrent ? Number(recurrenceInterval) : undefined,
-        recurrenceStartDate: isRecurrent ? date : undefined,
-        recurrenceEndDate: isRecurrent ? recurrenceEndDate : undefined,
-        isOriginal: true
+        is_recurrent: isRecurrent,
+        recurrence_frequency: isRecurrent ? recurrenceFrequency : undefined,
+        recurrence_interval: isRecurrent ? Number(recurrenceInterval) : undefined,
+        recurrence_start_date: isRecurrent ? date : undefined,
+        recurrence_end_date: isRecurrent ? recurrenceEndDate : undefined,
+        is_original: true
       };
 
       await addTransaction(newTransaction);
