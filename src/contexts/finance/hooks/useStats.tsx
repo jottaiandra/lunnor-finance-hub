@@ -1,22 +1,23 @@
 
 import { useCallback } from "react";
 import { 
+  getFilteredTransactions,
   getTotalIncome,
   getTotalExpense,
-  getCurrentBalance
+  getCurrentBalance,
+  getGoalProgress
 } from "../statsService";
-import { getFilteredTransactions } from "../services/transaction";
 
 export function useStats(state: any) {
   const handleGetFilteredTransactions = useCallback(() => {
-    return getFilteredTransactions(state);
-  }, [state]);
+    return getFilteredTransactions(state.transactions, state.currentFilter);
+  }, [state.transactions, state.currentFilter]);
 
-  const handleGetTotalIncome = useCallback((period?: 'today' | 'week' | 'month' | 'year') => {
+  const handleGetTotalIncome = useCallback((period?: string) => {
     return getTotalIncome(state.transactions, period);
   }, [state.transactions]);
 
-  const handleGetTotalExpense = useCallback((period?: 'today' | 'week' | 'month' | 'year') => {
+  const handleGetTotalExpense = useCallback((period?: string) => {
     return getTotalExpense(state.transactions, period);
   }, [state.transactions]);
 
@@ -24,10 +25,16 @@ export function useStats(state: any) {
     return getCurrentBalance(state.transactions);
   }, [state.transactions]);
 
+  const handleGetGoalProgress = useCallback((goalId: string) => {
+    const goal = state.goals.find((g: any) => g.id === goalId);
+    return goal ? getGoalProgress(goal, state.transactions) : 0;
+  }, [state.goals, state.transactions]);
+
   return {
     getFilteredTransactions: handleGetFilteredTransactions,
     getTotalIncome: handleGetTotalIncome,
     getTotalExpense: handleGetTotalExpense,
-    getCurrentBalance: handleGetCurrentBalance
+    getCurrentBalance: handleGetCurrentBalance,
+    getGoalProgress: handleGetGoalProgress
   };
 }

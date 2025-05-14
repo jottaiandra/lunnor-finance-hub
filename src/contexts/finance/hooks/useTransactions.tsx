@@ -1,76 +1,66 @@
 
 import { useCallback } from "react";
+import { fetchTransactions } from "../services/transaction/fetchTransactions";
+import { addTransaction } from "../services/transaction/addTransaction";
+import { updateTransaction } from "../services/transaction/updateTransaction";
+import { deleteTransaction } from "../services/transaction/deleteTransaction";
 import { Transaction } from "@/types";
-import { 
-  fetchTransactions, 
-  addTransaction,
-  updateTransaction,
-  deleteTransaction,
-  generateRecurringTransactions,
-  sendTransactionWebhook
-} from "../services/transaction";
-import { processNotification } from "../whatsappService";
 
 export function useTransactions(user: any, state: any, dispatch: any) {
   const handleFetchTransactions = useCallback(async () => {
     if (!user) return;
-    await fetchTransactions(user.id, dispatch);
+    
+    try {
+      dispatch({ type: "SET_LOADING", payload: { key: 'transactions', value: true } });
+      const data = await fetchTransactions(user.id);
+      dispatch({ type: "SET_TRANSACTIONS", payload: data });
+    } catch (error: any) {
+      console.error("Error fetching transactions:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "SET_LOADING", payload: { key: 'transactions', value: false } });
+    }
   }, [user, dispatch]);
 
-  const handleAddTransaction = useCallback(async (transactionData: Omit<Transaction, "id" | "user_id" | "created_at">) => {
+  // Add transaction with proper type
+  const handleAddTransaction = useCallback(async (transaction: Omit<Transaction, "id" | "user_id" | "created_at">) => {
     if (!user) return;
-    const newTransaction = await addTransaction(transactionData, user.id, dispatch);
     
-    // Send WhatsApp notification
-    if (newTransaction) {
-      const eventType = newTransaction.type === 'income' ? 'new_income' : 'new_expense';
-      await processNotification(user.id, eventType, {
-        descricao: newTransaction.description,
-        valor: newTransaction.amount,
-        categoria: newTransaction.category,
-        data: newTransaction.date,
-        nome: user.email?.split('@')[0] || 'Usuário'
-      });
-      
-      // Send webhook to Make - This is already called in addTransaction.ts
+    try {
+      const newTransaction = await addTransaction(user.id, transaction);
+      dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
+      return newTransaction;
+    } catch (error: any) {
+      console.error("Error adding transaction:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+      throw error;
     }
-    
-    // If this is a recurring transaction, generate future occurrences
-    if (newTransaction?.is_recurrent && newTransaction?.recurrence_frequency) {
-      const newTransactions = await generateRecurringTransactions(newTransaction, user.id, dispatch);
-      
-      if (newTransactions && newTransactions.length > 0) {
-        dispatch({ 
-          type: "SET_TRANSACTIONS", 
-          payload: [...state.transactions, ...newTransactions] 
-        });
-      }
-    }
-  }, [user, state.transactions, dispatch]);
+  }, [user, dispatch]);
 
-  const handleUpdateTransaction = useCallback(async (transaction: Transaction, updateOptions?: { updateAllFuture?: boolean }) => {
+  const handleUpdateTransaction = useCallback(async (transaction: Transaction) => {
     if (!user) return;
-    const updatedTransaction = await updateTransaction(transaction, user.id, dispatch, updateOptions);
     
-    // Send webhook to Make for updated transaction
-    // Check if updatedTransaction exists and is a Transaction object, not void
-    if (updatedTransaction && typeof updatedTransaction !== 'undefined') {
-      await sendTransactionWebhook(updatedTransaction, user.id);
+    try {
+      await updateTransaction(transaction, user.id);
+      dispatch({ type: "UPDATE_TRANSACTION", payload: transaction });
+    } catch (error: any) {
+      console.error("Error updating transaction:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+      throw error;
     }
-    
-    // Send WhatsApp notification for transaction updates
-    await processNotification(user.id, 'transaction_updated', {
-      descricao: transaction.description,
-      valor: transaction.amount,
-      categoria: transaction.category,
-      data: transaction.date,
-      nome: user.email?.split('@')[0] || 'Usuário'
-    });
   }, [user, dispatch]);
 
   const handleDeleteTransaction = useCallback(async (id: string, deleteOptions?: { deleteAllFuture?: boolean }) => {
     if (!user) return;
-    await deleteTransaction(id, user.id, dispatch, deleteOptions);
+    
+    try {
+      await deleteTransaction(id, user.id, deleteOptions);
+      dispatch({ type: "DELETE_TRANSACTION", payload: id });
+    } catch (error: any) {
+      console.error("Error deleting transaction:", error);
+      dispatch({ type: "SET_ERROR", payload: error.message });
+      throw error;
+    }
   }, [user, dispatch]);
 
   return {
