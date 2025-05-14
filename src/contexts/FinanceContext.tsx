@@ -21,8 +21,8 @@ const FinanceContext = createContext<FinanceContextType>({
   addTransaction: async () => null,
   updateTransaction: async () => null,
   deleteTransaction: async () => {},
-  addGoal: async (goal) => null,
-  updateGoal: async (goal) => null,
+  addGoal: async () => null,
+  updateGoal: async () => null,
   deleteGoal: async () => {},
   addPeaceFundTransaction: async () => {},
   updatePeaceFundSettings: async () => {},
@@ -37,7 +37,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const financeValues = useFinanceProvider();
 
   return (
-    <FinanceContext.Provider value={financeValues as FinanceContextType}>
+    <FinanceContext.Provider value={financeValues}>
       {children}
     </FinanceContext.Provider>
   );

@@ -26,7 +26,15 @@ export function useTransactions(user: any, state: any, dispatch: any) {
     if (!user) return null;
     
     try {
-      const newTransaction = await addTransaction(transaction, user.id, dispatch);
+      // Create a complete transaction object with the required fields
+      const transactionWithUser = {
+        ...transaction,
+        user_id: user.id,
+        created_at: new Date().toISOString()
+      };
+      
+      // Now we're passing an object with all the required fields except id
+      const newTransaction = await addTransaction(transactionWithUser, dispatch);
       return newTransaction;
     } catch (error: any) {
       console.error("Error adding transaction:", error);

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { PeaceFund, PeaceFundTransaction } from "@/types";
 
@@ -50,7 +49,7 @@ export const fetchOrCreatePeaceFund = async (userId: string): Promise<PeaceFund 
   }
 };
 
-// Atualizar configurações do fundo de paz
+// Update settings function to accept minimum_alert_amount
 export const updatePeaceFundSettings = async (
   fundId: string,
   settings: { target_amount?: number; minimum_alert_amount?: number | null }
