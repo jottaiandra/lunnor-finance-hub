@@ -73,7 +73,7 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     description: string;
     type: 'deposit' | 'withdrawal';
     date?: Date | string;
-  }) => {
+  }): Promise<PeaceFundTransaction | null> => {
     if (!user || !user.id) return null;
     
     // Utilizando state diretamente do contexto atual

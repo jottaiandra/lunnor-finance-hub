@@ -83,7 +83,7 @@ export interface FinanceContextType {
   addGoal: (goal: Omit<Goal, "id" | "user_id" | "created_at">) => Promise<Goal | null>;
   updateGoal: (goal: Goal) => Promise<Goal | null>;
   deleteGoal: (id: string) => Promise<void>;
-  addPeaceFundTransaction: (transaction: { amount: number; description: string; type: 'deposit' | 'withdrawal'; date?: Date | string; }) => Promise<void>;
+  addPeaceFundTransaction: (transaction: { amount: number; description: string; type: 'deposit' | 'withdrawal'; date?: Date | string; }) => Promise<PeaceFundTransaction | null>;
   updatePeaceFundSettings: (settings: { target_amount?: number; minimum_alert_amount?: number | null }) => Promise<void>;
   markAlertRead: (id: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
