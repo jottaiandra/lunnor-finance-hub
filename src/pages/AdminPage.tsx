@@ -5,6 +5,7 @@ import WhatsAppMessageLogs from '@/components/admin/WhatsAppMessageLogs';
 import WhatsAppWebhookLogs from '@/components/admin/WhatsAppWebhookLogs';
 import CustomizationSettings from '@/components/admin/CustomizationSettings';
 import CreateUserForm from '@/components/admin/CreateUserForm';
+import UsersList from '@/components/admin/UsersList';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('customization');
@@ -27,6 +28,7 @@ const AdminPage: React.FC = () => {
         
         <TabsContent value="users">
           <CreateUserForm />
+          <UsersList />
         </TabsContent>
         
         <TabsContent value="whatsapp-logs">
