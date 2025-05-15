@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useFinance } from '@/contexts/FinanceContext';
+import { Loader2 } from 'lucide-react';
 
 const transactionSchema = z.object({
   description: z.string().min(3, "Descrição é obrigatória (mínimo 3 caracteres)"),
@@ -46,6 +47,7 @@ const PeaceFundForm: React.FC = () => {
   const { state, addPeaceFundTransaction, updatePeaceFundSettings } = useFinance();
   const { peaceFund } = state;
   const [activeTab, setActiveTab] = React.useState<string>("deposit");
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   
   const depositForm = useForm<z.infer<typeof transactionSchema>>({
     resolver: zodResolver(transactionSchema),
@@ -85,45 +87,97 @@ const PeaceFundForm: React.FC = () => {
   }, [peaceFund]);
   
   const onSubmitDeposit = async (data: z.infer<typeof transactionSchema>) => {
-    await addPeaceFundTransaction({
-      amount: parseFloat(data.amount),
-      description: data.description,
-      type: 'deposit'
-    });
-    
-    depositForm.reset();
-    toast({
-      title: "Depósito realizado",
-      description: "O valor foi adicionado ao seu Fundo de Paz."
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await addPeaceFundTransaction({
+        amount: parseFloat(data.amount),
+        description: data.description,
+        type: 'deposit'
+      });
+      
+      if (result) {
+        depositForm.reset();
+        toast({
+          title: "Depósito realizado",
+          description: "O valor foi adicionado ao seu Fundo de Paz."
+        });
+      } else {
+        toast({
+          title: "Erro ao realizar depósito",
+          description: "Ocorreu um erro ao processar sua solicitação.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao depositar:", error);
+      toast({
+        title: "Erro ao realizar depósito",
+        description: "Ocorreu um erro ao processar sua solicitação.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const onSubmitWithdrawal = async (data: z.infer<typeof transactionSchema>) => {
-    await addPeaceFundTransaction({
-      amount: parseFloat(data.amount),
-      description: data.description,
-      type: 'withdrawal'
-    });
-    
-    withdrawalForm.reset();
-    toast({
-      title: "Saque realizado",
-      description: "O valor foi retirado do seu Fundo de Paz."
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await addPeaceFundTransaction({
+        amount: parseFloat(data.amount),
+        description: data.description,
+        type: 'withdrawal'
+      });
+      
+      if (result) {
+        withdrawalForm.reset();
+        toast({
+          title: "Saque realizado",
+          description: "O valor foi retirado do seu Fundo de Paz."
+        });
+      } else {
+        toast({
+          title: "Erro ao realizar saque",
+          description: "Ocorreu um erro ao processar sua solicitação.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao sacar:", error);
+      toast({
+        title: "Erro ao realizar saque",
+        description: "Ocorreu um erro ao processar sua solicitação.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const onSubmitSettings = async (data: z.infer<typeof settingsSchema>) => {
-    await updatePeaceFundSettings({
-      target_amount: parseFloat(data.target_amount),
-      minimum_alert_amount: data.minimum_alert_amount 
-        ? parseFloat(data.minimum_alert_amount)
-        : null
-    });
-    
-    toast({
-      title: "Configurações atualizadas",
-      description: "As configurações do seu Fundo de Paz foram atualizadas com sucesso."
-    });
+    setIsSubmitting(true);
+    try {
+      await updatePeaceFundSettings({
+        target_amount: parseFloat(data.target_amount),
+        minimum_alert_amount: data.minimum_alert_amount 
+          ? parseFloat(data.minimum_alert_amount)
+          : null
+      });
+      
+      toast({
+        title: "Configurações atualizadas",
+        description: "As configurações do seu Fundo de Paz foram atualizadas com sucesso."
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar configurações:", error);
+      toast({
+        title: "Erro ao atualizar configurações",
+        description: "Ocorreu um erro ao processar sua solicitação.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   if (!peaceFund) {
@@ -175,8 +229,20 @@ const PeaceFundForm: React.FC = () => {
                   )}
                 />
                 
-                <Button type="submit" className="w-full" variant="default">
-                  Depositar no Fundo
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  variant="default"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Depositar no Fundo"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -213,8 +279,20 @@ const PeaceFundForm: React.FC = () => {
                   )}
                 />
                 
-                <Button type="submit" className="w-full" variant="default">
-                  Sacar do Fundo
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  variant="default"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Sacar do Fundo"
+                  )}
                 </Button>
               </form>
             </Form>
@@ -258,8 +336,20 @@ const PeaceFundForm: React.FC = () => {
                   )}
                 />
                 
-                <Button type="submit" className="w-full" variant="default">
-                  Salvar Configurações
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  variant="default"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    "Salvar Configurações"
+                  )}
                 </Button>
               </form>
             </Form>

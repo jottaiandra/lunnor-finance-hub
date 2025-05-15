@@ -3,12 +3,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { 
   fetchOrCreatePeaceFund, 
   updatePeaceFundSettings,
-  addPeaceFundTransaction,
   fetchPeaceFundTransactions as fetchPeaceFundTxs,
   fetchMonthlyEvolution
 } from "../peaceFundService";
 import { FinanceAction } from "../types";
 import { PeaceFund, PeaceFundTransaction } from "@/types";
+import { addPeaceFundTransaction as addPeaceFundTx } from "../services/peaceFund/addPeaceFundTransaction";
 
 export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceAction>) => {
   const fetchPeaceFund = async () => {
@@ -86,21 +86,14 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     if (!state.peaceFund) return;
     
     try {
-      const newTransaction = await addPeaceFundTransaction({
-        peace_fund_id: state.peaceFund.id,
-        user_id: user.id,
-        amount: transaction.amount,
-        description: transaction.description,
-        type: transaction.type,
-        date: transaction.date
-      });
+      const newTransaction = await addPeaceFundTx(
+        state.peaceFund.id, 
+        transaction, 
+        user.id, 
+        dispatch
+      );
       
       if (newTransaction) {
-        dispatch({
-          type: "ADD_PEACE_FUND_TRANSACTION",
-          payload: newTransaction
-        });
-        
         // Atualizar o saldo atual do fundo após a transação
         const updatedFund = await fetchOrCreatePeaceFund(user.id);
         
@@ -111,8 +104,11 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
           });
         }
       }
+      
+      return newTransaction;
     } catch (error) {
       console.error("Erro ao adicionar transação:", error);
+      return null;
     }
   };
 
