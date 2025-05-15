@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PeaceFund, PeaceFundTransaction } from "@/types";
 
@@ -139,6 +140,8 @@ export const fetchPeaceFundTransactions = async (
 // Obter evolução mensal do fundo
 export const fetchMonthlyEvolution = async (fundId: string): Promise<any[]> => {
   try {
+    if (!fundId) return [];
+    
     const { data, error } = await supabase
       .from('peace_fund_transactions')
       .select('*')
@@ -147,6 +150,10 @@ export const fetchMonthlyEvolution = async (fundId: string): Promise<any[]> => {
 
     if (error) {
       console.error('Erro ao buscar transações para evolução:', error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
       return [];
     }
 
@@ -189,18 +196,22 @@ const processMonthlyEvolution = (transactions: any[]): any[] => {
     const date = new Date(tx.date);
     const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     
+    // Calcular o saldo acumulado
     if (tx.type === 'deposit') {
       runningTotal += Number(tx.amount);
     } else {
       runningTotal -= Number(tx.amount);
     }
     
+    // Registrar o saldo para este mês (sobrescrever valores anteriores do mesmo mês)
     monthlyMap.set(monthKey, runningTotal);
   });
   
   // Converter o mapa para array de objetos para o gráfico
-  return Array.from(monthlyMap.entries()).map(([month, amount]) => ({
+  const result = Array.from(monthlyMap.entries()).map(([month, amount]) => ({
     month,
     amount
   }));
+  
+  return result;
 };

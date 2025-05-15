@@ -21,23 +21,34 @@ const PeaceFundChart: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (state.peaceFund) {
-        setLoading(true);
-        try {
+      setLoading(true);
+      try {
+        // Verificar se o fundo de paz existe
+        if (state.peaceFund) {
           const data = await getPeaceFundMonthlyData();
           
-          // Formatar os dados para o gráfico
-          const formattedData = data.map(item => ({
-            month: format(parse(item.month, 'yyyy-MM', new Date()), 'MMM/yy', { locale: ptBR }),
-            amount: item.amount
-          }));
-          
-          setChartData(formattedData);
-        } catch (error) {
-          console.error('Erro ao carregar dados do gráfico:', error);
-        } finally {
-          setLoading(false);
+          if (data && data.length > 0) {
+            // Formatar os dados para o gráfico
+            const formattedData = data.map(item => ({
+              month: format(
+                parse(item.month, 'yyyy-MM', new Date()), 
+                'MMM/yy', 
+                { locale: ptBR }
+              ),
+              amount: Number(item.amount)
+            }));
+            
+            setChartData(formattedData);
+          } else {
+            // Se não tiver dados, criar dados de exemplo para visualização
+            setChartData([]);
+          }
         }
+      } catch (error) {
+        console.error('Erro ao carregar dados do gráfico:', error);
+        setChartData([]);
+      } finally {
+        setLoading(false);
       }
     };
     
