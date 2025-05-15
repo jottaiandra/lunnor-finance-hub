@@ -8,7 +8,7 @@ import {
 } from "../peaceFundService";
 import { FinanceAction } from "../types";
 import { PeaceFund, PeaceFundTransaction } from "@/types";
-import { addPeaceFundTransaction as addPeaceFundTx } from "../services/peaceFund/addPeaceFundTransaction";
+import { addPeaceFundTransaction as addPeaceFundTransactionService } from "../services/peaceFund/addPeaceFundTransaction";
 
 export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceAction>) => {
   const fetchPeaceFund = async () => {
@@ -68,13 +68,13 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     }
   };
 
-  const addPeaceFundTx = async (transaction: {
+  const addPeaceFundTransaction = async (transaction: {
     amount: number;
     description: string;
     type: 'deposit' | 'withdrawal';
     date?: Date | string;
   }) => {
-    if (!user || !user.id) return;
+    if (!user || !user.id) return null;
     
     // Utilizando state diretamente do contexto atual
     const state = await import("@/contexts/FinanceContext").then(module => {
@@ -83,10 +83,10 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
       return state;
     });
     
-    if (!state.peaceFund) return;
+    if (!state.peaceFund) return null;
     
     try {
-      const newTransaction = await addPeaceFundTx(
+      const newTransaction = await addPeaceFundTransactionService(
         state.peaceFund.id, 
         transaction, 
         user.id, 
@@ -165,7 +165,7 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
   return {
     fetchPeaceFund,
     fetchPeaceFundTransactions,
-    addPeaceFundTransaction: addPeaceFundTx,
+    addPeaceFundTransaction,
     updatePeaceFundSettings: updatePeaceFundConfig,
     getPeaceFundMonthlyData
   };

@@ -1,5 +1,5 @@
 
-export * from './addPeaceFundTransaction';
-export * from './fetchPeaceFund';
-export * from './fetchPeaceFundTransactions';
-export * from './updatePeaceFundSettings';
+export { addPeaceFundTransaction } from './addPeaceFundTransaction';
+export { fetchPeaceFund } from './fetchPeaceFund';
+export { fetchPeaceFundTransactions } from './fetchPeaceFundTransactions';
+export { updatePeaceFundSettings } from './updatePeaceFundSettings';
