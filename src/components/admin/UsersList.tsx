@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 
 interface User {
   id: string;
@@ -53,10 +53,8 @@ const UsersList: React.FC = () => {
       setUsers(data);
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast({
-        title: "Erro",
+      toast("Erro", {
         description: "Não foi possível carregar a lista de usuários.",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
