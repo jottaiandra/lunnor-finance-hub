@@ -72,13 +72,15 @@ export interface PeaceFund {
   updated_at: Date | string;
 }
 
+export type PeaceFundTransactionType = 'deposit' | 'withdrawal';
+
 export interface PeaceFundTransaction {
   id: string;
   peace_fund_id: string;
   user_id: string;
   amount: number;
   description: string;
-  type: 'deposit' | 'withdrawal';
+  type: PeaceFundTransactionType;
   date: Date | string;
   created_at: Date | string;
 }

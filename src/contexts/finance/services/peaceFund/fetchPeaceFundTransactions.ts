@@ -34,7 +34,7 @@ export const fetchPeaceFundTransactions = async (
       user_id: tx.user_id,
       amount: tx.amount,
       description: tx.description,
-      type: tx.type,
+      type: tx.type as 'deposit' | 'withdrawal', // Explicitly cast to the correct type
       date: new Date(tx.date),
       created_at: new Date(tx.created_at)
     }));

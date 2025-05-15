@@ -45,7 +45,7 @@ export const addPeaceFundTransaction = async (
       user_id: data.user_id,
       amount: data.amount,
       description: data.description,
-      type: data.type,
+      type: data.type as 'deposit' | 'withdrawal', // Explicitly cast to the correct type
       date: new Date(data.date),
       created_at: new Date(data.created_at)
     };
