@@ -15,8 +15,11 @@ const PeaceFundDashboard: React.FC = () => {
   const { peaceFund, loading } = state;
   
   useEffect(() => {
-    fetchPeaceFund();
-  }, [fetchPeaceFund]);
+    // Only fetch if we don't already have data
+    if (!peaceFund) {
+      fetchPeaceFund();
+    }
+  }, [fetchPeaceFund, peaceFund]);
 
   if (loading.peaceFund) {
     return (

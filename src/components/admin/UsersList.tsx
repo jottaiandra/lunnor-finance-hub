@@ -16,8 +16,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, RefreshCcw, ShieldCheck, User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface User {
   id: string;
@@ -31,6 +34,7 @@ interface User {
 const UsersList: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -53,7 +57,7 @@ const UsersList: React.FC = () => {
       setUsers(data);
     } catch (error: any) {
       console.error("Error fetching users:", error);
-      toast("Erro", {
+      toast.error("Erro", {
         description: "Não foi possível carregar a lista de usuários."
       });
     } finally {
@@ -61,15 +65,55 @@ const UsersList: React.FC = () => {
     }
   };
 
+  const filteredUsers = users.filter(user => {
+    const searchTermLower = searchTerm.toLowerCase();
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
+    return (
+      fullName.includes(searchTermLower) ||
+      (user.email && user.email.toLowerCase().includes(searchTermLower))
+    );
+  });
+
   return (
-    <Card className="w-full mt-6">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Usuários do Sistema</CardTitle>
-        <CardDescription>
-          Lista de todos os usuários cadastrados no sistema.
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <CardTitle>Usuários do Sistema</CardTitle>
+            <CardDescription>
+              Lista de todos os usuários cadastrados no sistema.
+            </CardDescription>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchUsers}
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Atualizar
+              </>
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
+        <div className="relative mb-4">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input 
+            placeholder="Buscar usuários..." 
+            className="pl-9" 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -86,17 +130,25 @@ const UsersList: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        {user.first_name && user.last_name 
-                          ? `${user.first_name} ${user.last_name}`
-                          : 'Não informado'}
+                        <div className="flex items-center gap-2">
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}`
+                            : 'Não informado'}
+                        </div>
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        {user.role === 'admin' ? 'Administrador' : 'Usuário'}
+                        <Badge variant={user.role === 'admin' ? "default" : "outline"} className="flex items-center gap-1 w-fit">
+                          {user.role === 'admin' ? (
+                            <><ShieldCheck className="h-3 w-3" /> Administrador</>
+                          ) : (
+                            <><User className="h-3 w-3" /> Usuário</>
+                          )}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {new Date(user.created_at).toLocaleDateString('pt-BR')}
@@ -106,7 +158,7 @@ const UsersList: React.FC = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-4">
-                      Nenhum usuário encontrado
+                      {searchTerm ? 'Nenhum usuário encontrado com este termo de busca.' : 'Nenhum usuário encontrado'}
                     </TableCell>
                   </TableRow>
                 )}

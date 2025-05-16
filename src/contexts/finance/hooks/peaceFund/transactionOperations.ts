@@ -1,85 +1,75 @@
 
-import { toast } from "@/components/ui/sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
+import { FinanceAction } from "../../types";
 import { addTransaction } from "../../services/peaceFund/addTransaction";
 import { fetchPeaceFund } from "../../services/peaceFund/fetchPeaceFund";
-import { fetchTransactions } from "../../services/peaceFund/fetchTransactions";
-import { FinanceAction } from "../../types";
-import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
+
+type AddTransactionParams = {
+  amount: number;
+  description: string;
+  type: PeaceFundTransactionType;
+  date?: Date;
+};
 
 /**
- * Hook para gerenciar operações de transação do fundo de paz
+ * Hook para operações de transação do fundo de paz
  */
 export const useTransactionOperations = (user: any | null, dispatch: React.Dispatch<FinanceAction>) => {
   /**
    * Adiciona uma nova transação ao fundo de paz
    */
-  const addPeaceFundTransaction = async (transaction: {
-    amount: number;
-    description: string;
-    type: PeaceFundTransactionType;
-    date?: Date | string;
-  }): Promise<PeaceFundTransaction | null> => {
-    if (!user || !user.id) {
-      toast.error("Usuário não autenticado");
-      return null;
-    }
+  const addPeaceFundTransaction = async (params: AddTransactionParams): Promise<PeaceFundTransaction | null> => {
+    if (!user) return null;
     
     try {
-      // Importar dinamicamente para evitar referência circular
       const { state } = await import("@/contexts/FinanceContext").then(module => {
-        return { state: module.useFinance().state };
+        return { state: module.useFinance() ? module.useFinance().state : null };
       });
       
-      if (!state || !state.peaceFund || !state.peaceFund.id) {
-        toast.error("Fundo de paz não encontrado");
-        return null;
-      }
-      
-      // Verificar se tem saldo suficiente para saque
-      if (transaction.type === 'withdrawal' && state.peaceFund.current_amount < transaction.amount) {
-        toast.error("Você não pode sacar mais do que tem no Fundo de Paz.");
-        return null;
-      }
-      
-      const newTransaction = await addTransaction(
-        {
-          peace_fund_id: state.peaceFund.id,
-          user_id: user.id,
-          amount: transaction.amount,
-          description: transaction.description,
-          type: transaction.type,
-          date: transaction.date || new Date()
-        },
-        dispatch
-      );
-      
-      if (newTransaction) {
-        // Atualizar o saldo atual do fundo após a transação
-        const updatedFund = await fetchPeaceFund(user.id, dispatch);
+      if (!state || !state.peaceFund) {
+        // Se o fundo de paz não estiver carregado, carregue-o primeiro
+        await fetchPeaceFund(user.id, dispatch);
         
-        if (updatedFund) {
-          dispatch({
-            type: "SET_PEACE_FUND",
-            payload: updatedFund
-          });
-          
-          // Atualizar a lista de transações
-          const transactions = await fetchTransactions(state.peaceFund.id);
-          dispatch({
-            type: "SET_PEACE_FUND_TRANSACTIONS",
-            payload: transactions
-          });
+        // Obtenha o estado novamente após o carregamento
+        const { state: refreshedState } = await import("@/contexts/FinanceContext").then(module => {
+          return { state: module.useFinance() ? module.useFinance().state : null };
+        });
+        
+        if (!refreshedState || !refreshedState.peaceFund) {
+          throw new Error("Não foi possível carregar o fundo de paz");
         }
+        
+        // Adicionar a transação usando o fundo recém-carregado
+        const transaction = await addTransaction({
+          peace_fund_id: refreshedState.peaceFund.id,
+          user_id: user.id,
+          amount: params.amount,
+          description: params.description,
+          type: params.type,
+          date: params.date
+        }, dispatch);
+        
+        return transaction;
       }
       
-      return newTransaction;
+      // Adicionar a transação usando o fundo já carregado
+      const transaction = await addTransaction({
+        peace_fund_id: state.peaceFund.id,
+        user_id: user.id,
+        amount: params.amount,
+        description: params.description,
+        type: params.type,
+        date: params.date
+      }, dispatch);
+      
+      return transaction;
     } catch (error) {
-      console.error("Erro ao adicionar transação:", error);
-      toast.error("Erro ao processar a transação");
+      console.error("Erro ao adicionar transação ao fundo de paz:", error);
       return null;
     }
   };
-
+  
   return {
     addPeaceFundTransaction
   };

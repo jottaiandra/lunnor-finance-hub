@@ -18,6 +18,13 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,11 +37,18 @@ const userSchema = z.object({
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
+  role: z.enum(["user", "admin"], {
+    required_error: "Selecione uma função para o usuário",
+  }),
 });
 
 type UserFormValues = z.infer<typeof userSchema>;
 
-const CreateUserForm: React.FC = () => {
+interface CreateUserFormProps {
+  onUserCreated?: () => void;
+}
+
+const CreateUserForm: React.FC<CreateUserFormProps> = ({ onUserCreated }) => {
   const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<UserFormValues>({
@@ -44,6 +58,7 @@ const CreateUserForm: React.FC = () => {
       password: "",
       firstName: "",
       lastName: "",
+      role: "user",
     },
   });
 
@@ -57,7 +72,8 @@ const CreateUserForm: React.FC = () => {
         options: {
           data: {
             first_name: data.firstName,
-            last_name: data.lastName
+            last_name: data.lastName,
+            role: data.role
           }
         }
       });
@@ -68,8 +84,26 @@ const CreateUserForm: React.FC = () => {
 
       // Verificar se o usuário foi criado com sucesso
       if (signUpData.user) {
+        // Atualizar o perfil com a função selecionada
+        if (data.role === "admin") {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ role: data.role })
+            .eq('id', signUpData.user.id);
+            
+          if (updateError) {
+            console.error("Erro ao atualizar perfil:", updateError);
+            toast.warning("Usuário criado, mas houve um erro ao definir a função de administrador.");
+          }
+        }
+        
         toast.success("Usuário criado com sucesso!");
         form.reset();
+        
+        // Call the callback if provided
+        if (onUserCreated) {
+          onUserCreated();
+        }
       } else {
         toast.error("Erro ao criar usuário. Tente novamente.");
       }
@@ -149,6 +183,28 @@ const CreateUserForm: React.FC = () => {
                   <FormControl>
                     <Input type="password" placeholder="Senha" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Função</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma função" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="user">Usuário</SelectItem>
+                      <SelectItem value="admin">Administrador</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
