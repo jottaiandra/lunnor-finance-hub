@@ -9,6 +9,7 @@
 export {
   // Funcionalidades principais do fundo de paz
   fetchOrCreatePeaceFund,
+  fetchPeaceFund,
   updateSettings as updatePeaceFundSettings,
   fetchTransactions as fetchPeaceFundTransactions,
   addTransaction as addPeaceFundTransaction,
@@ -18,4 +19,3 @@ export {
   mapDatabasePeaceFundToFrontend,
   mapDatabaseTransactionToFrontend
 } from './services/peaceFund';
-

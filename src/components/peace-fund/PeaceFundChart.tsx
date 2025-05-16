@@ -18,14 +18,23 @@ const PeaceFundChart: React.FC = () => {
   const { state, getPeaceFundMonthlyData } = useFinance();
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       setLoading(true);
+      setError(null);
+      
       try {
         // Verificar se o fundo de paz existe
         if (state.peaceFund?.id) {
           const data = await getPeaceFundMonthlyData();
+          
+          if (!isMounted) return;
           
           if (data && data.length > 0) {
             // Formatar os dados para o gráfico
@@ -46,14 +55,23 @@ const PeaceFundChart: React.FC = () => {
         }
       } catch (error) {
         console.error('Erro ao carregar dados do gráfico:', error);
-        setChartData([]);
+        if (isMounted) {
+          setError('Não foi possível carregar os dados do gráfico.');
+          setChartData([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     fetchData();
-  }, [state.peaceFund?.id, getPeaceFundMonthlyData, state.peaceFundTransactions]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [state.peaceFund?.id, getPeaceFundMonthlyData]);
   
   return (
     <Card className="shadow-sm">
@@ -67,6 +85,10 @@ const PeaceFundChart: React.FC = () => {
         {loading ? (
           <div className="flex justify-center items-center h-72">
             <p>Carregando gráfico...</p>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-72">
+            <p className="text-red-500">{error}</p>
           </div>
         ) : chartData.length === 0 ? (
           <div className="flex justify-center items-center h-72">

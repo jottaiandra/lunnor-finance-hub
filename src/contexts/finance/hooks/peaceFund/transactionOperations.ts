@@ -1,7 +1,7 @@
 
 import { toast } from "@/components/ui/sonner";
 import { addPeaceFundTransaction as addPeaceFundTransactionService } from "../../services/peaceFund/addPeaceFundTransaction";
-import { fetchOrCreatePeaceFund } from "../../peaceFundService";
+import { fetchPeaceFund } from "../../services/peaceFund/fetchPeaceFund";
 import { FinanceAction } from "../../types";
 import { PeaceFundTransaction } from "@/types";
 
@@ -23,34 +23,20 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
       return null;
     }
     
-    // Verificar se tem saldo suficiente para saque
-    if (transaction.type === 'withdrawal') {
-      const state = await import("@/contexts/FinanceContext").then(module => {
-        const { useFinance } = module;
-        const { state } = useFinance();
-        return state;
-      });
-      
-      if (!state.peaceFund) {
-        toast.error("Fundo de paz não encontrado");
-        return null;
-      }
-      
-      if (state.peaceFund.current_amount < transaction.amount) {
-        toast.error("Saldo insuficiente para realizar o saque");
-        return null;
-      }
-    }
-    
     try {
-      const state = await import("@/contexts/FinanceContext").then(module => {
-        const { useFinance } = module;
-        const { state } = useFinance();
-        return state;
+      // Importar dinamicamente para evitar referência circular
+      const { state } = await import("@/contexts/FinanceContext").then(module => {
+        return { state: module.useFinance().state };
       });
       
-      if (!state.peaceFund) {
+      if (!state || !state.peaceFund || !state.peaceFund.id) {
         toast.error("Fundo de paz não encontrado");
+        return null;
+      }
+      
+      // Verificar se tem saldo suficiente para saque
+      if (transaction.type === 'withdrawal' && state.peaceFund.current_amount < transaction.amount) {
+        toast.error("Saldo insuficiente para realizar o saque");
         return null;
       }
       
@@ -63,9 +49,7 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
       
       if (newTransaction) {
         // Atualizar o saldo atual do fundo após a transação
-        // Isso agora é feito através de um trigger no banco de dados
-        // mas vamos buscar o fundo atualizado para atualizar a UI
-        const updatedFund = await fetchOrCreatePeaceFund(user.id);
+        const updatedFund = await fetchPeaceFund(user.id, dispatch);
         
         if (updatedFund) {
           dispatch({
