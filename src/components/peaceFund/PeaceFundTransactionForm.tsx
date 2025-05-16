@@ -55,17 +55,17 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
   });
 
   const handleSubmit = async (values: FormValues) => {
+    if (!user) return;
+    
     try {
-      if (!user) return;
-      
       // Make sure all required fields are explicitly defined to satisfy the type requirements
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
-        type: values.type, // Explicitly use values.type to ensure it's not optional
-        amount: values.amount, // Explicitly use values.amount to ensure it's not optional
-        description: values.description, // Explicitly use values.description to ensure it's not optional
-        date: new Date().toISOString(), // Add the date explicitly
+        type: values.type,
+        amount: values.amount,
+        description: values.description,
+        date: new Date().toISOString(),
       });
       
       form.reset({
@@ -80,7 +80,10 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
           : 'Saque adicionado com sucesso!'
       );
       
-      onSuccess();
+      // Garantimos que a função de callback é chamada
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to create transaction:', error);
       toast.error('Falha ao registrar movimentação');

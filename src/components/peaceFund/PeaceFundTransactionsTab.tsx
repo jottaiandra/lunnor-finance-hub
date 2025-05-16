@@ -25,7 +25,12 @@ const PeaceFundTransactionsTab: React.FC<PeaceFundTransactionsTabProps> = ({
         <CardContent>
           <PeaceFundTransactionForm 
             peaceFundId={peaceFundId} 
-            onSuccess={onTransactionSuccess}
+            onSuccess={() => {
+              // Garantimos que a função de callback é chamada
+              if (onTransactionSuccess) {
+                onTransactionSuccess();
+              }
+            }}
           />
         </CardContent>
       </Card>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { 
@@ -17,10 +17,11 @@ export function usePeaceFund() {
   const [chartData, setChartData] = useState<Array<{name: string; value: number}>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   
-  const loadPeaceFundData = async () => {
+  const loadPeaceFundData = useCallback(async () => {
     if (!user) return;
     
     try {
+      setLoading(true);
       const fund = await getUserPeaceFund();
       
       if (fund) {
@@ -39,11 +40,11 @@ export function usePeaceFund() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
   
   const handleCreatePeaceFund = async (formData: Partial<PeaceFund>) => {
     try {
-      if (!user) return;
+      if (!user) return null;
       
       const newPeaceFund = await createPeaceFund({
         user_id: user.id,
@@ -64,7 +65,7 @@ export function usePeaceFund() {
     if (user) {
       loadPeaceFundData();
     }
-  }, [user]);
+  }, [user, loadPeaceFundData]);
   
   return {
     peaceFund,
