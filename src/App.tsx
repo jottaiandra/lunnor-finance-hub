@@ -26,6 +26,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
 import Index from './pages/Index';
+import PeaceFundPage from './pages/PeaceFundPage';
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ function App() {
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="goals" element={<GoalsPage />} />
+                    <Route path="peace-fund" element={<PeaceFundPage />} />
                     <Route path="export" element={<ExportPage />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="admin" element={<AdminPage />} />

@@ -7,7 +7,8 @@ import {
   Target,
   UserRound,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  HeartHandshake
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { NavItem } from "./types";
@@ -37,6 +38,11 @@ export const useSidebarData = () => {
       title: "Metas",
       href: "/dashboard/goals",
       icon: Target,
+    },
+    {
+      title: "Fundo de Paz",
+      href: "/dashboard/peace-fund",
+      icon: HeartHandshake,
     },
   ];
 
