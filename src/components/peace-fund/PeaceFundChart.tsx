@@ -40,7 +40,7 @@ const PeaceFundChart: React.FC = () => {
             
             setChartData(formattedData);
           } else {
-            // Se não tiver dados, criar dados de exemplo para visualização
+            // Se não tiver dados, criar array vazio
             setChartData([]);
           }
         }
@@ -53,7 +53,7 @@ const PeaceFundChart: React.FC = () => {
     };
     
     fetchData();
-  }, [state.peaceFund, getPeaceFundMonthlyData]);
+  }, [state.peaceFund?.id, getPeaceFundMonthlyData]);
   
   return (
     <Card className="shadow-sm">

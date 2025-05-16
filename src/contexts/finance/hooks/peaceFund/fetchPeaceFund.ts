@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchOrCreatePeaceFund, fetchPeaceFundTransactions as fetchTransactions } from "../../peaceFundService";
+import { fetchOrCreatePeaceFund, fetchTransactions } from "../../peaceFundService";
 import { FinanceAction } from "../../types";
 import { PeaceFund } from "@/types";
 

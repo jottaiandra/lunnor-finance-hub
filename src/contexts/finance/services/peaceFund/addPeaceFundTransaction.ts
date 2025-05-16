@@ -65,6 +65,7 @@ export const addPeaceFundTransaction = async (
     return newTransaction;
   } catch (error) {
     console.error('Erro inesperado ao adicionar transação:', error);
+    toast.error('Erro ao processar transação');
     return null;
   }
 };
