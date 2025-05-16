@@ -19,7 +19,7 @@ export async function getUserPeaceFund() {
 }
 
 // Create a peace fund
-export async function createPeaceFund(peaceFund: Partial<PeaceFund>) {
+export async function createPeaceFund(peaceFund: Partial<PeaceFund> & { user_id: string }) {
   const { data, error } = await supabase
     .from('peace_funds')
     .insert(peaceFund)
@@ -69,7 +69,13 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) 
 }
 
 // Create a peace fund transaction
-export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction>) {
+export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction> & { 
+  peace_fund_id: string; 
+  user_id: string; 
+  type: 'deposit' | 'withdrawal'; 
+  amount: number; 
+  description: string;
+}) {
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .insert(transaction)
