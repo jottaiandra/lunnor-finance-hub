@@ -50,12 +50,12 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
           type: transaction.type,
           date: transaction.date || new Date()
         },
-        dispatch  // Passing the dispatch function as the second argument
+        dispatch
       );
       
       if (newTransaction) {
         // Atualizar o saldo atual do fundo após a transação
-        const updatedFund = await fetchPeaceFund(user.id);
+        const updatedFund = await fetchPeaceFund(user.id, dispatch); // Adding the missing dispatch parameter here
         
         if (updatedFund) {
           dispatch({
