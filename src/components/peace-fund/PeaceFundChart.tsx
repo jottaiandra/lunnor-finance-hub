@@ -38,20 +38,29 @@ const PeaceFundChart: React.FC = () => {
           
           if (data && data.length > 0) {
             // Formatar os dados para o gráfico
-            const formattedData = data.map(item => ({
-              month: format(
-                parse(item.month, 'yyyy-MM', new Date()), 
-                'MMM/yy', 
-                { locale: ptBR }
-              ),
-              amount: Number(item.amount)
-            }));
+            const formattedData = data.map(item => {
+              try {
+                return {
+                  month: format(
+                    parse(item.month, 'yyyy-MM', new Date()), 
+                    'MMM/yy', 
+                    { locale: ptBR }
+                  ),
+                  amount: Number(item.amount)
+                };
+              } catch (e) {
+                console.error('Erro ao formatar data:', e, item);
+                return null;
+              }
+            }).filter(Boolean); // Remover itens nulos
             
             setChartData(formattedData);
           } else {
             // Se não tiver dados, criar array vazio
             setChartData([]);
           }
+        } else {
+          setChartData([]);
         }
       } catch (error) {
         console.error('Erro ao carregar dados do gráfico:', error);
@@ -66,12 +75,17 @@ const PeaceFundChart: React.FC = () => {
       }
     };
     
-    fetchData();
+    if (state.peaceFund?.id) {
+      fetchData();
+    } else {
+      setLoading(false);
+      setChartData([]);
+    }
     
     return () => {
       isMounted = false;
     };
-  }, [state.peaceFund?.id, getPeaceFundMonthlyData]);
+  }, [state.peaceFund?.id, getPeaceFundMonthlyData, state.peaceFundTransactions]);
   
   return (
     <Card className="shadow-sm">

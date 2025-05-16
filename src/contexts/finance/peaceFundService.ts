@@ -11,11 +11,12 @@ export {
   fetchOrCreatePeaceFund,
   fetchPeaceFund,
   updateSettings as updatePeaceFundSettings,
-  fetchTransactions as fetchPeaceFundTransactions,
-  addTransaction as addPeaceFundTransaction,
+  fetchTransactions,
+  addTransaction,
   fetchMonthlyEvolution,
   
   // Funções auxiliares
   mapDatabasePeaceFundToFrontend,
   mapDatabaseTransactionToFrontend
 } from './services/peaceFund';
+

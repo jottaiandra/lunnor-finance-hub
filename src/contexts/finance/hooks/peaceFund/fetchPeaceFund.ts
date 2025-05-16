@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchOrCreatePeaceFund } from "../../peaceFundService";
+import { fetchOrCreatePeaceFund } from "../../services/peaceFund/fetchOrCreatePeaceFund";
 import { fetchTransactions } from "../../services/peaceFund/fetchTransactions";
 import { FinanceAction } from "../../types";
 import { PeaceFund } from "@/types";
@@ -51,15 +51,13 @@ export const useFetchPeaceFund = (user: any | null, dispatch: React.Dispatch<Fin
   const fetchPeaceFundTransactions = async () => {
     if (!user) return;
 
-    const state = await import("@/contexts/FinanceContext").then(module => {
-      const { useFinance } = module;
-      const { state } = useFinance();
-      return state;
-    });
-    
-    if (!state.peaceFund) return;
-
     try {
+      const { state } = await import("@/contexts/FinanceContext").then(module => {
+        return { state: module.useFinance() ? module.useFinance().state : null };
+      });
+      
+      if (!state || !state.peaceFund) return;
+
       const transactions = await fetchTransactions(state.peaceFund.id);
       
       dispatch({

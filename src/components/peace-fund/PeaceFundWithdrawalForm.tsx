@@ -44,7 +44,9 @@ const PeaceFundWithdrawalForm: React.FC<PeaceFundWithdrawalFormProps> = ({
   
   const handleSubmit = async (data: z.infer<typeof transactionSchema>) => {
     await onSubmit(data);
-    withdrawalForm.reset();
+    if (!isSubmitting) {
+      withdrawalForm.reset();
+    }
   };
   
   return (

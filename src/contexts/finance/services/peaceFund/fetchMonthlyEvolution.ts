@@ -45,7 +45,7 @@ const processMonthlyEvolution = (transactions: any[]): any[] => {
     // Calcular o saldo acumulado
     if (tx.type === 'deposit') {
       runningTotal += Number(tx.amount);
-    } else {
+    } else if (tx.type === 'withdrawal') {
       runningTotal -= Number(tx.amount);
     }
     

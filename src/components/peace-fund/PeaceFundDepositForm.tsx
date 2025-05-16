@@ -44,7 +44,9 @@ const PeaceFundDepositForm: React.FC<PeaceFundDepositFormProps> = ({
   
   const handleSubmit = async (data: z.infer<typeof transactionSchema>) => {
     await onSubmit(data);
-    depositForm.reset();
+    if (!isSubmitting) {
+      depositForm.reset();
+    }
   };
   
   return (

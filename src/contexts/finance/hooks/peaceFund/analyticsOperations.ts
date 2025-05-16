@@ -1,29 +1,29 @@
 
-import { fetchMonthlyEvolution } from "../../peaceFundService";
+import { fetchMonthlyEvolution } from "../../services/peaceFund/fetchMonthlyEvolution";
 
 /**
- * Hook para gerenciar operações de análise do fundo de paz
+ * Hook para operações de análise do fundo de paz
  */
 export const useAnalyticsOperations = (user: any | null) => {
   /**
-   * Busca dados mensais de evolução do fundo de paz
+   * Obtém os dados mensais do fundo de paz para o gráfico
    */
   const getPeaceFundMonthlyData = async () => {
     if (!user) return [];
-    
-    const state = await import("@/contexts/FinanceContext").then(module => {
-      const { useFinance } = module;
-      const { state } = useFinance();
-      return state;
-    });
-    
-    if (!state.peaceFund) return [];
-    
+
     try {
-      const monthlyData = await fetchMonthlyEvolution(state.peaceFund.id);
-      return monthlyData;
+      // Importar dinamicamente para evitar referência circular
+      const { state } = await import("@/contexts/FinanceContext").then(module => {
+        return { state: module.useFinance().state };
+      });
+      
+      if (!state || !state.peaceFund || !state.peaceFund.id) {
+        return [];
+      }
+      
+      return await fetchMonthlyEvolution(state.peaceFund.id);
     } catch (error) {
-      console.error("Erro ao buscar dados mensais:", error);
+      console.error('Erro ao buscar dados mensais do fundo:', error);
       return [];
     }
   };

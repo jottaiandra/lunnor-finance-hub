@@ -5,8 +5,4 @@ export { fetchTransactions } from './fetchTransactions';
 export { updateSettings } from './updateSettings';
 export { fetchMonthlyEvolution } from './fetchMonthlyEvolution';
 export { mapDatabasePeaceFundToFrontend, mapDatabaseTransactionToFrontend } from './mappers';
-
-export * from './addPeaceFundTransaction';
-export * from './fetchPeaceFund';
-export * from './fetchPeaceFundTransactions';
-export * from './updatePeaceFundSettings';
+export { fetchPeaceFund } from './fetchPeaceFund';

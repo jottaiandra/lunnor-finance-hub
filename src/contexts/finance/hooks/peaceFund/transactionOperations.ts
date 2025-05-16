@@ -1,7 +1,8 @@
 
 import { toast } from "@/components/ui/sonner";
-import { addPeaceFundTransaction as addPeaceFundTransactionService } from "../../services/peaceFund/addPeaceFundTransaction";
+import { addTransaction } from "../../services/peaceFund/addTransaction";
 import { fetchPeaceFund } from "../../services/peaceFund/fetchPeaceFund";
+import { fetchTransactions } from "../../services/peaceFund/fetchTransactions";
 import { FinanceAction } from "../../types";
 import { PeaceFundTransaction } from "@/types";
 
@@ -36,20 +37,25 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
       
       // Verificar se tem saldo suficiente para saque
       if (transaction.type === 'withdrawal' && state.peaceFund.current_amount < transaction.amount) {
-        toast.error("Saldo insuficiente para realizar o saque");
+        toast.error("Você não pode sacar mais do que tem no Fundo de Paz.");
         return null;
       }
       
-      const newTransaction = await addPeaceFundTransactionService(
-        state.peaceFund.id, 
-        transaction, 
-        user.id, 
+      const newTransaction = await addTransaction(
+        {
+          peace_fund_id: state.peaceFund.id,
+          user_id: user.id,
+          amount: transaction.amount,
+          description: transaction.description,
+          type: transaction.type,
+          date: transaction.date || new Date()
+        },
         dispatch
       );
       
       if (newTransaction) {
         // Atualizar o saldo atual do fundo após a transação
-        const updatedFund = await fetchPeaceFund(user.id, dispatch);
+        const updatedFund = await fetchPeaceFund(user.id);
         
         if (updatedFund) {
           dispatch({
@@ -57,11 +63,18 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
             payload: updatedFund
           });
           
+          // Atualizar a lista de transações
+          const transactions = await fetchTransactions(state.peaceFund.id);
+          dispatch({
+            type: "SET_PEACE_FUND_TRANSACTIONS",
+            payload: transactions
+          });
+          
           // Mensagem de sucesso personalizada
           if (transaction.type === 'deposit') {
-            toast.success(`Depósito de R$ ${transaction.amount.toFixed(2)} realizado com sucesso`);
+            toast.success(`🌱 Depósito realizado com sucesso!\nSeu Fundo de Paz está crescendo — continue cuidando do seu futuro com sabedoria.`);
           } else {
-            toast.success(`Saque de R$ ${transaction.amount.toFixed(2)} realizado com sucesso`);
+            toast.success(`💸 Saque efetuado com sucesso!\nTudo certo, o importante é saber que você tem um fundo para os momentos que realmente importam.`);
           }
         }
       }

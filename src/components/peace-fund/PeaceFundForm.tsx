@@ -20,6 +20,17 @@ const PeaceFundForm: React.FC = () => {
   }
   
   const handleDepositSubmit = async (data: {description: string, amount: string}) => {
+    // Validar os dados de entrada
+    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
+      toast.error("Digite um valor válido para continuar.");
+      return;
+    }
+    
+    if (!data.description || data.description.trim().length < 3) {
+      toast.error("A descrição é obrigatória (mínimo 3 caracteres).");
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       await addPeaceFundTransaction({
@@ -36,12 +47,23 @@ const PeaceFundForm: React.FC = () => {
   };
   
   const handleWithdrawalSubmit = async (data: {description: string, amount: string}) => {
+    // Validar os dados de entrada
+    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
+      toast.error("Digite um valor válido para continuar.");
+      return;
+    }
+    
+    if (!data.description || data.description.trim().length < 3) {
+      toast.error("A descrição é obrigatória (mínimo 3 caracteres).");
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // Verificar se há saldo suficiente
       const amount = parseFloat(data.amount);
       if (peaceFund.current_amount < amount) {
-        toast.error("Saldo insuficiente para realizar o saque");
+        toast.error("Você não pode sacar mais do que tem no Fundo de Paz.");
         setIsSubmitting(false);
         return;
       }
