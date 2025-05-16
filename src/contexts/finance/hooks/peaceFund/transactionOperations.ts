@@ -42,18 +42,18 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
       }
     }
     
-    const state = await import("@/contexts/FinanceContext").then(module => {
-      const { useFinance } = module;
-      const { state } = useFinance();
-      return state;
-    });
-    
-    if (!state.peaceFund) {
-      toast.error("Fundo de paz não encontrado");
-      return null;
-    }
-    
     try {
+      const state = await import("@/contexts/FinanceContext").then(module => {
+        const { useFinance } = module;
+        const { state } = useFinance();
+        return state;
+      });
+      
+      if (!state.peaceFund) {
+        toast.error("Fundo de paz não encontrado");
+        return null;
+      }
+      
       const newTransaction = await addPeaceFundTransactionService(
         state.peaceFund.id, 
         transaction, 

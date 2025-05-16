@@ -24,7 +24,7 @@ const PeaceFundChart: React.FC = () => {
       setLoading(true);
       try {
         // Verificar se o fundo de paz existe
-        if (state.peaceFund) {
+        if (state.peaceFund?.id) {
           const data = await getPeaceFundMonthlyData();
           
           if (data && data.length > 0) {
@@ -53,7 +53,7 @@ const PeaceFundChart: React.FC = () => {
     };
     
     fetchData();
-  }, [state.peaceFund?.id, getPeaceFundMonthlyData]);
+  }, [state.peaceFund?.id, getPeaceFundMonthlyData, state.peaceFundTransactions]);
   
   return (
     <Card className="shadow-sm">

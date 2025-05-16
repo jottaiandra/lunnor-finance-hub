@@ -18,3 +18,4 @@ export {
   mapDatabasePeaceFundToFrontend,
   mapDatabaseTransactionToFrontend
 } from './services/peaceFund';
+

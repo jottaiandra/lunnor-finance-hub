@@ -71,6 +71,7 @@ const PeaceFundForm: React.FC = () => {
           ? parseFloat(data.minimum_alert_amount)
           : null
       });
+      toast.success("Configurações atualizadas com sucesso");
     } catch (error) {
       console.error("Erro ao atualizar configurações:", error);
       toast.error("Erro ao atualizar configurações");
