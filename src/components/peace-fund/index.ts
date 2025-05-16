@@ -1,16 +1,16 @@
 
-import PeaceFundForm from './PeaceFundForm';
-import PeaceFundOverview from './PeaceFundOverview';
-import PeaceFundChart from './PeaceFundChart';
-import PeaceFundTransactionsList from './PeaceFundTransactionsList';
-import PeaceFundInfo from './PeaceFundInfo';
 import PeaceFundDashboard from './PeaceFundDashboard';
+import PeaceFundOverview from './PeaceFundOverview';
+import PeaceFundActions from './PeaceFundActions';
+import PeaceFundTransactions from './PeaceFundTransactions';
+import PeaceFundChart from './PeaceFundChart';
+import PeaceFundInfo from './PeaceFundInfo';
 
 export {
-  PeaceFundForm,
+  PeaceFundDashboard,
   PeaceFundOverview,
+  PeaceFundActions,
+  PeaceFundTransactions,
   PeaceFundChart,
-  PeaceFundTransactionsList,
-  PeaceFundInfo,
-  PeaceFundDashboard
+  PeaceFundInfo
 };

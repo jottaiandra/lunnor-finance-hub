@@ -55,7 +55,7 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
       
       if (newTransaction) {
         // Atualizar o saldo atual do fundo após a transação
-        const updatedFund = await fetchPeaceFund(user.id, dispatch); // Adding the missing dispatch parameter here
+        const updatedFund = await fetchPeaceFund(user.id, dispatch);
         
         if (updatedFund) {
           dispatch({

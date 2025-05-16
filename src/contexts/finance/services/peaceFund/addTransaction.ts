@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
-import { mapDatabaseTransactionToFrontend } from "./mappers";
 import { FinanceAction } from "../../types";
 
 /**
