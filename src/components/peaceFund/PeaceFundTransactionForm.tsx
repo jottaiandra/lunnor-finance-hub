@@ -58,10 +58,13 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
     try {
       if (!user) return;
       
+      // Make sure all required fields are explicitly defined to satisfy the type requirements
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
-        ...values,
+        type: values.type, // Explicitly use values.type to ensure it's not optional
+        amount: values.amount, // Explicitly use values.amount to ensure it's not optional
+        description: values.description, // Explicitly use values.description to ensure it's not optional
       });
       
       form.reset({
