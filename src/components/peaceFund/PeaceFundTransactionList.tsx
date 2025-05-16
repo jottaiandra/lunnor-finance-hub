@@ -23,7 +23,7 @@ const PeaceFundTransactionList: React.FC<PeaceFundTransactionListProps> = ({
   if (displayedTransactions.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        Nenhuma movimentação registrada.
+        Ainda não há movimentações no seu Fundo de Paz.
       </div>
     );
   }
