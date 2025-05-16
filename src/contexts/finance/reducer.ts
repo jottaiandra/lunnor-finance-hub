@@ -6,8 +6,6 @@ export const initialState: FinanceState = {
   goals: [],
   alerts: [],
   notifications: [],
-  peaceFund: null,
-  peaceFundTransactions: [],
   currentFilter: {
     startDate: null,
     endDate: null,
@@ -19,8 +17,7 @@ export const initialState: FinanceState = {
     transactions: false,
     goals: false,
     alerts: false,
-    notifications: false,
-    peaceFund: false
+    notifications: false
   },
   error: null
 };
@@ -46,16 +43,6 @@ export const financeReducer = (state: FinanceState, action: FinanceAction): Fina
       return {
         ...state,
         notifications: action.payload
-      };
-    case "SET_PEACE_FUND":
-      return {
-        ...state,
-        peaceFund: action.payload
-      };
-    case "SET_PEACE_FUND_TRANSACTIONS":
-      return {
-        ...state,
-        peaceFundTransactions: action.payload
       };
     case "ADD_TRANSACTION":
       return {
@@ -92,16 +79,6 @@ export const financeReducer = (state: FinanceState, action: FinanceAction): Fina
       return {
         ...state,
         goals: state.goals.filter((goal) => goal.id !== action.payload)
-      };
-    case "ADD_PEACE_FUND_TRANSACTION":
-      return {
-        ...state,
-        peaceFundTransactions: [action.payload, ...state.peaceFundTransactions]
-      };
-    case "UPDATE_PEACE_FUND":
-      return {
-        ...state,
-        peaceFund: state.peaceFund ? { ...state.peaceFund, ...action.payload } : null
       };
     case "MARK_ALERT_READ":
       return {

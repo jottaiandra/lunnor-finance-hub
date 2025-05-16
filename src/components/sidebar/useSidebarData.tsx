@@ -7,8 +7,7 @@ import {
   Target,
   UserRound,
   FileText,
-  ShieldCheck,
-  Shield
+  ShieldCheck
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { NavItem } from "./types";
@@ -39,11 +38,6 @@ export const useSidebarData = () => {
       href: "/dashboard/goals",
       icon: Target,
     },
-    {
-      title: "Fundo de Paz",
-      href: "/dashboard/peace-fund",
-      icon: Shield,
-    }
   ];
 
   // Navegação de configurações

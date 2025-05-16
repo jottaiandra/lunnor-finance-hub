@@ -22,7 +22,6 @@ import ReportsPage from './pages/ReportsPage';
 import GoalsPage from './pages/GoalsPage';
 import ExportPage from './pages/ExportPage';
 import ProfilePage from './pages/ProfilePage';
-import PeaceFundPage from './pages/PeaceFundPage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
@@ -54,7 +53,6 @@ function App() {
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="goals" element={<GoalsPage />} />
-                    <Route path="peace-fund" element={<PeaceFundPage />} />
                     <Route path="export" element={<ExportPage />} />
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="admin" element={<AdminPage />} />
