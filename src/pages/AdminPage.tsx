@@ -4,8 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WhatsAppMessageLogs from '@/components/admin/WhatsAppMessageLogs';
 import WhatsAppWebhookLogs from '@/components/admin/WhatsAppWebhookLogs';
 import CustomizationSettings from '@/components/admin/CustomizationSettings';
-import CreateUserForm from '@/components/admin/CreateUserForm';
-import UsersList from '@/components/admin/UsersList';
 import UserManagement from '@/components/admin/UserManagement';
 
 const AdminPage: React.FC = () => {
