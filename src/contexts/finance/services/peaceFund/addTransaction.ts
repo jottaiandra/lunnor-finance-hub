@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PeaceFundTransaction } from "@/types";
+import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
 import { mapDatabaseTransactionToFrontend } from "./mappers";
 import { FinanceAction } from "../../types";
 
@@ -13,7 +13,7 @@ export const addTransaction = async (
     user_id: string;
     amount: number;
     description: string;
-    type: 'deposit' | 'withdrawal';
+    type: PeaceFundTransactionType;
     date?: Date | string;
   },
   dispatch: React.Dispatch<FinanceAction>
@@ -47,7 +47,7 @@ export const addTransaction = async (
       user_id: data.user_id,
       amount: data.amount,
       description: data.description,
-      type: data.type,
+      type: data.type as PeaceFundTransactionType,
       date: new Date(data.date),
       created_at: new Date(data.created_at)
     };

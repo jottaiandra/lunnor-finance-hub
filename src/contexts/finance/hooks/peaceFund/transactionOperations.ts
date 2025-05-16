@@ -4,7 +4,7 @@ import { addTransaction } from "../../services/peaceFund/addTransaction";
 import { fetchPeaceFund } from "../../services/peaceFund/fetchPeaceFund";
 import { fetchTransactions } from "../../services/peaceFund/fetchTransactions";
 import { FinanceAction } from "../../types";
-import { PeaceFundTransaction } from "@/types";
+import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
 
 /**
  * Hook para gerenciar operações de transação do fundo de paz
@@ -16,7 +16,7 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
   const addPeaceFundTransaction = async (transaction: {
     amount: number;
     description: string;
-    type: 'deposit' | 'withdrawal';
+    type: PeaceFundTransactionType;
     date?: Date | string;
   }): Promise<PeaceFundTransaction | null> => {
     if (!user || !user.id) {

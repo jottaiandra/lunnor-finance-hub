@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PeaceFundTransaction } from "@/types";
+import { PeaceFundTransaction, PeaceFundTransactionType } from "@/types";
 import { FinanceAction } from "../../types";
 import { toast } from "@/components/ui/sonner";
 
@@ -10,7 +10,7 @@ export const addPeaceFundTransaction = async (
   transaction: {
     amount: number;
     description: string;
-    type: 'deposit' | 'withdrawal';
+    type: PeaceFundTransactionType;
     date?: Date | string;
   },
   userId: string,
@@ -45,7 +45,7 @@ export const addPeaceFundTransaction = async (
       user_id: data.user_id,
       amount: data.amount,
       description: data.description,
-      type: data.type as 'deposit' | 'withdrawal', // Explicitly cast to the correct type
+      type: data.type as PeaceFundTransactionType,
       date: new Date(data.date),
       created_at: new Date(data.created_at)
     };
@@ -58,8 +58,8 @@ export const addPeaceFundTransaction = async (
 
     toast.success(
       transaction.type === 'deposit' 
-        ? 'Depósito realizado com sucesso' 
-        : 'Saque realizado com sucesso'
+        ? '🌱 Depósito realizado com sucesso!\nSeu Fundo de Paz está crescendo — continue cuidando do seu futuro com sabedoria.' 
+        : '💸 Saque efetuado com sucesso!\nTudo certo, o importante é saber que você tem um fundo para os momentos que realmente importam.'
     );
 
     return newTransaction;
