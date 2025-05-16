@@ -58,7 +58,6 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
     if (!user) return;
     
     try {
-      // Make sure all required fields are explicitly defined to satisfy the type requirements
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
@@ -80,10 +79,8 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
           : 'Saque adicionado com sucesso!'
       );
       
-      // Garantimos que a função de callback é chamada
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Chama a função de callback diretamente para garantir a atualização
+      onSuccess();
     } catch (error) {
       console.error('Failed to create transaction:', error);
       toast.error('Falha ao registrar movimentação');
