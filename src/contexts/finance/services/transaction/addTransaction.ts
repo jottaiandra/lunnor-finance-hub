@@ -1,52 +1,57 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types";
-import { FinanceAction } from "../../types";
+import { mapTransactionFromDB } from "../../mappers";
+import { toast } from "@/components/ui/sonner";
+import { sendTransactionWebhook } from "./webhooks";
 
-// Modified function signature to receive proper transaction type
+// Add a transaction
 export const addTransaction = async (
-  transaction: Omit<Transaction, "id">,
-  dispatch: React.Dispatch<FinanceAction>
-): Promise<Transaction | null> => {
+  transaction: Omit<Transaction, "id">, 
+  userId: string, 
+  dispatch: any
+) => {
+  if (!userId) return null;
+  
   try {
-    // Convert Date objects to ISO strings for Supabase compatibility
-    const preparedTransaction = {
-      ...transaction,
-      date: transaction.date instanceof Date 
-        ? transaction.date.toISOString() 
-        : transaction.date,
-      created_at: transaction.created_at instanceof Date 
-        ? transaction.created_at.toISOString() 
-        : transaction.created_at,
-      recurrence_start_date: transaction.recurrence_start_date instanceof Date 
-        ? transaction.recurrence_start_date.toISOString() 
-        : transaction.recurrence_start_date,
-      recurrence_end_date: transaction.recurrence_end_date instanceof Date 
-        ? transaction.recurrence_end_date.toISOString() 
-        : transaction.recurrence_end_date
+    // Prepare data for Supabase
+    const transactionData = {
+      user_id: userId,
+      date: transaction.date.toISOString(),
+      description: transaction.description,
+      amount: transaction.amount,
+      category: transaction.category,
+      payment_method: transaction.paymentMethod,
+      type: transaction.type,
+      contact: transaction.contact || null,
+      is_recurrent: transaction.isRecurrent || false,
+      recurrence_frequency: transaction.recurrenceFrequency || null,
+      recurrence_interval: transaction.recurrenceInterval || null,
+      recurrence_start_date: transaction.recurrenceStartDate ? transaction.recurrenceStartDate.toISOString() : null,
+      recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
+      is_original: transaction.isOriginal !== false
     };
-
+    
+    // Insert into Supabase
     const { data, error } = await supabase
-      .from("transactions")
-      .insert(preparedTransaction)
-      .select("*")
+      .from('transactions')
+      .insert(transactionData)
+      .select()
       .single();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (data) {
-      dispatch({
-        type: "ADD_TRANSACTION",
-        payload: data as Transaction,
-      });
-      return data as Transaction;
-    }
-
-    return null;
+    
+    if (error) throw error;
+    
+    // Add to local state
+    const newTransaction = mapTransactionFromDB(data);
+    dispatch({ type: "ADD_TRANSACTION", payload: newTransaction });
+    
+    // Send webhook to Make
+    await sendTransactionWebhook(newTransaction, userId);
+    
+    return newTransaction;
   } catch (error: any) {
-    console.error("Error adding transaction:", error);
+    console.error("Erro ao adicionar transação:", error);
+    toast.error("Erro ao salvar transação");
     throw error;
   }
 };

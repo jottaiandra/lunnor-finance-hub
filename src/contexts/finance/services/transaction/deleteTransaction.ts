@@ -10,7 +10,7 @@ export const deleteTransaction = async (
   userId: string,
   dispatch: any,
   deleteOptions?: { deleteAllFuture?: boolean }
-): Promise<void> => {
+) => {
   if (!userId) return;
   
   try {
@@ -27,15 +27,15 @@ export const deleteTransaction = async (
     
     const transaction = mapTransactionFromDB(transactionData);
     
-    if (deleteOptions?.deleteAllFuture && transaction.is_recurrent) {
+    if (deleteOptions?.deleteAllFuture && transaction.isRecurrent) {
       // Delete this transaction and all future occurrences
-      if (transaction.parent_transaction_id) {
+      if (transaction.parentTransactionId) {
         // This is a child, delete from this date forward
         const { error } = await supabase
           .from('transactions')
           .delete()
-          .eq('parent_transaction_id', transaction.parent_transaction_id)
-          .gte('date', typeof transaction.date === 'string' ? transaction.date : transaction.date.toISOString());
+          .eq('parent_transaction_id', transaction.parentTransactionId)
+          .gte('date', transaction.date.toISOString());
         
         if (error) throw error;
       } else {

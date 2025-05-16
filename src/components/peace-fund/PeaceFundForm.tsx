@@ -1,104 +1,134 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from '@/components/ui/sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/use-toast';
 import { useFinance } from '@/contexts/FinanceContext';
-import PeaceFundDepositForm from './PeaceFundDepositForm';
-import PeaceFundWithdrawalForm from './PeaceFundWithdrawalForm';
-import PeaceFundSettingsForm from './PeaceFundSettingsForm';
+
+const transactionSchema = z.object({
+  description: z.string().min(3, "Descrição é obrigatória (mínimo 3 caracteres)"),
+  amount: z.string()
+    .min(1, "Valor é obrigatório")
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Valor deve ser um número positivo"
+    })
+});
+
+const settingsSchema = z.object({
+  target_amount: z.string()
+    .min(1, "Valor é obrigatório")
+    .refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+      message: "Valor deve ser um número positivo"
+    }),
+  minimum_alert_amount: z.string()
+    .refine(val => val === '' || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0), {
+      message: "Valor deve ser um número positivo ou zero"
+    })
+    .optional()
+    .transform(val => val === '' ? null : val)
+});
 
 const PeaceFundForm: React.FC = () => {
   const { state, addPeaceFundTransaction, updatePeaceFundSettings } = useFinance();
   const { peaceFund } = state;
   const [activeTab, setActiveTab] = React.useState<string>("deposit");
-  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
+  
+  const depositForm = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      description: "",
+      amount: ""
+    }
+  });
+  
+  const withdrawalForm = useForm<z.infer<typeof transactionSchema>>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      description: "",
+      amount: ""
+    }
+  });
+  
+  const settingsForm = useForm<z.infer<typeof settingsSchema>>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      target_amount: peaceFund ? peaceFund.target_amount.toString() : "10000",
+      minimum_alert_amount: peaceFund?.minimum_alert_amount 
+        ? peaceFund.minimum_alert_amount.toString() 
+        : "1000"
+    }
+  });
+  
+  React.useEffect(() => {
+    if (peaceFund) {
+      settingsForm.reset({
+        target_amount: peaceFund.target_amount.toString(),
+        minimum_alert_amount: peaceFund.minimum_alert_amount 
+          ? peaceFund.minimum_alert_amount.toString() 
+          : ""
+      });
+    }
+  }, [peaceFund]);
+  
+  const onSubmitDeposit = async (data: z.infer<typeof transactionSchema>) => {
+    await addPeaceFundTransaction({
+      amount: parseFloat(data.amount),
+      description: data.description,
+      type: 'deposit'
+    });
+    
+    depositForm.reset();
+    toast({
+      title: "Depósito realizado",
+      description: "O valor foi adicionado ao seu Fundo de Paz."
+    });
+  };
+  
+  const onSubmitWithdrawal = async (data: z.infer<typeof transactionSchema>) => {
+    await addPeaceFundTransaction({
+      amount: parseFloat(data.amount),
+      description: data.description,
+      type: 'withdrawal'
+    });
+    
+    withdrawalForm.reset();
+    toast({
+      title: "Saque realizado",
+      description: "O valor foi retirado do seu Fundo de Paz."
+    });
+  };
+  
+  const onSubmitSettings = async (data: z.infer<typeof settingsSchema>) => {
+    await updatePeaceFundSettings({
+      target_amount: parseFloat(data.target_amount),
+      minimum_alert_amount: data.minimum_alert_amount 
+        ? parseFloat(data.minimum_alert_amount)
+        : null
+    });
+    
+    toast({
+      title: "Configurações atualizadas",
+      description: "As configurações do seu Fundo de Paz foram atualizadas com sucesso."
+    });
+  };
   
   if (!peaceFund) {
     return <p>Carregando...</p>;
   }
-  
-  const handleDepositSubmit = async (data: {description: string, amount: string}) => {
-    // Validar os dados de entrada
-    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
-      toast.error("Digite um valor válido para continuar.");
-      return;
-    }
-    
-    if (!data.description || data.description.trim().length < 3) {
-      toast.error("A descrição é obrigatória (mínimo 3 caracteres).");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      await addPeaceFundTransaction({
-        amount: parseFloat(data.amount),
-        description: data.description,
-        type: 'deposit'
-      });
-    } catch (error) {
-      console.error("Erro ao depositar:", error);
-      toast.error("Erro ao realizar depósito");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  const handleWithdrawalSubmit = async (data: {description: string, amount: string}) => {
-    // Validar os dados de entrada
-    if (!data.amount || isNaN(parseFloat(data.amount)) || parseFloat(data.amount) <= 0) {
-      toast.error("Digite um valor válido para continuar.");
-      return;
-    }
-    
-    if (!data.description || data.description.trim().length < 3) {
-      toast.error("A descrição é obrigatória (mínimo 3 caracteres).");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      // Verificar se há saldo suficiente
-      const amount = parseFloat(data.amount);
-      if (peaceFund.current_amount < amount) {
-        toast.error("Você não pode sacar mais do que tem no Fundo de Paz.");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      await addPeaceFundTransaction({
-        amount: amount,
-        description: data.description,
-        type: 'withdrawal'
-      });
-    } catch (error) {
-      console.error("Erro ao sacar:", error);
-      toast.error("Erro ao realizar saque");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  const handleSettingsSubmit = async (data: {
-    target_amount: string, 
-    minimum_alert_amount: string | null
-  }) => {
-    setIsSubmitting(true);
-    try {
-      await updatePeaceFundSettings({
-        target_amount: parseFloat(data.target_amount),
-        minimum_alert_amount: data.minimum_alert_amount 
-          ? parseFloat(data.minimum_alert_amount)
-          : null
-      });
-      toast.success("Configurações atualizadas com sucesso");
-    } catch (error) {
-      console.error("Erro ao atualizar configurações:", error);
-      toast.error("Erro ao atualizar configurações");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
   
   return (
     <Card className="shadow-sm">
@@ -115,25 +145,124 @@ const PeaceFundForm: React.FC = () => {
           </TabsList>
           
           <TabsContent value="deposit">
-            <PeaceFundDepositForm 
-              onSubmit={handleDepositSubmit}
-              isSubmitting={isSubmitting}
-            />
+            <Form {...depositForm}>
+              <form onSubmit={depositForm.handleSubmit(onSubmitDeposit)} className="space-y-4">
+                <FormField
+                  control={depositForm.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={depositForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Ex: Reserva mensal" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" className="w-full" variant="default">
+                  Depositar no Fundo
+                </Button>
+              </form>
+            </Form>
           </TabsContent>
           
           <TabsContent value="withdraw">
-            <PeaceFundWithdrawalForm 
-              onSubmit={handleWithdrawalSubmit}
-              isSubmitting={isSubmitting}
-            />
+            <Form {...withdrawalForm}>
+              <form onSubmit={withdrawalForm.handleSubmit(onSubmitWithdrawal)} className="space-y-4">
+                <FormField
+                  control={withdrawalForm.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={withdrawalForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Ex: Uso para emergência" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" className="w-full" variant="default">
+                  Sacar do Fundo
+                </Button>
+              </form>
+            </Form>
           </TabsContent>
           
           <TabsContent value="settings">
-            <PeaceFundSettingsForm 
-              peaceFund={peaceFund}
-              onSubmit={handleSettingsSubmit}
-              isSubmitting={isSubmitting}
-            />
+            <Form {...settingsForm}>
+              <form onSubmit={settingsForm.handleSubmit(onSubmitSettings)} className="space-y-4">
+                <FormField
+                  control={settingsForm.control}
+                  name="target_amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Meta do Fundo (R$)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={settingsForm.control}
+                  name="minimum_alert_amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor mínimo para alerta (R$)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          min="0" 
+                          placeholder="Deixe em branco para desativar alertas"
+                          {...field} 
+                          value={field.value !== null ? field.value : ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button type="submit" className="w-full" variant="default">
+                  Salvar Configurações
+                </Button>
+              </form>
+            </Form>
           </TabsContent>
         </Tabs>
       </CardContent>

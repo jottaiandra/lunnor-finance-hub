@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,8 +19,8 @@ const Dashboard: React.FC = () => {
   const [showAlertSettings, setShowAlertSettings] = useState<boolean>(false);
   
   const balance = getCurrentBalance();
-  const totalIncomeMonth = getTotalIncome();
-  const totalExpenseMonth = getTotalExpense();
+  const totalIncomeMonth = getTotalIncome('month');
+  const totalExpenseMonth = getTotalExpense('month');
   
   useEffect(() => {
     const fetchUserName = async () => {

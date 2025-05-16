@@ -240,7 +240,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                     <TableCell>
                       <div className="flex items-center">
                         {format(new Date(transaction.date), "dd/MM/yyyy")}
-                        {transaction.is_recurrent && (
+                        {transaction.isRecurrent && (
                           <Badge variant="outline" className="ml-2 px-1">
                             <Repeat className="h-3 w-3 mr-1" />
                             <span className="text-xs">Recorrente</span>
@@ -256,7 +256,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                     )}>
                       R$ {transaction.amount.toFixed(2).replace('.', ',')}
                     </TableCell>
-                    <TableCell>{transaction.payment_method}</TableCell>
+                    <TableCell>{transaction.paymentMethod}</TableCell>
                     <TableCell>{transaction.contact || "-"}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -273,7 +273,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ limit, showFilters = 
                             Editar
                           </DropdownMenuItem>
                           
-                          {transaction.is_recurrent ? (
+                          {transaction.isRecurrent ? (
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger className="text-destructive focus:text-destructive">
                                 <Trash className="h-4 w-4 mr-2" />

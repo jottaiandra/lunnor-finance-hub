@@ -1,15 +1,13 @@
 
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileImageSection from '@/components/profile/ProfileImageSection';
+import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
+import PasswordForm from '@/components/profile/PasswordForm';
 import { useProfileData } from '@/hooks/useProfileData';
-
-// Lazy load components to improve initial page load time
-const PersonalInfoForm = lazy(() => import('@/components/profile/PersonalInfoForm'));
-const PasswordForm = lazy(() => import('@/components/profile/PasswordForm'));
 
 const ProfilePage: React.FC = () => {
   const {
@@ -25,7 +23,7 @@ const ProfilePage: React.FC = () => {
   
   if (loading && !profileForm.formState.isDirty) {
     return (
-      <div className="h-full flex items-center justify-center p-12">
+      <div className="h-full flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -90,9 +88,7 @@ const ProfilePage: React.FC = () => {
                   <CardDescription>Atualize suas informações de perfil</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Suspense fallback={<div className="py-4 flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-                    <PersonalInfoForm form={profileForm} user={user} />
-                  </Suspense>
+                  <PersonalInfoForm form={profileForm} user={user} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -104,9 +100,7 @@ const ProfilePage: React.FC = () => {
                   <CardDescription>Atualize sua senha de acesso</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Suspense fallback={<div className="py-4 flex justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>}>
-                    <PasswordForm form={passwordForm} user={user} />
-                  </Suspense>
+                  <PasswordForm form={passwordForm} user={user} />
                 </CardContent>
               </Card>
             </TabsContent>

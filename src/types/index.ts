@@ -1,4 +1,3 @@
-
 export enum TransactionType {
   INCOME = "income",
   EXPENSE = "expense"
@@ -72,15 +71,13 @@ export interface PeaceFund {
   updated_at: Date | string;
 }
 
-export type PeaceFundTransactionType = 'deposit' | 'withdrawal';
-
 export interface PeaceFundTransaction {
   id: string;
   peace_fund_id: string;
   user_id: string;
   amount: number;
   description: string;
-  type: PeaceFundTransactionType;
+  type: 'deposit' | 'withdrawal';
   date: Date | string;
   created_at: Date | string;
 }

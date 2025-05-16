@@ -1,229 +1,247 @@
 
-import { Transaction, Goal } from "@/types";
+import { Transaction, TransactionType, Goal } from "@/types";
+import { isTransactionInPeriod } from "./dateUtils";
+import { addDays, isAfter, isBefore, startOfMonth, endOfMonth, differenceInDays } from "date-fns";
 
-// Function to filter transactions based on provided filters
-export const getFilteredTransactions = (transactions: Transaction[], filters: any = {}): Transaction[] => {
-  return transactions.filter(transaction => {
-    // Apply type filter (income/expense)
-    if (filters.type && transaction.type !== filters.type) {
-      return false;
-    }
-    
-    // Apply category filter
-    if (filters.category && transaction.category !== filters.category) {
-      return false;
-    }
-    
-    // Apply date range filters
-    if (filters.startDate) {
-      const transactionDate = typeof transaction.date === 'string' 
-        ? new Date(transaction.date) 
-        : transaction.date;
-      if (transactionDate < filters.startDate) {
-        return false;
-      }
-    }
-    
-    if (filters.endDate) {
-      const transactionDate = typeof transaction.date === 'string' 
-        ? new Date(transaction.date) 
-        : transaction.date;
-      if (transactionDate > filters.endDate) {
-        return false;
-      }
-    }
-    
-    // Apply search term filter
-    if (filters.searchTerm) {
-      const searchTermLower = filters.searchTerm.toLowerCase();
-      return (
-        transaction.description.toLowerCase().includes(searchTermLower) ||
-        transaction.category.toLowerCase().includes(searchTermLower) ||
-        (transaction.contact && transaction.contact.toLowerCase().includes(searchTermLower))
-      );
-    }
-    
-    return true;
-  });
+// Calculate total income for a specific period
+export const getTotalIncome = (transactions: Transaction[], period?: 'today' | 'week' | 'month' | 'year'): number => {
+  const incomeTransactions = transactions.filter(t => t.type === TransactionType.INCOME);
+  
+  if (!period) {
+    return incomeTransactions.reduce((total, t) => total + t.amount, 0);
+  }
+  
+  return incomeTransactions
+    .filter(t => isTransactionInPeriod(t.date, period))
+    .reduce((total, t) => total + t.amount, 0);
 };
 
-// Function to calculate total income
-export const getTotalIncome = (transactions: Transaction[]): number => {
-  return transactions
-    .filter((transaction) => transaction.type === "income")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+// Calculate total expense for a specific period
+export const getTotalExpense = (transactions: Transaction[], period?: 'today' | 'week' | 'month' | 'year'): number => {
+  const expenseTransactions = transactions.filter(t => t.type === TransactionType.EXPENSE);
+  
+  if (!period) {
+    return expenseTransactions.reduce((total, t) => total + t.amount, 0);
+  }
+  
+  return expenseTransactions
+    .filter(t => isTransactionInPeriod(t.date, period))
+    .reduce((total, t) => total + t.amount, 0);
 };
 
-// Function to calculate total expense
-export const getTotalExpense = (transactions: Transaction[]): number => {
-  return transactions
-    .filter((transaction) => transaction.type === "expense")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-};
-
-// Function to calculate current balance
+// Calculate current balance
 export const getCurrentBalance = (transactions: Transaction[]): number => {
-  let balance = 0;
-  transactions.forEach((transaction) => {
-    if (transaction.type === "income") {
-      balance += transaction.amount;
-    } else {
-      balance -= transaction.amount;
-    }
-  });
-  return balance;
+  return getTotalIncome(transactions) - getTotalExpense(transactions);
 };
 
-// Fix the date handling in these functions
+// Get upcoming expenses within the next N days
 export const getUpcomingExpenses = (transactions: Transaction[], days: number = 7): Transaction[] => {
   const today = new Date();
-  const futureDate = new Date();
-  futureDate.setDate(today.getDate() + days);
+  const endDate = addDays(today, days);
   
-  return transactions.filter(t => {
-    if (t.type !== 'expense') return false;
-    
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate >= today && transactionDate <= futureDate;
-  });
+  return transactions.filter(t => 
+    t.type === TransactionType.EXPENSE && 
+    isAfter(new Date(t.date), today) && 
+    isBefore(new Date(t.date), endDate)
+  ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
-export const getExpectedIncome = (transactions: Transaction[], days: number = 30): Transaction[] => {
+// Get expected income
+export const getExpectedIncome = (transactions: Transaction[]): Transaction[] => {
   const today = new Date();
-  const futureDate = new Date();
-  futureDate.setDate(today.getDate() + days);
   
-  return transactions.filter(t => {
-    if (t.type !== 'income') return false;
-    
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate >= today && transactionDate <= futureDate;
-  });
+  return transactions.filter(t => 
+    t.type === TransactionType.INCOME && 
+    isAfter(new Date(t.date), today)
+  ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
-// Function to check if balance is below a certain threshold
+// Check if balance is below threshold
 export const isBalanceBelowThreshold = (transactions: Transaction[], threshold: number): boolean => {
-  const balance = getCurrentBalance(transactions);
-  return balance < threshold;
+  return getCurrentBalance(transactions) < threshold;
 };
 
-// Function to compare monthly expenses to the previous month
-export const compareMonthlyExpenses = (transactions: Transaction[]): { [category: string]: { current: number; previous: number; percentChange: number } } => {
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+// Calculate goal progress
+export const calculateGoalProgress = (goal: Goal): number => {
+  if (!goal.target || goal.target === 0) return 0;
+  return Math.min(100, (goal.current / goal.target) * 100);
+};
 
-  const categoryExpenses: { [category: string]: { current: number; previous: number; percentChange: number } } = {};
+// Check if goal is achievable by the end date
+export const isGoalAchievable = (goal: Goal, transactions: Transaction[]): boolean => {
+  const now = new Date();
+  const endDate = new Date(goal.endDate);
+  
+  if (isBefore(endDate, now)) return false;
+  
+  // Calculate days remaining
+  const daysRemaining = differenceInDays(endDate, now);
+  if (daysRemaining <= 0) return false;
+  
+  // For income goals
+  if (goal.type === 'income') {
+    // Calculate remaining amount needed
+    const remaining = goal.target - goal.current;
+    if (remaining <= 0) return true; // Already achieved
+    
+    // Calculate average daily income needed
+    const dailyNeeded = remaining / daysRemaining;
+    
+    // Calculate average daily income based on recent history
+    const monthStart = startOfMonth(now);
+    const incomeThisMonth = transactions
+      .filter(t => 
+        t.type === TransactionType.INCOME && 
+        isAfter(new Date(t.date), monthStart) &&
+        isBefore(new Date(t.date), now)
+      )
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const daysPassed = differenceInDays(now, monthStart);
+    const averageDailyIncome = daysPassed > 0 ? incomeThisMonth / daysPassed : 0;
+    
+    return averageDailyIncome >= dailyNeeded;
+  }
+  
+  // For expense-reduction goals
+  if (goal.type === 'expense-reduction') {
+    // Logic for expense reduction goals
+    // This is simplified and would need more context on how expense reduction goals are tracked
+    return true;
+  }
+  
+  return false;
+};
 
-  transactions.forEach((transaction) => {
+// Calculate expense by category
+export const getExpensesByCategory = (transactions: Transaction[], period?: 'month' | 'year'): Record<string, number> => {
+  const expensesByCategory: Record<string, number> = {};
+  
+  const filteredTransactions = period 
+    ? transactions.filter(t => t.type === TransactionType.EXPENSE && isTransactionInPeriod(t.date, period))
+    : transactions.filter(t => t.type === TransactionType.EXPENSE);
+    
+  filteredTransactions.forEach(transaction => {
+    if (!expensesByCategory[transaction.category]) {
+      expensesByCategory[transaction.category] = 0;
+    }
+    expensesByCategory[transaction.category] += transaction.amount;
+  });
+  
+  return expensesByCategory;
+};
+
+// Compare current month expenses with previous month
+export const compareMonthlyExpenses = (
+  transactions: Transaction[]
+): Record<string, { current: number; previous: number; percentChange: number }> => {
+  const now = new Date();
+  const currentMonthStart = startOfMonth(now);
+  const currentMonthEnd = endOfMonth(now);
+  
+  // Get previous month
+  const previousMonthEnd = new Date(currentMonthStart);
+  previousMonthEnd.setDate(previousMonthEnd.getDate() - 1);
+  const previousMonthStart = startOfMonth(previousMonthEnd);
+  
+  // Get expenses by category for current month
+  const currentMonthExpenses: Record<string, number> = {};
+  const previousMonthExpenses: Record<string, number> = {};
+  
+  // Process transactions
+  transactions.forEach(transaction => {
+    if (transaction.type !== TransactionType.EXPENSE) return;
+    
     const transactionDate = new Date(transaction.date);
-    const transactionMonth = transactionDate.getMonth();
-    const transactionYear = transactionDate.getFullYear();
-
-    if (transaction.type === "expense") {
-      if (!categoryExpenses[transaction.category]) {
-        categoryExpenses[transaction.category] = { current: 0, previous: 0, percentChange: 0 };
-      }
-
-      if (transactionMonth === currentMonth && transactionYear === currentYear) {
-        categoryExpenses[transaction.category].current += transaction.amount;
-      } else if (transactionMonth === previousMonth && transactionYear === previousYear) {
-        categoryExpenses[transaction.category].previous += transaction.amount;
-      }
+    const category = transaction.category;
+    
+    // Current month
+    if (
+      isAfter(transactionDate, currentMonthStart) && 
+      isBefore(transactionDate, currentMonthEnd)
+    ) {
+      if (!currentMonthExpenses[category]) currentMonthExpenses[category] = 0;
+      currentMonthExpenses[category] += transaction.amount;
+    }
+    
+    // Previous month
+    if (
+      isAfter(transactionDate, previousMonthStart) && 
+      isBefore(transactionDate, previousMonthEnd)
+    ) {
+      if (!previousMonthExpenses[category]) previousMonthExpenses[category] = 0;
+      previousMonthExpenses[category] += transaction.amount;
     }
   });
-
-  for (const category in categoryExpenses) {
-    const { current, previous } = categoryExpenses[category];
-    const change = previous === 0 ? (current > 0 ? 100 : 0) : ((current - previous) / previous) * 100;
-    categoryExpenses[category].percentChange = change;
-  }
-
-  return categoryExpenses;
-};
-
-// Function to check if balance is trending up or down over a period
-export const isBalanceTrending = (transactions: Transaction[], months: number): 'up' | 'down' | 'stable' => {
-  if (transactions.length === 0) return 'stable';
-
-  const today = new Date();
-  const pastDate = new Date();
-  pastDate.setMonth(today.getMonth() - months);
-
-  const recentTransactions = transactions.filter(t => {
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate >= pastDate && transactionDate <= today;
-  });
-
-  if (recentTransactions.length === 0) return 'stable';
-
-  const initialBalance = getCurrentBalance(transactions.filter(t => {
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate < pastDate;
-  }));
   
-  const finalBalance = getCurrentBalance(transactions.filter(t => {
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate <= today;
-  }));
-
-  if (finalBalance > initialBalance) {
-    return 'up';
-  } else if (finalBalance < initialBalance) {
-    return 'down';
-  } else {
-    return 'stable';
-  }
-};
-
-// Fix the end_date property reference
-export const calculateGoalProgress = (goal: Goal): number => {
-  if (goal.target <= 0) return 0;
+  // Calculate changes
+  const result: Record<string, { current: number; previous: number; percentChange: number }> = {};
   
-  const progress = (goal.current / goal.target) * 100;
-  return Math.min(progress, 100); // Ensure progress doesn't exceed 100%
-};
-
-// Add the getGoalProgress function that was missing
-export const getGoalProgress = (goal: Goal, transactions: Transaction[]): number => {
-  // Calculate current progress percentage
-  if (goal.target <= 0) return 0;
+  // Process all categories from both months
+  const allCategories = new Set([
+    ...Object.keys(currentMonthExpenses),
+    ...Object.keys(previousMonthExpenses)
+  ]);
   
-  const progress = (goal.current / goal.target) * 100;
-  return Math.min(progress, 100); // Ensure progress doesn't exceed 100%
-};
-
-export const isGoalAchievable = (goal: Goal, transactions: Transaction[]): boolean => {
-  // If goal is already achieved, return true
-  if (goal.current >= goal.target) return true;
-  
-  // Calculate remaining amount and days
-  const remaining = goal.target - goal.current;
-  const today = new Date();
-  const endDate = new Date(goal.end_date);
-  const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
-  
-  if (daysRemaining <= 0) return false; // Past due date
-  
-  // Calculate average savings rate based on past transactions
-  const lastMonth = new Date();
-  lastMonth.setMonth(lastMonth.getMonth() - 1);
-  
-  // Count deposits toward this goal in the last month
-  const relevantTransactions = transactions.filter(t => {
-    if (t.type !== 'income') return false;
+  allCategories.forEach(category => {
+    const current = currentMonthExpenses[category] || 0;
+    const previous = previousMonthExpenses[category] || 0;
     
-    const transactionDate = typeof t.date === 'string' ? new Date(t.date) : t.date;
-    return transactionDate >= lastMonth && transactionDate <= today;
+    let percentChange = 0;
+    if (previous > 0) {
+      percentChange = ((current - previous) / previous) * 100;
+    } else if (current > 0) {
+      percentChange = 100; // If there was no expense in the previous month, that's a 100% increase
+    }
+    
+    result[category] = { current, previous, percentChange };
   });
   
-  const monthlyIncome = relevantTransactions.reduce((sum, t) => sum + t.amount, 0);
-  const dailyRate = monthlyIncome / 30; // Approximate daily rate
+  return result;
+};
+
+// Check if monthly balance has been decreasing for several months
+export const isBalanceTrending = (transactions: Transaction[], months: number = 3): 'up' | 'down' | 'stable' => {
+  if (months < 2) return 'stable';
   
-  // Project if the goal can be achieved based on current rate
-  const projectedAmount = dailyRate * daysRemaining;
+  const now = new Date();
+  const monthlyBalances: number[] = [];
   
-  return projectedAmount >= remaining;
+  // Calculate balance for each month
+  for (let i = 0; i < months; i++) {
+    const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+    
+    const monthTransactions = transactions.filter(t => {
+      const date = new Date(t.date);
+      return isAfter(date, monthStart) && isBefore(date, monthEnd);
+    });
+    
+    const monthlyIncome = monthTransactions
+      .filter(t => t.type === TransactionType.INCOME)
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    const monthlyExpense = monthTransactions
+      .filter(t => t.type === TransactionType.EXPENSE)
+      .reduce((sum, t) => sum + t.amount, 0);
+      
+    monthlyBalances.push(monthlyIncome - monthlyExpense);
+  }
+  
+  // Check trend
+  let decreasing = true;
+  let increasing = true;
+  
+  for (let i = 0; i < monthlyBalances.length - 1; i++) {
+    if (monthlyBalances[i] >= monthlyBalances[i + 1]) {
+      increasing = false;
+    }
+    if (monthlyBalances[i] <= monthlyBalances[i + 1]) {
+      decreasing = false;
+    }
+  }
+  
+  if (increasing) return 'up';
+  if (decreasing) return 'down';
+  return 'stable';
 };

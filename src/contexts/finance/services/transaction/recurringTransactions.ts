@@ -11,22 +11,19 @@ export const generateRecurringTransactions = async (
   dispatch: any,
   count: number = 5
 ) => {
-  if (!userId || !transaction.is_recurrent || !transaction.recurrence_frequency) return;
+  if (!userId || !transaction.isRecurrent || !transaction.recurrenceFrequency) return;
 
   try {
     const futureTransactions = [];
     let currentDate = new Date(transaction.date);
-    const endDate = transaction.recurrence_end_date ? 
-      (typeof transaction.recurrence_end_date === 'string' ? 
-        new Date(transaction.recurrence_end_date) : 
-        transaction.recurrence_end_date) : null;
+    const endDate = transaction.recurrenceEndDate ? new Date(transaction.recurrenceEndDate) : null;
     
     for (let i = 0; i < count; i++) {
       // Calculate next date in the series
       currentDate = calculateNextOccurrenceDate(
         currentDate, 
-        transaction.recurrence_frequency, 
-        transaction.recurrence_interval
+        transaction.recurrenceFrequency, 
+        transaction.recurrenceInterval
       );
       
       // Stop if we've reached the end date
@@ -39,18 +36,14 @@ export const generateRecurringTransactions = async (
         description: transaction.description,
         amount: transaction.amount,
         category: transaction.category,
-        payment_method: transaction.payment_method,
+        payment_method: transaction.paymentMethod,
         type: transaction.type,
         contact: transaction.contact || null,
         is_recurrent: true,
-        recurrence_frequency: transaction.recurrence_frequency,
-        recurrence_interval: transaction.recurrence_interval,
-        recurrence_start_date: transaction.recurrence_start_date instanceof Date 
-          ? transaction.recurrence_start_date.toISOString()
-          : transaction.recurrence_start_date,
-        recurrence_end_date: transaction.recurrence_end_date instanceof Date
-          ? transaction.recurrence_end_date.toISOString()
-          : transaction.recurrence_end_date,
+        recurrence_frequency: transaction.recurrenceFrequency,
+        recurrence_interval: transaction.recurrenceInterval,
+        recurrence_start_date: transaction.recurrenceStartDate?.toISOString(),
+        recurrence_end_date: transaction.recurrenceEndDate?.toISOString(),
         parent_transaction_id: transaction.id,
         is_original: false
       };
