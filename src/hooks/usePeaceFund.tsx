@@ -32,15 +32,18 @@ export function usePeaceFund() {
         
         // Load transactions and chart data
         console.log('Loading transactions for peace fund:', fund.id);
-        const transactions = await getPeaceFundTransactions(fund.id);
-        console.log(`Loaded ${transactions.length} transactions`);
-        setTransactions(transactions);
+        const transactionData = await getPeaceFundTransactions(fund.id);
+        console.log(`Loaded ${transactionData.length} transactions`);
+        setTransactions(transactionData);
         
         console.log('Loading monthly progress data');
         const monthlyData = await getMonthlyProgress(fund.id);
         setChartData(monthlyData);
       } else {
         console.log('No peace fund found for user');
+        setPeaceFund(null);
+        setTransactions([]);
+        setChartData([]);
       }
     } catch (error) {
       console.error('Failed to load peace fund data:', error);

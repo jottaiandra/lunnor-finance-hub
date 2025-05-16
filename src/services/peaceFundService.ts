@@ -4,6 +4,7 @@ import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 
 // Get user's peace fund
 export async function getUserPeaceFund() {
+  console.log('Fetching user peace fund');
   const { data, error } = await supabase
     .from('peace_funds')
     .select('*')
@@ -15,11 +16,13 @@ export async function getUserPeaceFund() {
     return null;
   }
   
+  console.log('Peace fund fetched successfully:', data);
   return data as PeaceFund;
 }
 
 // Create a peace fund
 export async function createPeaceFund(peaceFund: Partial<PeaceFund> & { user_id: string }) {
+  console.log('Creating peace fund with data:', peaceFund);
   const { data, error } = await supabase
     .from('peace_funds')
     .insert(peaceFund)
@@ -31,11 +34,13 @@ export async function createPeaceFund(peaceFund: Partial<PeaceFund> & { user_id:
     throw error;
   }
   
+  console.log('Peace fund created successfully:', data);
   return data as PeaceFund;
 }
 
 // Update peace fund
 export async function updatePeaceFund(id: string, updates: Partial<PeaceFund>) {
+  console.log('Updating peace fund:', id, 'with data:', updates);
   const { data, error } = await supabase
     .from('peace_funds')
     .update(updates)
@@ -48,6 +53,7 @@ export async function updatePeaceFund(id: string, updates: Partial<PeaceFund>) {
     throw error;
   }
   
+  console.log('Peace fund updated successfully:', data);
   return data as PeaceFund;
 }
 
@@ -59,12 +65,12 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 500)
     .from('peace_fund_transactions')
     .select('*')
     .eq('peace_fund_id', peaceFundId)
-    .order('created_at', { ascending: false })
+    .order('date', { ascending: false })
     .limit(limit);
     
   if (error) {
     console.error('Error fetching peace fund transactions:', error);
-    return [];
+    throw error;
   }
   
   console.log(`Retrieved ${data?.length || 0} transactions`);
@@ -103,6 +109,9 @@ export async function getMonthlyProgress(peaceFundId: string, months = 6) {
   const startDate = new Date();
   startDate.setMonth(startDate.getMonth() - months);
   
+  console.log('Fetching monthly progress for peace fund:', peaceFundId);
+  console.log('Date range:', startDate.toISOString(), 'to', endDate.toISOString());
+  
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .select('*')
@@ -113,8 +122,10 @@ export async function getMonthlyProgress(peaceFundId: string, months = 6) {
     
   if (error) {
     console.error('Error fetching monthly progress:', error);
-    return [];
+    throw error;
   }
+  
+  console.log(`Retrieved ${data?.length || 0} transactions for monthly progress`);
   
   // Process data to get monthly totals
   const monthlyData = processMonthlyData(data as PeaceFundTransaction[], months);

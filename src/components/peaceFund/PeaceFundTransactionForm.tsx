@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,14 +39,18 @@ type FormValues = z.infer<typeof formSchema>;
 interface PeaceFundTransactionFormProps {
   peaceFundId: string;
   onSuccess: () => void;
+  onSubmitStart?: () => void;
+  isProcessing?: boolean;
 }
 
 const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({ 
   peaceFundId, 
-  onSuccess 
+  onSuccess,
+  onSubmitStart,
+  isProcessing = false
 }) => {
   const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,13 +61,35 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
     },
   });
 
+  // Use the external isProcessing prop if provided
+  const isSubmitting = isProcessing || submitting;
+
+  useEffect(() => {
+    console.log('PeaceFundTransactionForm rendered with peaceFundId:', peaceFundId);
+  }, [peaceFundId]);
+
   const handleSubmit = async (values: FormValues) => {
-    if (!user) return;
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
     
-    setIsSubmitting(true);
+    if (!peaceFundId) {
+      toast.error('ID do Fundo de Paz não fornecido');
+      return;
+    }
+    
+    if (onSubmitStart) {
+      onSubmitStart();
+    } else {
+      setSubmitting(true);
+    }
     
     try {
       console.log('Creating transaction with values:', values);
+      console.log('peaceFundId:', peaceFundId);
+      console.log('user.id:', user.id);
+      
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
@@ -81,22 +107,18 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
         description: '',
       });
       
-      toast.success(
-        values.type === 'deposit' 
-          ? 'Depósito adicionado com sucesso!' 
-          : 'Saque adicionado com sucesso!'
-      );
-      
-      // Ensure the callback is called to refresh data
-      if (typeof onSuccess === 'function') {
-        console.log('Calling onSuccess callback');
+      // Call the success callback
+      if (onSuccess) {
+        console.log('Calling onSuccess callback from form');
         onSuccess();
       }
     } catch (error) {
       console.error('Failed to create transaction:', error);
       toast.error('Falha ao registrar movimentação');
     } finally {
-      setIsSubmitting(false);
+      if (!onSubmitStart) {
+        setSubmitting(false);
+      }
     }
   };
 
