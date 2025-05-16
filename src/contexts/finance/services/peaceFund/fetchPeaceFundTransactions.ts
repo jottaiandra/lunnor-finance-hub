@@ -6,20 +6,15 @@ import { FinanceAction } from "../../types";
 // Fetch peace fund transactions
 export const fetchPeaceFundTransactions = async (
   fundId: string,
-  userId: string,
-  dispatch: React.Dispatch<FinanceAction>,
   limit = 50
 ): Promise<PeaceFundTransaction[]> => {
-  if (!userId || !fundId) return [];
+  if (!fundId) return [];
 
   try {
-    dispatch({ type: "SET_LOADING", payload: { key: 'peaceFundTransactions', value: true } });
-    
     const { data, error } = await supabase
       .from('peace_fund_transactions')
       .select('*')
       .eq('peace_fund_id', fundId)
-      .eq('user_id', userId)
       .order('date', { ascending: false })
       .limit(limit);
 
@@ -39,12 +34,9 @@ export const fetchPeaceFundTransactions = async (
       created_at: new Date(tx.created_at)
     }));
 
-    dispatch({ type: "SET_PEACE_FUND_TRANSACTIONS", payload: transactions });
     return transactions;
   } catch (error) {
     console.error('Erro inesperado ao buscar transações:', error);
     return [];
-  } finally {
-    dispatch({ type: "SET_LOADING", payload: { key: 'peaceFundTransactions', value: false } });
   }
 };

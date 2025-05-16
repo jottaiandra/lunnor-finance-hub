@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchOrCreatePeaceFund, fetchPeaceFundTransactions } from "../../peaceFundService";
+import { fetchOrCreatePeaceFund, fetchPeaceFundTransactions as fetchTransactions } from "../../peaceFundService";
 import { FinanceAction } from "../../types";
 import { PeaceFund } from "@/types";
 
@@ -26,7 +26,7 @@ export const useFetchPeaceFund = (user: any | null, dispatch: React.Dispatch<Fin
       
       // Se o fundo foi encontrado, busque também as transações
       if (fund) {
-        const transactions = await fetchPeaceFundTransactions(fund.id);
+        const transactions = await fetchTransactions(fund.id);
         
         dispatch({
           type: "SET_PEACE_FUND_TRANSACTIONS",
@@ -59,7 +59,7 @@ export const useFetchPeaceFund = (user: any | null, dispatch: React.Dispatch<Fin
     if (!state.peaceFund) return;
 
     try {
-      const transactions = await fetchPeaceFundTransactions(state.peaceFund.id);
+      const transactions = await fetchTransactions(state.peaceFund.id);
       
       dispatch({
         type: "SET_PEACE_FUND_TRANSACTIONS",
