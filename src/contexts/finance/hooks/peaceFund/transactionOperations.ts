@@ -50,7 +50,7 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
           type: transaction.type,
           date: transaction.date || new Date()
         },
-        dispatch
+        dispatch  // Passing the dispatch function as the second argument
       );
       
       if (newTransaction) {
