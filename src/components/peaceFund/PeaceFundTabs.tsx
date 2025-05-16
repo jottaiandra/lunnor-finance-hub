@@ -23,6 +23,14 @@ const PeaceFundTabs: React.FC<PeaceFundTabsProps> = ({
   onTabChange,
   onRefreshData
 }) => {
+  console.log('Rendering PeaceFundTabs with activeTab:', activeTab);
+  console.log('Transaction count:', transactions.length);
+  
+  const handleTransactionSuccess = () => {
+    console.log('Transaction success handler called in Tabs');
+    onRefreshData();
+  };
+  
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList className="bg-white border border-gray-100 p-1 shadow-sm">
@@ -59,7 +67,7 @@ const PeaceFundTabs: React.FC<PeaceFundTabsProps> = ({
         <PeaceFundTransactionsTab
           peaceFundId={peaceFund.id}
           transactions={transactions}
-          onTransactionSuccess={onRefreshData}
+          onTransactionSuccess={handleTransactionSuccess}
         />
       </TabsContent>
       

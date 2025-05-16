@@ -52,12 +52,14 @@ export async function updatePeaceFund(id: string, updates: Partial<PeaceFund>) {
 }
 
 // Get peace fund transactions
-export async function getPeaceFundTransactions(peaceFundId: string, limit = 100) {
+export async function getPeaceFundTransactions(peaceFundId: string, limit = 500) {
+  console.log('Fetching transactions for peace fund:', peaceFundId, 'with limit:', limit);
+  
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .select('*')
     .eq('peace_fund_id', peaceFundId)
-    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(limit);
     
   if (error) {
@@ -65,6 +67,7 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 100)
     return [];
   }
   
+  console.log(`Retrieved ${data?.length || 0} transactions`);
   return data as PeaceFundTransaction[];
 }
 
@@ -77,6 +80,8 @@ export async function createPeaceFundTransaction(transaction: {
   description: string;
   date?: string;
 }) {
+  console.log('Creating new transaction:', transaction);
+  
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .insert(transaction)
@@ -88,6 +93,7 @@ export async function createPeaceFundTransaction(transaction: {
     throw error;
   }
   
+  console.log('Transaction created successfully:', data);
   return data as PeaceFundTransaction;
 }
 

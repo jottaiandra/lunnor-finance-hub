@@ -16,6 +16,13 @@ const PeaceFundTransactionsTab: React.FC<PeaceFundTransactionsTabProps> = ({
   transactions,
   onTransactionSuccess
 }) => {
+  console.log('Rendering PeaceFundTransactionsTab with', transactions.length, 'transactions');
+  
+  const handleTransactionSuccess = () => {
+    console.log('Transaction success handler called');
+    onTransactionSuccess();
+  };
+
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -25,7 +32,7 @@ const PeaceFundTransactionsTab: React.FC<PeaceFundTransactionsTabProps> = ({
         <CardContent>
           <PeaceFundTransactionForm 
             peaceFundId={peaceFundId} 
-            onSuccess={onTransactionSuccess}
+            onSuccess={handleTransactionSuccess}
           />
         </CardContent>
       </Card>

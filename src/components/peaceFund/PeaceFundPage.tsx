@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { usePeaceFund } from '@/hooks/usePeaceFund';
 import CreatePeaceFund from './CreatePeaceFund';
@@ -15,6 +15,19 @@ const PeaceFundPage: React.FC = () => {
     refreshData, 
     createPeaceFund 
   } = usePeaceFund();
+  
+  // Log when data changes
+  useEffect(() => {
+    console.log('PeaceFundPage data updated:');
+    console.log('- PeaceFund:', peaceFund ? 'Yes' : 'No');
+    console.log('- Transactions:', transactions?.length || 0);
+    console.log('- Loading:', loading);
+  }, [peaceFund, transactions, loading]);
+  
+  const handleRefreshData = () => {
+    console.log('Manual refresh triggered');
+    refreshData();
+  };
   
   if (loading) {
     return (
@@ -44,7 +57,7 @@ const PeaceFundPage: React.FC = () => {
           chartData={chartData}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          onRefreshData={refreshData}
+          onRefreshData={handleRefreshData}
         />
       )}
     </div>

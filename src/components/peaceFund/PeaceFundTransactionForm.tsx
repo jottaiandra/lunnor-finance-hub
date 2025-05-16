@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   type: z.enum(['deposit', 'withdrawal']),
@@ -45,6 +46,8 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
   onSuccess 
 }) => {
   const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +60,10 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
   const handleSubmit = async (values: FormValues) => {
     if (!user) return;
     
+    setIsSubmitting(true);
+    
     try {
+      console.log('Creating transaction with values:', values);
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
@@ -66,6 +72,8 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
         description: values.description,
         date: new Date().toISOString(),
       });
+      
+      console.log('Transaction created successfully');
       
       form.reset({
         type: 'deposit',
@@ -79,11 +87,16 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
           : 'Saque adicionado com sucesso!'
       );
       
-      // Chama a função de callback diretamente para garantir a atualização
-      onSuccess();
+      // Ensure the callback is called to refresh data
+      if (typeof onSuccess === 'function') {
+        console.log('Calling onSuccess callback');
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to create transaction:', error);
       toast.error('Falha ao registrar movimentação');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -148,8 +161,19 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Adicionar Movimentação
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            'Adicionar Movimentação'
+          )}
         </Button>
       </form>
     </Form>
