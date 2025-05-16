@@ -69,12 +69,13 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) 
 }
 
 // Create a peace fund transaction
-export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction> & { 
-  peace_fund_id: string; 
-  user_id: string; 
-  type: 'deposit' | 'withdrawal'; 
-  amount: number; 
+export async function createPeaceFundTransaction(transaction: {
+  peace_fund_id: string;
+  user_id: string;
+  type: 'deposit' | 'withdrawal';
+  amount: number;
   description: string;
+  date?: string;
 }) {
   const { data, error } = await supabase
     .from('peace_fund_transactions')

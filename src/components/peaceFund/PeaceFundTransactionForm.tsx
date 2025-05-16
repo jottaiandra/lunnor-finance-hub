@@ -65,6 +65,7 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
         type: values.type, // Explicitly use values.type to ensure it's not optional
         amount: values.amount, // Explicitly use values.amount to ensure it's not optional
         description: values.description, // Explicitly use values.description to ensure it's not optional
+        date: new Date().toISOString(), // Add the date explicitly
       });
       
       form.reset({
