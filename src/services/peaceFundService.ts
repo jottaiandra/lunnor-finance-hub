@@ -22,7 +22,7 @@ export async function getUserPeaceFund() {
 export async function createPeaceFund(peaceFund: Partial<PeaceFund>) {
   const { data, error } = await supabase
     .from('peace_funds')
-    .insert([peaceFund])
+    .insert(peaceFund)
     .select()
     .single();
     
@@ -72,7 +72,7 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) 
 export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction>) {
   const { data, error } = await supabase
     .from('peace_fund_transactions')
-    .insert([transaction])
+    .insert(transaction)
     .select()
     .single();
     

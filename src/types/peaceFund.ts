@@ -5,8 +5,8 @@ export interface PeaceFund {
   target_amount: number;
   current_amount: number;
   minimum_alert_amount: number | null;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PeaceFundTransaction {
@@ -16,6 +16,6 @@ export interface PeaceFundTransaction {
   type: 'deposit' | 'withdrawal';
   amount: number;
   description: string;
-  date: Date;
-  created_at: Date;
+  date: string;
+  created_at: string;
 }
