@@ -69,13 +69,6 @@ export const useTransactionOperations = (user: any | null, dispatch: React.Dispa
             type: "SET_PEACE_FUND_TRANSACTIONS",
             payload: transactions
           });
-          
-          // Mensagem de sucesso personalizada
-          if (transaction.type === 'deposit') {
-            toast.success(`🌱 Depósito realizado com sucesso!\nSeu Fundo de Paz está crescendo — continue cuidando do seu futuro com sabedoria.`);
-          } else {
-            toast.success(`💸 Saque efetuado com sucesso!\nTudo certo, o importante é saber que você tem um fundo para os momentos que realmente importam.`);
-          }
         }
       }
       
