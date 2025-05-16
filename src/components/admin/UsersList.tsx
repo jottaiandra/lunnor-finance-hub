@@ -54,7 +54,7 @@ const UsersList: React.FC = () => {
     } catch (error: any) {
       console.error("Error fetching users:", error);
       toast("Erro", {
-        description: "Não foi possível carregar a lista de usuários.",
+        description: "Não foi possível carregar a lista de usuários."
       });
     } finally {
       setLoading(false);

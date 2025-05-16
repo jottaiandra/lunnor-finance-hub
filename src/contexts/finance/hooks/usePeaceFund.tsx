@@ -9,6 +9,7 @@ import {
 import { FinanceAction } from "../types";
 import { PeaceFund, PeaceFundTransaction } from "@/types";
 import { addPeaceFundTransaction as addPeaceFundTransactionService } from "../services/peaceFund/addPeaceFundTransaction";
+import { toast } from "@/components/ui/sonner";
 
 export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceAction>) => {
   const fetchPeaceFund = async () => {
@@ -47,7 +48,6 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
   const fetchPeaceFundTransactions = async () => {
     if (!user) return;
 
-    // Utilizando state diretamente do contexto atual
     const state = await import("@/contexts/FinanceContext").then(module => {
       const { useFinance } = module;
       const { state } = useFinance();
@@ -74,16 +74,40 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     type: 'deposit' | 'withdrawal';
     date?: Date | string;
   }): Promise<PeaceFundTransaction | null> => {
-    if (!user || !user.id) return null;
+    if (!user || !user.id) {
+      toast.error("Usuário não autenticado");
+      return null;
+    }
     
-    // Utilizando state diretamente do contexto atual
+    // Verificar se tem saldo suficiente para saque
+    if (transaction.type === 'withdrawal') {
+      const state = await import("@/contexts/FinanceContext").then(module => {
+        const { useFinance } = module;
+        const { state } = useFinance();
+        return state;
+      });
+      
+      if (!state.peaceFund) {
+        toast.error("Fundo de paz não encontrado");
+        return null;
+      }
+      
+      if (state.peaceFund.current_amount < transaction.amount) {
+        toast.error("Saldo insuficiente para realizar o saque");
+        return null;
+      }
+    }
+    
     const state = await import("@/contexts/FinanceContext").then(module => {
       const { useFinance } = module;
       const { state } = useFinance();
       return state;
     });
     
-    if (!state.peaceFund) return null;
+    if (!state.peaceFund) {
+      toast.error("Fundo de paz não encontrado");
+      return null;
+    }
     
     try {
       const newTransaction = await addPeaceFundTransactionService(
@@ -95,6 +119,8 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
       
       if (newTransaction) {
         // Atualizar o saldo atual do fundo após a transação
+        // Isso agora é feito através de um trigger no banco de dados
+        // mas vamos buscar o fundo atualizado para atualizar a UI
         const updatedFund = await fetchOrCreatePeaceFund(user.id);
         
         if (updatedFund) {
@@ -102,12 +128,20 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
             type: "SET_PEACE_FUND",
             payload: updatedFund
           });
+          
+          // Mensagem de sucesso personalizada
+          if (transaction.type === 'deposit') {
+            toast.success(`Depósito de R$ ${transaction.amount.toFixed(2)} realizado com sucesso`);
+          } else {
+            toast.success(`Saque de R$ ${transaction.amount.toFixed(2)} realizado com sucesso`);
+          }
         }
       }
       
       return newTransaction;
     } catch (error) {
       console.error("Erro ao adicionar transação:", error);
+      toast.error("Erro ao processar a transação");
       return null;
     }
   };
@@ -116,16 +150,21 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
     target_amount?: number;
     minimum_alert_amount?: number | null;
   }) => {
-    if (!user || !user.id) return;
+    if (!user || !user.id) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
     
-    // Utilizando state diretamente do contexto atual
     const state = await import("@/contexts/FinanceContext").then(module => {
       const { useFinance } = module;
       const { state } = useFinance();
       return state;
     });
     
-    if (!state.peaceFund) return;
+    if (!state.peaceFund) {
+      toast.error("Fundo de paz não encontrado");
+      return;
+    }
     
     try {
       const updatedFund = await updatePeaceFundSettings(state.peaceFund.id, settings);
@@ -135,16 +174,17 @@ export const usePeaceFund = (user: any | null, dispatch: React.Dispatch<FinanceA
           type: "SET_PEACE_FUND",
           payload: updatedFund
         });
+        toast.success("Configurações atualizadas com sucesso");
       }
     } catch (error) {
       console.error("Erro ao atualizar configurações do fundo:", error);
+      toast.error("Erro ao atualizar configurações");
     }
   };
 
   const getPeaceFundMonthlyData = async () => {
     if (!user) return [];
     
-    // Utilizando state diretamente do contexto atual
     const state = await import("@/contexts/FinanceContext").then(module => {
       const { useFinance } = module;
       const { state } = useFinance();

@@ -22,17 +22,11 @@ const PeaceFundForm: React.FC = () => {
   const handleDepositSubmit = async (data: {description: string, amount: string}) => {
     setIsSubmitting(true);
     try {
-      const result = await addPeaceFundTransaction({
+      await addPeaceFundTransaction({
         amount: parseFloat(data.amount),
         description: data.description,
         type: 'deposit'
       });
-      
-      if (result !== null) {
-        toast.success("Depósito realizado com sucesso");
-      } else {
-        toast.error("Erro ao realizar depósito");
-      }
     } catch (error) {
       console.error("Erro ao depositar:", error);
       toast.error("Erro ao realizar depósito");
@@ -44,17 +38,19 @@ const PeaceFundForm: React.FC = () => {
   const handleWithdrawalSubmit = async (data: {description: string, amount: string}) => {
     setIsSubmitting(true);
     try {
-      const result = await addPeaceFundTransaction({
-        amount: parseFloat(data.amount),
+      // Verificar se há saldo suficiente
+      const amount = parseFloat(data.amount);
+      if (peaceFund.current_amount < amount) {
+        toast.error("Saldo insuficiente para realizar o saque");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      await addPeaceFundTransaction({
+        amount: amount,
         description: data.description,
         type: 'withdrawal'
       });
-      
-      if (result !== null) {
-        toast.success("Saque realizado com sucesso");
-      } else {
-        toast.error("Erro ao realizar saque");
-      }
     } catch (error) {
       console.error("Erro ao sacar:", error);
       toast.error("Erro ao realizar saque");
@@ -75,8 +71,6 @@ const PeaceFundForm: React.FC = () => {
           ? parseFloat(data.minimum_alert_amount)
           : null
       });
-      
-      toast.success("Configurações atualizadas com sucesso");
     } catch (error) {
       console.error("Erro ao atualizar configurações:", error);
       toast.error("Erro ao atualizar configurações");
