@@ -29,46 +29,46 @@ export function usePeaceFund(): UsePeaceFundReturn {
   const [loading, setLoading] = useState<boolean>(true);
   const [initialTransactionsAdded, setInitialTransactionsAdded] = useState<boolean>(false);
 
-  useEffect(() => {
+  const loadPeaceFundData = async () => {
     if (!user) return;
     
-    const loadPeaceFund = async () => {
-      setLoading(true);
-      try {
-        console.log("Loading peace fund data...");
-        const fund = await getUserPeaceFund();
-        console.log("Peace fund data:", fund);
+    setLoading(true);
+    try {
+      console.log("Loading peace fund data...");
+      const fund = await getUserPeaceFund();
+      console.log("Peace fund data:", fund);
+      
+      if (fund) {
+        setPeaceFund(fund);
         
-        if (fund) {
-          setPeaceFund(fund);
-          
-          // Load transactions and chart data
-          const transactions = await getPeaceFundTransactions(fund.id);
-          console.log("Transactions loaded:", transactions);
-          setTransactions(transactions);
-          
-          const monthlyData = await getMonthlyProgress(fund.id);
-          console.log("Chart data loaded:", monthlyData);
-          setChartData(monthlyData);
+        // Load transactions and chart data
+        const transactions = await getPeaceFundTransactions(fund.id);
+        console.log("Transactions loaded:", transactions);
+        setTransactions(transactions);
+        
+        const monthlyData = await getMonthlyProgress(fund.id);
+        console.log("Chart data loaded:", monthlyData);
+        setChartData(monthlyData);
 
-          // Se não houver transações, adicionamos as movimentações demonstrativas apenas uma vez
-          if (transactions.length === 0 && !initialTransactionsAdded) {
-            await addDemoTransactions(fund.id);
-          }
+        // Se não houver transações, adicionamos as movimentações demonstrativas apenas uma vez
+        if (transactions.length === 0 && !initialTransactionsAdded) {
+          await addDemoTransactions(fund.id);
         }
-      } catch (error) {
-        console.error('Failed to load peace fund data:', error);
-        toast({
-          variant: "destructive",
-          title: 'Falha ao carregar dados do Fundo de Paz',
-          description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
-        });
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    loadPeaceFund();
+    } catch (error) {
+      console.error('Failed to load peace fund data:', error);
+      toast({
+        variant: "destructive",
+        title: 'Falha ao carregar dados do Fundo de Paz',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPeaceFundData();
   }, [user, initialTransactionsAdded]);
 
   const addDemoTransactions = async (peaceFundId: string) => {
@@ -105,17 +105,11 @@ export function usePeaceFund(): UsePeaceFundReturn {
           current_amount: totalAmount,
           updated_at: new Date()
         });
-        
-        // Recarregar os dados do fundo para garantir que o estado reflete o valor atual
-        const updatedFund = await getUserPeaceFund();
-        if (updatedFund) {
-          setPeaceFund(updatedFund);
-        }
       }
       
       setInitialTransactionsAdded(true);
       
-      // Atualizar dados
+      // Recarregar os dados do fundo após adicionar as transações
       await refreshData();
       
       toast({
@@ -156,21 +150,22 @@ export function usePeaceFund(): UsePeaceFundReturn {
   };
   
   const refreshData = async (): Promise<void> => {
-    if (!peaceFund) return;
-    
+    if (!user) return;
     try {
       console.log("Refreshing peace fund data...");
       const fund = await getUserPeaceFund();
       console.log("Updated peace fund:", fund);
       if (fund) setPeaceFund(fund);
       
-      const transactions = await getPeaceFundTransactions(peaceFund.id);
-      console.log("Updated transactions:", transactions);
-      setTransactions(transactions);
-      
-      const monthlyData = await getMonthlyProgress(peaceFund.id);
-      console.log("Updated chart data:", monthlyData);
-      setChartData(monthlyData);
+      if (fund) {
+        const transactions = await getPeaceFundTransactions(fund.id);
+        console.log("Updated transactions:", transactions);
+        setTransactions(transactions);
+        
+        const monthlyData = await getMonthlyProgress(fund.id);
+        console.log("Updated chart data:", monthlyData);
+        setChartData(monthlyData);
+      }
     } catch (error) {
       console.error('Failed to refresh data:', error);
       toast({

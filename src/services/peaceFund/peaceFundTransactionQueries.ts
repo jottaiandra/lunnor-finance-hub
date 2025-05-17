@@ -50,11 +50,10 @@ export async function createPeaceFundTransaction(
 
   const transaction = mapPeaceFundTransactionFromDB(data);
   
-  // Update the peace fund balance - this will call the database trigger to update the balance
-  // We also force an update here to make sure the current amount is reflected in the UI
+  // Update the peace fund balance based on transaction type
   const { peace_fund_id, type, amount } = transaction;
   
-  // Get the current peace fund
+  // Get the current peace fund directly using peace_fund_id
   const { data: peaceFundData, error: peaceFundError } = await supabase
     .from('peace_funds')
     .select('*')
@@ -75,6 +74,14 @@ export async function createPeaceFundTransaction(
     } else if (type === 'withdrawal') {
       newAmount -= Number(amount);
     }
+    
+    console.log('Updating peace fund balance:', { 
+      peaceFundId: peace_fund_id,
+      oldAmount: peaceFundData.current_amount,
+      newAmount,
+      transactionAmount: amount,
+      transactionType: type
+    });
     
     // Explicitly update the peace fund with the new balance
     const { error: updateError } = await supabase

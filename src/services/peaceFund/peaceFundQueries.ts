@@ -5,9 +5,19 @@ import { mapPeaceFundFromDB } from './mappers';
 
 // Get user's peace fund
 export async function getUserPeaceFund() {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData || !authData.user) {
+    console.error('No authenticated user found');
+    return null;
+  }
+
+  const userId = authData.user.id;
+  
   const { data, error } = await supabase
     .from('peace_funds')
     .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
     .limit(1)
     .single();
     
