@@ -48,55 +48,10 @@ export async function createPeaceFundTransaction(
     throw error;
   }
 
-  const transaction = mapPeaceFundTransactionFromDB(data);
+  // Log transaction creation for debugging
+  console.log('Transaction created successfully:', data);
   
-  // Update the peace fund balance based on transaction type
-  const { peace_fund_id, type, amount } = transaction;
-  
-  // Get the current peace fund directly using peace_fund_id
-  const { data: peaceFundData, error: peaceFundError } = await supabase
-    .from('peace_funds')
-    .select('*')
-    .eq('id', peace_fund_id)
-    .single();
-  
-  if (peaceFundError) {
-    console.error('Error fetching peace fund for balance update:', peaceFundError);
-    throw peaceFundError;
-  }
-  
-  if (peaceFundData) {
-    let newAmount = Number(peaceFundData.current_amount);
-    
-    // Update the balance based on transaction type
-    if (type === 'deposit') {
-      newAmount += Number(amount);
-    } else if (type === 'withdrawal') {
-      newAmount -= Number(amount);
-    }
-    
-    console.log('Updating peace fund balance:', { 
-      peaceFundId: peace_fund_id,
-      oldAmount: peaceFundData.current_amount,
-      newAmount,
-      transactionAmount: amount,
-      transactionType: type
-    });
-    
-    // Explicitly update the peace fund with the new balance
-    const { error: updateError } = await supabase
-      .from('peace_funds')
-      .update({ 
-        current_amount: newAmount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', peace_fund_id);
-      
-    if (updateError) {
-      console.error('Error updating peace fund balance:', updateError);
-      throw updateError;
-    }
-  }
-  
-  return transaction;
+  // Return the mapped transaction - we don't need to update the peace fund balance
+  // since this is now handled by the database trigger
+  return mapPeaceFundTransactionFromDB(data);
 }
