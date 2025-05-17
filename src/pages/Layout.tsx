@@ -1,47 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import { FinanceProvider } from '@/contexts/FinanceContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { useCustomization } from '@/contexts/CustomizationContext';
-import { useAuth } from '@/contexts/AuthContext';
 
 const Layout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const { settings } = useCustomization();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Quick check to ensure user is authenticated
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    
-    // Give components time to initialize and prevent flickering
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [user, navigate]);
   
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => !prev);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="animate-pulse">Carregando...</div>
-      </div>
-    );
-  }
 
   return (
     <FinanceProvider>

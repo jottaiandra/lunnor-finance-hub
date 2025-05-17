@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BellRing } from 'lucide-react';
-import AlertsNotifications from '@/components/alerts/AlertsNotifications';
+import AlertsNotifications from '@/components/AlertsNotifications';
 
 const DashboardAlerts: React.FC = () => {
   return (

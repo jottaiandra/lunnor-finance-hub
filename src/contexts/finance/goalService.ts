@@ -75,8 +75,8 @@ export const addGoal = async (goal: Omit<Goal, "id">, userId: string, dispatch: 
       current: goal.current || 0,
       type: goal.type,
       period: goal.period,
-      start_date: goal.start_date instanceof Date ? goal.start_date.toISOString() : goal.start_date,
-      end_date: goal.end_date instanceof Date ? goal.end_date.toISOString() : goal.end_date
+      start_date: goal.startDate.toISOString(),
+      end_date: goal.endDate.toISOString()
     };
     
     // Insert into Supabase
@@ -112,8 +112,8 @@ export const updateGoal = async (goal: Goal, userId: string, dispatch: any): Pro
       current: goal.current,
       type: goal.type,
       period: goal.period,
-      start_date: goal.start_date instanceof Date ? goal.start_date.toISOString() : goal.start_date,
-      end_date: goal.end_date instanceof Date ? goal.end_date.toISOString() : goal.end_date
+      start_date: goal.startDate.toISOString(),
+      end_date: goal.endDate.toISOString()
     };
     
     // Update in Supabase

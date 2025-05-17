@@ -5,22 +5,20 @@ import { v4 as uuidv4 } from "uuid";
 // Map Supabase data to our application's internal types
 export const mapTransactionFromDB = (item: any): Transaction => ({
   id: item.id,
-  user_id: item.user_id,
   date: new Date(item.date),
   description: item.description,
   amount: Number(item.amount),
   category: item.category,
-  payment_method: item.payment_method as PaymentMethod,
+  paymentMethod: item.payment_method as PaymentMethod,
   type: item.type as TransactionType,
   contact: item.contact,
-  is_recurrent: item.is_recurrent || false,
-  recurrence_frequency: item.recurrence_frequency,
-  recurrence_interval: item.recurrence_interval,
-  recurrence_start_date: item.recurrence_start_date ? new Date(item.recurrence_start_date) : undefined,
-  recurrence_end_date: item.recurrence_end_date ? new Date(item.recurrence_end_date) : undefined,
-  parent_transaction_id: item.parent_transaction_id,
-  is_original: item.is_original !== false,
-  created_at: item.created_at
+  isRecurrent: item.is_recurrent || false,
+  recurrenceFrequency: item.recurrence_frequency,
+  recurrenceInterval: item.recurrence_interval,
+  recurrenceStartDate: item.recurrence_start_date ? new Date(item.recurrence_start_date) : undefined,
+  recurrenceEndDate: item.recurrence_end_date ? new Date(item.recurrence_end_date) : undefined,
+  parentTransactionId: item.parent_transaction_id,
+  isOriginal: item.is_original !== false
 });
 
 export const mapGoalFromDB = (item: any): Goal => {
@@ -32,30 +30,26 @@ export const mapGoalFromDB = (item: any): Goal => {
 
     return {
       id: item.id,
-      user_id: item.user_id,
       title: item.title || "",
       target: typeof item.target === 'number' ? item.target : Number(item.target) || 0,
       current: typeof item.current === 'number' ? item.current : Number(item.current) || 0,
       type: item.type as 'income' | 'expense-reduction',
       period: item.period as 'weekly' | 'monthly' | 'yearly',
-      start_date: item.start_date ? new Date(item.start_date) : new Date(),
-      end_date: item.end_date ? new Date(item.end_date) : new Date(),
-      created_at: item.created_at
+      startDate: item.start_date ? new Date(item.start_date) : new Date(),
+      endDate: item.end_date ? new Date(item.end_date) : new Date()
     };
   } catch (error) {
     console.error("Error mapping goal data:", error, item);
     // Return a minimal valid object to prevent UI errors
     return {
       id: item.id || uuidv4(),
-      user_id: item.user_id || "",
       title: "Erro nos dados",
       target: 0,
       current: 0,
       type: 'income',
       period: 'monthly',
-      start_date: new Date(),
-      end_date: new Date(),
-      created_at: new Date()
+      startDate: new Date(),
+      endDate: new Date()
     };
   }
 };

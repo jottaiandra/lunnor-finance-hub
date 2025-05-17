@@ -8,7 +8,7 @@ import {
   UserRound,
   FileText,
   ShieldCheck,
-  Shield
+  HeartHandshake
 } from "lucide-react";
 import { useProfiles } from "@/hooks/useProfiles";
 import { NavItem } from "./types";
@@ -42,8 +42,8 @@ export const useSidebarData = () => {
     {
       title: "Fundo de Paz",
       href: "/dashboard/peace-fund",
-      icon: Shield,
-    }
+      icon: HeartHandshake,
+    },
   ];
 
   // Navegação de configurações

@@ -31,58 +31,31 @@ export enum ExpenseCategory {
 
 export interface Transaction {
   id: string;
-  user_id: string;
-  amount: number;
-  date: Date | string;
+  date: Date;
   description: string;
+  amount: number;
   category: string;
+  paymentMethod: PaymentMethod;
   type: TransactionType;
-  payment_method: string;
-  is_recurrent?: boolean;
-  recurrence_frequency?: string;
-  recurrence_interval?: number;
-  recurrence_start_date?: Date | string;
-  recurrence_end_date?: Date | string;
-  is_original?: boolean;
-  parent_transaction_id?: string;
-  contact?: string;
-  created_at: Date | string;
+  contact?: string; // Cliente ou Fornecedor
+  isRecurrent?: boolean;
+  recurrenceFrequency?: string; // 'daily', 'weekly', 'biweekly', 'monthly', 'yearly', 'custom'
+  recurrenceInterval?: number; // For custom frequency, number of days
+  recurrenceStartDate?: Date;
+  recurrenceEndDate?: Date;
+  parentTransactionId?: string; // ID of the original recurring transaction
+  isOriginal?: boolean; // Is this the original transaction or generated from a recurring one
 }
 
 export interface Goal {
   id: string;
-  user_id: string;
   title: string;
   target: number;
   current: number;
-  start_date: Date | string;
-  end_date: Date | string;
-  period: string;
-  type: string;
-  created_at: Date | string;
-}
-
-export interface PeaceFund {
-  id: string;
-  user_id: string;
-  target_amount: number;
-  current_amount: number;
-  minimum_alert_amount: number | null;
-  created_at: Date | string;
-  updated_at: Date | string;
-}
-
-export type PeaceFundTransactionType = 'deposit' | 'withdrawal';
-
-export interface PeaceFundTransaction {
-  id: string;
-  peace_fund_id: string;
-  user_id: string;
-  amount: number;
-  description: string;
-  type: PeaceFundTransactionType;
-  date: Date | string;
-  created_at: Date | string;
+  type: 'income' | 'expense-reduction';
+  period: 'weekly' | 'monthly' | 'yearly';
+  startDate: Date;
+  endDate: Date;
 }
 
 export interface Alert {

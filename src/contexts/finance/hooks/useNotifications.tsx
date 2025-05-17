@@ -1,12 +1,6 @@
 
 import { useCallback } from "react";
-import { 
-  fetchNotifications, 
-  fetchAlerts, 
-  markAlertRead, 
-  markNotificationRead, 
-  hasUnreadNotifications 
-} from "../services/notification";
+import { fetchNotifications, fetchAlerts, markAlertRead, markNotificationRead, hasUnreadNotifications } from "../notificationService";
 
 export function useNotifications(user: any, state: any, dispatch: any) {
   const handleFetchNotifications = useCallback(async () => {

@@ -47,14 +47,14 @@ const GoalForm: React.FC<GoalFormProps> = ({ onSuccess, onCancel }) => {
     try {
       setLoading(true);
 
-      const newGoal: Omit<Goal, "id" | "user_id" | "created_at"> = {
+      const newGoal: Omit<Goal, "id"> = {
         title,
         target: Number(target),
         current: Number(current) || 0,
         type,
         period,
-        start_date: startDate,
-        end_date: endDate
+        startDate,
+        endDate
       };
 
       await addGoal(newGoal);
