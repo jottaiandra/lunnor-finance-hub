@@ -9,7 +9,7 @@ import {
   getMonthlyProgress,
   createPeaceFundTransaction,
   updatePeaceFund
-} from '@/services/peaceFundService';
+} from '@/services/peaceFund';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 import PeaceFundOverview from './PeaceFundOverview';
 import PeaceFundTransactionList from './PeaceFundTransactionList';
