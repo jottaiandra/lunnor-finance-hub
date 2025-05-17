@@ -4,7 +4,7 @@ import { toast } from "@/components/ui/sonner";
 import { mapTransactionFromDB } from "../../mappers";
 
 // Fetch transactions from Supabase
-export const fetchTransactions = async (userId: string, dispatch: any) => {
+export const fetchTransactions = async (userId: string, dispatch: any): Promise<void> => {
   if (!userId) return;
   
   try {

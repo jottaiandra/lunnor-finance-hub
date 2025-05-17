@@ -16,18 +16,26 @@ export const updateTransaction = async (
   try {
     // Prepare data for Supabase
     const transactionData = {
-      date: transaction.date.toISOString(),
+      date: typeof transaction.date === 'string' ? transaction.date : transaction.date.toISOString(),
       description: transaction.description,
       amount: transaction.amount,
       category: transaction.category,
-      payment_method: transaction.paymentMethod,
+      payment_method: transaction.payment_method,
       type: transaction.type,
       contact: transaction.contact || null,
-      is_recurrent: transaction.isRecurrent || false,
-      recurrence_frequency: transaction.recurrenceFrequency || null,
-      recurrence_interval: transaction.recurrenceInterval || null,
-      recurrence_start_date: transaction.recurrenceStartDate ? transaction.recurrenceStartDate.toISOString() : null,
-      recurrence_end_date: transaction.recurrenceEndDate ? transaction.recurrenceEndDate.toISOString() : null,
+      is_recurrent: transaction.is_recurrent || false,
+      recurrence_frequency: transaction.recurrence_frequency || null,
+      recurrence_interval: transaction.recurrence_interval || null,
+      recurrence_start_date: transaction.recurrence_start_date ? 
+        (typeof transaction.recurrence_start_date === 'string' ? 
+          transaction.recurrence_start_date : 
+          transaction.recurrence_start_date.toISOString()) : 
+        null,
+      recurrence_end_date: transaction.recurrence_end_date ? 
+        (typeof transaction.recurrence_end_date === 'string' ? 
+          transaction.recurrence_end_date : 
+          transaction.recurrence_end_date.toISOString()) : 
+        null,
     };
     
     // Update in Supabase
@@ -36,10 +44,12 @@ export const updateTransaction = async (
       .update(transactionData);
     
     // If this is a recurring transaction update and user wants to update all future occurrences
-    if (transaction.isRecurrent && updateOptions?.updateAllFuture) {
+    if (transaction.is_recurrent && updateOptions?.updateAllFuture) {
       // Get base date for comparison (today or transaction date)
-      const baseDate = transaction.date.toISOString();
-      const parentId = transaction.parentTransactionId || transaction.id;
+      const baseDate = typeof transaction.date === 'string' ? 
+        transaction.date : 
+        transaction.date.toISOString();
+      const parentId = transaction.parent_transaction_id || transaction.id;
       
       query = query.or(`id.eq.${transaction.id},and(parent_transaction_id.eq.${parentId},date.gte.${baseDate})`);
     } else {

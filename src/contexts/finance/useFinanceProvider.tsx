@@ -6,6 +6,7 @@ import { useTransactions } from "./hooks/useTransactions";
 import { useGoals } from "./hooks/useGoals";
 import { useNotifications } from "./hooks/useNotifications";
 import { useStats } from "./hooks/useStats";
+import { usePeaceFund } from "./hooks/usePeaceFund";
 import { useRealtimeSubscriptions } from "./hooks/useRealtimeSubscriptions";
 
 export function useFinanceProvider() {
@@ -23,6 +24,9 @@ export function useFinanceProvider() {
   
   // Handle stats functions
   const statsMethods = useStats(state);
+  
+  // Handle peace fund functions
+  const peaceFundMethods = usePeaceFund(user, dispatch);
 
   // Combine all methods
   const allMethods = {
@@ -30,6 +34,7 @@ export function useFinanceProvider() {
     ...goalMethods,
     ...notificationMethods,
     ...statsMethods,
+    ...peaceFundMethods,
     dispatch
   };
   
@@ -42,6 +47,7 @@ export function useFinanceProvider() {
     ...transactionMethods,
     ...goalMethods,
     ...notificationMethods,
-    ...statsMethods
+    ...statsMethods,
+    ...peaceFundMethods
   };
 }

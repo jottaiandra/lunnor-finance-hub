@@ -22,11 +22,11 @@ import ReportsPage from './pages/ReportsPage';
 import GoalsPage from './pages/GoalsPage';
 import ExportPage from './pages/ExportPage';
 import ProfilePage from './pages/ProfilePage';
+import PeaceFundPage from './pages/PeaceFundPage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
 import Index from './pages/Index';
-import PeaceFundPage from './pages/PeaceFundPage';
 
 const queryClient = new QueryClient();
 

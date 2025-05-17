@@ -1,0 +1,42 @@
+
+import { supabase } from "@/integrations/supabase/client";
+import { PeaceFundTransaction } from "@/types";
+import { FinanceAction } from "../../types";
+
+// Fetch peace fund transactions
+export const fetchPeaceFundTransactions = async (
+  fundId: string,
+  limit = 50
+): Promise<PeaceFundTransaction[]> => {
+  if (!fundId) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('peace_fund_transactions')
+      .select('*')
+      .eq('peace_fund_id', fundId)
+      .order('date', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Erro ao buscar transações do fundo:', error);
+      return [];
+    }
+
+    const transactions: PeaceFundTransaction[] = data.map(tx => ({
+      id: tx.id,
+      peace_fund_id: tx.peace_fund_id,
+      user_id: tx.user_id,
+      amount: tx.amount,
+      description: tx.description,
+      type: tx.type as 'deposit' | 'withdrawal', // Explicitly cast to the correct type
+      date: new Date(tx.date),
+      created_at: new Date(tx.created_at)
+    }));
+
+    return transactions;
+  } catch (error) {
+    console.error('Erro inesperado ao buscar transações:', error);
+    return [];
+  }
+};
