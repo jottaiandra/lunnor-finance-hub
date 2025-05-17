@@ -89,7 +89,7 @@ const PeaceFundPage: React.FC = () => {
       });
       totalAmount += 100;
       
-      // Adicionar transação de R$300 (alterado de R$200 para R$300)
+      // Adicionar transação de R$300
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
@@ -102,11 +102,16 @@ const PeaceFundPage: React.FC = () => {
       
       // Forçar atualização do saldo atual para garantir que apareça corretamente
       if (peaceFund) {
-        const updatedPeaceFund = await updatePeaceFund(peaceFundId, {
+        await updatePeaceFund(peaceFundId, {
           current_amount: totalAmount,
           updated_at: new Date()
         });
-        setPeaceFund(updatedPeaceFund);
+        
+        // Recarregar os dados do fundo para garantir que o estado reflete o valor atual
+        const updatedFund = await getUserPeaceFund();
+        if (updatedFund) {
+          setPeaceFund(updatedFund);
+        }
       }
       
       setInitialTransactionsAdded(true);

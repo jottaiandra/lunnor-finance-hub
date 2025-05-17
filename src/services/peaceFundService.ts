@@ -153,13 +153,13 @@ export async function createPeaceFundTransaction(
   }
   
   if (peaceFundData) {
-    let newAmount = peaceFundData.current_amount;
+    let newAmount = Number(peaceFundData.current_amount);
     
     // Update the balance based on transaction type
     if (type === 'deposit') {
-      newAmount += amount;
+      newAmount += Number(amount);
     } else if (type === 'withdrawal') {
-      newAmount -= amount;
+      newAmount -= Number(amount);
     }
     
     // Explicitly update the peace fund with the new balance
