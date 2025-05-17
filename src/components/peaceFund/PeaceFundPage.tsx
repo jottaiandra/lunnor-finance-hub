@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
@@ -6,7 +7,8 @@ import {
   createPeaceFund, 
   getPeaceFundTransactions, 
   getMonthlyProgress,
-  createPeaceFundTransaction
+  createPeaceFundTransaction,
+  updatePeaceFund
 } from '@/services/peaceFundService';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 import PeaceFundOverview from './PeaceFundOverview';
@@ -50,8 +52,7 @@ const PeaceFundPage: React.FC = () => {
           console.log("Chart data loaded:", monthlyData);
           setChartData(monthlyData);
 
-          // Se não houver transações ou se forem apenas duas específicas, 
-          // adicionamos as movimentações demonstrativas apenas uma vez
+          // Se não houver transações, adicionamos as movimentações demonstrativas apenas uma vez
           if (transactions.length === 0 && !initialTransactionsAdded) {
             await addDemoTransactions(fund.id);
           }
@@ -75,6 +76,8 @@ const PeaceFundPage: React.FC = () => {
     if (!user) return;
     
     try {
+      let totalAmount = 0;
+      
       // Adicionar transação de R$100
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
@@ -84,16 +87,27 @@ const PeaceFundPage: React.FC = () => {
         description: 'Depósito demonstrativo',
         date: new Date(),
       });
+      totalAmount += 100;
       
-      // Adicionar transação de R$200
+      // Adicionar transação de R$300 (alterado de R$200 para R$300)
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
         type: 'deposit',
-        amount: 200,
+        amount: 300,
         description: 'Depósito demonstrativo',
         date: new Date(),
       });
+      totalAmount += 300;
+      
+      // Forçar atualização do saldo atual para garantir que apareça corretamente
+      if (peaceFund) {
+        const updatedPeaceFund = await updatePeaceFund(peaceFundId, {
+          current_amount: totalAmount,
+          updated_at: new Date()
+        });
+        setPeaceFund(updatedPeaceFund);
+      }
       
       setInitialTransactionsAdded(true);
       
@@ -102,7 +116,7 @@ const PeaceFundPage: React.FC = () => {
       
       toast({
         title: 'Depósitos demonstrativos adicionados',
-        description: 'Foram adicionados R$300 em depósitos ao seu Fundo de Paz.'
+        description: 'Foram adicionados R$400 em depósitos ao seu Fundo de Paz.'
       });
     } catch (error) {
       console.error('Failed to add demo transactions:', error);

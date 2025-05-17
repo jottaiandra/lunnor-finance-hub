@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 
@@ -135,27 +136,46 @@ export async function createPeaceFundTransaction(
 
   const transaction = mapPeaceFundTransactionFromDB(data);
   
-  // Update the peace fund balance
+  // Update the peace fund balance - this will call the database trigger to update the balance
+  // We also force an update here to make sure the current amount is reflected in the UI
   const { peace_fund_id, type, amount } = transaction;
   
   // Get the current peace fund
-  const peaceFund = await getUserPeaceFund();
-  if (!peaceFund) throw new Error("Peace fund not found");
+  const { data: peaceFundData, error: peaceFundError } = await supabase
+    .from('peace_funds')
+    .select('*')
+    .eq('id', peace_fund_id)
+    .single();
   
-  let newAmount = peaceFund.current_amount;
-  
-  // Update the balance based on transaction type
-  if (type === 'deposit') {
-    newAmount += amount;
-  } else if (type === 'withdrawal') {
-    newAmount -= amount;
+  if (peaceFundError) {
+    console.error('Error fetching peace fund for balance update:', peaceFundError);
+    throw peaceFundError;
   }
   
-  // Update the peace fund with the new balance
-  await updatePeaceFund(peace_fund_id, {
-    current_amount: newAmount,
-    updated_at: new Date()
-  });
+  if (peaceFundData) {
+    let newAmount = peaceFundData.current_amount;
+    
+    // Update the balance based on transaction type
+    if (type === 'deposit') {
+      newAmount += amount;
+    } else if (type === 'withdrawal') {
+      newAmount -= amount;
+    }
+    
+    // Explicitly update the peace fund with the new balance
+    const { error: updateError } = await supabase
+      .from('peace_funds')
+      .update({ 
+        current_amount: newAmount,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', peace_fund_id);
+      
+    if (updateError) {
+      console.error('Error updating peace fund balance:', updateError);
+      throw updateError;
+    }
+  }
   
   return transaction;
 }
