@@ -12,7 +12,16 @@ import {
 } from '@/services/peaceFund';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 
-export function usePeaceFund() {
+interface UsePeaceFundReturn {
+  peaceFund: PeaceFund | null;
+  transactions: PeaceFundTransaction[];
+  chartData: Array<{name: string; value: number}>;
+  loading: boolean;
+  handleCreatePeaceFund: (formData: Partial<PeaceFund>) => Promise<boolean>;
+  refreshData: () => Promise<void>;
+}
+
+export function usePeaceFund(): UsePeaceFundReturn {
   const { user } = useAuth();
   const [peaceFund, setPeaceFund] = useState<PeaceFund | null>(null);
   const [transactions, setTransactions] = useState<PeaceFundTransaction[]>([]);
@@ -118,9 +127,9 @@ export function usePeaceFund() {
     }
   };
 
-  const handleCreatePeaceFund = async (formData: Partial<PeaceFund>) => {
+  const handleCreatePeaceFund = async (formData: Partial<PeaceFund>): Promise<boolean> => {
     try {
-      if (!user) return;
+      if (!user) return false;
       
       const newPeaceFund = await createPeaceFund({
         user_id: user.id,
@@ -146,7 +155,7 @@ export function usePeaceFund() {
     }
   };
   
-  const refreshData = async () => {
+  const refreshData = async (): Promise<void> => {
     if (!peaceFund) return;
     
     try {
