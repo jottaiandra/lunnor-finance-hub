@@ -5,7 +5,7 @@ import { mapPeaceFundTransactionFromDB } from './mappers';
 import { getUserPeaceFund, updatePeaceFund } from './peaceFundQueries';
 
 // Get peace fund transactions
-export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) {
+export async function getPeaceFundTransactions(peaceFundId: string, limit = 100) {
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .select('*')
