@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/use-toast';
@@ -70,7 +69,9 @@ const PeaceFundPage: React.FC = () => {
       
       const newPeaceFund = await createPeaceFund({
         user_id: user.id,
-        ...formData
+        target_amount: formData.target_amount || 0,
+        current_amount: 0, // Explicitly set current_amount to 0 for new funds
+        minimum_alert_amount: formData.minimum_alert_amount
       });
       
       setPeaceFund(newPeaceFund);

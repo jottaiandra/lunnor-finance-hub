@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 
@@ -46,7 +45,7 @@ export async function getUserPeaceFund() {
 }
 
 // Create a peace fund
-export async function createPeaceFund(peaceFundData: Omit<PeaceFund, 'id' | 'created_at' | 'updated_at'> & { current_amount?: number }) {
+export async function createPeaceFund(peaceFundData: Omit<PeaceFund, 'id' | 'created_at' | 'updated_at'>) {
   // Convert Date objects to ISO strings for Supabase
   const dbPeaceFund = {
     ...peaceFundData,
