@@ -1,6 +1,32 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
+
+// Map Supabase data to our application type
+function mapPeaceFundFromDB(data: any): PeaceFund {
+  return {
+    id: data.id,
+    user_id: data.user_id,
+    target_amount: data.target_amount,
+    current_amount: data.current_amount,
+    minimum_alert_amount: data.minimum_alert_amount,
+    created_at: new Date(data.created_at),
+    updated_at: new Date(data.updated_at)
+  };
+}
+
+// Map Supabase data to our transaction application type
+function mapPeaceFundTransactionFromDB(data: any): PeaceFundTransaction {
+  return {
+    id: data.id,
+    peace_fund_id: data.peace_fund_id,
+    user_id: data.user_id,
+    type: data.type as 'deposit' | 'withdrawal',
+    amount: data.amount,
+    description: data.description,
+    date: new Date(data.date),
+    created_at: new Date(data.created_at)
+  };
+}
 
 // Get user's peace fund
 export async function getUserPeaceFund() {
@@ -15,14 +41,21 @@ export async function getUserPeaceFund() {
     return null;
   }
   
-  return data as PeaceFund;
+  return data ? mapPeaceFundFromDB(data) : null;
 }
 
 // Create a peace fund
-export async function createPeaceFund(peaceFund: Partial<PeaceFund>) {
+export async function createPeaceFund(peaceFundData: Omit<PeaceFund, 'id' | 'created_at' | 'updated_at'>) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbPeaceFund = {
+    ...peaceFundData,
+    current_amount: peaceFundData.current_amount || 0,
+    target_amount: peaceFundData.target_amount || 0
+  };
+  
   const { data, error } = await supabase
     .from('peace_funds')
-    .insert([peaceFund])
+    .insert([dbPeaceFund])
     .select()
     .single();
     
@@ -31,14 +64,20 @@ export async function createPeaceFund(peaceFund: Partial<PeaceFund>) {
     throw error;
   }
   
-  return data as PeaceFund;
+  return mapPeaceFundFromDB(data);
 }
 
 // Update peace fund
-export async function updatePeaceFund(id: string, updates: Partial<PeaceFund>) {
+export async function updatePeaceFund(id: string, updates: Partial<Omit<PeaceFund, 'id' | 'created_at'>>) {
+  // Convert any Date objects to ISO strings for Supabase
+  const dbUpdates = {
+    ...updates,
+    updated_at: new Date().toISOString()
+  };
+
   const { data, error } = await supabase
     .from('peace_funds')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .select()
     .single();
@@ -48,7 +87,7 @@ export async function updatePeaceFund(id: string, updates: Partial<PeaceFund>) {
     throw error;
   }
   
-  return data as PeaceFund;
+  return mapPeaceFundFromDB(data);
 }
 
 // Get peace fund transactions
@@ -65,15 +104,27 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) 
     return [];
   }
   
-  return data as PeaceFundTransaction[];
+  return data ? data.map(mapPeaceFundTransactionFromDB) : [];
 }
 
 // Create a peace fund transaction
-export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction>) {
+export async function createPeaceFundTransaction(
+  transactionData: Omit<PeaceFundTransaction, 'id' | 'created_at'>
+) {
+  // Convert Date objects to ISO strings for Supabase
+  const dbTransaction = {
+    peace_fund_id: transactionData.peace_fund_id,
+    user_id: transactionData.user_id,
+    type: transactionData.type,
+    amount: transactionData.amount,
+    description: transactionData.description,
+    date: transactionData.date instanceof Date ? transactionData.date.toISOString() : transactionData.date
+  };
+
   // Create the transaction
   const { data, error } = await supabase
     .from('peace_fund_transactions')
-    .insert([transaction])
+    .insert([dbTransaction])
     .select()
     .single();
     
@@ -82,8 +133,10 @@ export async function createPeaceFundTransaction(transaction: Partial<PeaceFundT
     throw error;
   }
 
+  const transaction = mapPeaceFundTransactionFromDB(data);
+  
   // Update the peace fund balance
-  const { peace_fund_id, type, amount } = data as PeaceFundTransaction;
+  const { peace_fund_id, type, amount } = transaction;
   
   // Get the current peace fund
   const peaceFund = await getUserPeaceFund();
@@ -104,7 +157,7 @@ export async function createPeaceFundTransaction(transaction: Partial<PeaceFundT
     updated_at: new Date()
   });
   
-  return data as PeaceFundTransaction;
+  return transaction;
 }
 
 // Get monthly progress
@@ -127,7 +180,8 @@ export async function getMonthlyProgress(peaceFundId: string, months = 6) {
   }
   
   // Process data to get monthly totals
-  const monthlyData = processMonthlyData(data as PeaceFundTransaction[], months);
+  const transactions = data.map(mapPeaceFundTransactionFromDB);
+  const monthlyData = processMonthlyData(transactions, months);
   return monthlyData;
 }
 
