@@ -17,7 +17,8 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 100)
     console.error('Error fetching peace fund transactions:', error);
     return [];
   }
-  
+
+  console.log('Transações buscadas:', data);
   return data ? data.map(mapPeaceFundTransactionFromDB) : [];
 }
 
