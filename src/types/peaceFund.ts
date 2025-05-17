@@ -3,7 +3,7 @@ export interface PeaceFund {
   id: string;
   user_id: string;
   target_amount: number;
-  current_amount: number; // This needs to be required
+  current_amount: number; // Este campo é obrigatório
   minimum_alert_amount: number | null;
   created_at: Date;
   updated_at: Date;

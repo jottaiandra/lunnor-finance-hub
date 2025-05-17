@@ -5,7 +5,8 @@ import {
   getUserPeaceFund, 
   createPeaceFund, 
   getPeaceFundTransactions, 
-  getMonthlyProgress 
+  getMonthlyProgress,
+  createPeaceFundTransaction
 } from '@/services/peaceFundService';
 import { PeaceFund, PeaceFundTransaction } from '@/types/peaceFund';
 import PeaceFundOverview from './PeaceFundOverview';
@@ -25,6 +26,7 @@ const PeaceFundPage: React.FC = () => {
   const [chartData, setChartData] = useState<Array<{name: string; value: number}>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const [initialTransactionsAdded, setInitialTransactionsAdded] = useState<boolean>(false);
   
   useEffect(() => {
     if (!user) return;
@@ -47,6 +49,12 @@ const PeaceFundPage: React.FC = () => {
           const monthlyData = await getMonthlyProgress(fund.id);
           console.log("Chart data loaded:", monthlyData);
           setChartData(monthlyData);
+
+          // Se não houver transações ou se forem apenas duas específicas, 
+          // adicionamos as movimentações demonstrativas apenas uma vez
+          if (transactions.length === 0 && !initialTransactionsAdded) {
+            await addDemoTransactions(fund.id);
+          }
         }
       } catch (error) {
         console.error('Failed to load peace fund data:', error);
@@ -61,7 +69,45 @@ const PeaceFundPage: React.FC = () => {
     };
     
     loadPeaceFund();
-  }, [user]);
+  }, [user, initialTransactionsAdded]);
+  
+  const addDemoTransactions = async (peaceFundId: string) => {
+    if (!user) return;
+    
+    try {
+      // Adicionar transação de R$100
+      await createPeaceFundTransaction({
+        peace_fund_id: peaceFundId,
+        user_id: user.id,
+        type: 'deposit',
+        amount: 100,
+        description: 'Depósito demonstrativo',
+        date: new Date(),
+      });
+      
+      // Adicionar transação de R$200
+      await createPeaceFundTransaction({
+        peace_fund_id: peaceFundId,
+        user_id: user.id,
+        type: 'deposit',
+        amount: 200,
+        description: 'Depósito demonstrativo',
+        date: new Date(),
+      });
+      
+      setInitialTransactionsAdded(true);
+      
+      // Atualizar dados
+      await refreshData();
+      
+      toast({
+        title: 'Depósitos demonstrativos adicionados',
+        description: 'Foram adicionados R$300 em depósitos ao seu Fundo de Paz.'
+      });
+    } catch (error) {
+      console.error('Failed to add demo transactions:', error);
+    }
+  };
   
   const handleCreatePeaceFund = async (formData: Partial<PeaceFund>) => {
     try {
