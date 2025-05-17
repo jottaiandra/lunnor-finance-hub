@@ -70,6 +70,7 @@ export async function getPeaceFundTransactions(peaceFundId: string, limit = 10) 
 
 // Create a peace fund transaction
 export async function createPeaceFundTransaction(transaction: Partial<PeaceFundTransaction>) {
+  // Create the transaction
   const { data, error } = await supabase
     .from('peace_fund_transactions')
     .insert([transaction])
@@ -80,6 +81,28 @@ export async function createPeaceFundTransaction(transaction: Partial<PeaceFundT
     console.error('Error creating peace fund transaction:', error);
     throw error;
   }
+
+  // Update the peace fund balance
+  const { peace_fund_id, type, amount } = data as PeaceFundTransaction;
+  
+  // Get the current peace fund
+  const peaceFund = await getUserPeaceFund();
+  if (!peaceFund) throw new Error("Peace fund not found");
+  
+  let newAmount = peaceFund.current_amount;
+  
+  // Update the balance based on transaction type
+  if (type === 'deposit') {
+    newAmount += amount;
+  } else if (type === 'withdrawal') {
+    newAmount -= amount;
+  }
+  
+  // Update the peace fund with the new balance
+  await updatePeaceFund(peace_fund_id, {
+    current_amount: newAmount,
+    updated_at: new Date()
+  });
   
   return data as PeaceFundTransaction;
 }

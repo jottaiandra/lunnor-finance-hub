@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { createPeaceFundTransaction } from '@/services/peaceFundService';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -61,7 +61,10 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
       await createPeaceFundTransaction({
         peace_fund_id: peaceFundId,
         user_id: user.id,
-        ...values,
+        type: values.type,
+        amount: values.amount,
+        description: values.description,
+        date: new Date(),
       });
       
       form.reset({
@@ -70,16 +73,24 @@ const PeaceFundTransactionForm: React.FC<PeaceFundTransactionFormProps> = ({
         description: '',
       });
       
-      toast.success(
-        values.type === 'deposit' 
+      toast({
+        title: values.type === 'deposit' 
           ? 'Depósito adicionado com sucesso!' 
-          : 'Saque adicionado com sucesso!'
-      );
+          : 'Saque adicionado com sucesso!',
+        description: 'O saldo do seu Fundo de Paz foi atualizado.',
+      });
       
-      onSuccess();
+      // Call onSuccess to refresh the data and update the UI
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Failed to create transaction:', error);
-      toast.error('Falha ao registrar movimentação');
+      toast({
+        variant: "destructive",
+        title: 'Falha ao registrar movimentação',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
+      });
     }
   };
 

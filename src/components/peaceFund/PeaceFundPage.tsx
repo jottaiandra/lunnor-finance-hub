@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { 
   getUserPeaceFund, 
   createPeaceFund, 
@@ -33,21 +33,29 @@ const PeaceFundPage: React.FC = () => {
     const loadPeaceFund = async () => {
       setLoading(true);
       try {
+        console.log("Loading peace fund data...");
         const fund = await getUserPeaceFund();
+        console.log("Peace fund data:", fund);
         
         if (fund) {
           setPeaceFund(fund);
           
           // Load transactions and chart data
           const transactions = await getPeaceFundTransactions(fund.id);
+          console.log("Transactions loaded:", transactions);
           setTransactions(transactions);
           
           const monthlyData = await getMonthlyProgress(fund.id);
+          console.log("Chart data loaded:", monthlyData);
           setChartData(monthlyData);
         }
       } catch (error) {
         console.error('Failed to load peace fund data:', error);
-        toast.error('Falha ao carregar dados do Fundo de Paz');
+        toast({
+          variant: "destructive",
+          title: 'Falha ao carregar dados do Fundo de Paz',
+          description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
+        });
       } finally {
         setLoading(false);
       }
@@ -66,11 +74,18 @@ const PeaceFundPage: React.FC = () => {
       });
       
       setPeaceFund(newPeaceFund);
-      toast.success('Fundo de Paz criado com sucesso!');
+      toast({
+        title: 'Fundo de Paz criado com sucesso!',
+        description: 'Agora você pode começar a fazer depósitos no seu Fundo de Paz.'
+      });
       setActiveTab('overview');
     } catch (error) {
       console.error('Failed to create peace fund:', error);
-      toast.error('Falha ao criar Fundo de Paz');
+      toast({
+        variant: "destructive",
+        title: 'Falha ao criar Fundo de Paz',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
+      });
     }
   };
   
@@ -78,16 +93,25 @@ const PeaceFundPage: React.FC = () => {
     if (!peaceFund) return;
     
     try {
+      console.log("Refreshing peace fund data...");
       const fund = await getUserPeaceFund();
+      console.log("Updated peace fund:", fund);
       if (fund) setPeaceFund(fund);
       
       const transactions = await getPeaceFundTransactions(peaceFund.id);
+      console.log("Updated transactions:", transactions);
       setTransactions(transactions);
       
       const monthlyData = await getMonthlyProgress(peaceFund.id);
+      console.log("Updated chart data:", monthlyData);
       setChartData(monthlyData);
     } catch (error) {
       console.error('Failed to refresh data:', error);
+      toast({
+        variant: "destructive",
+        title: 'Falha ao atualizar dados',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
+      });
     }
   };
   
@@ -213,10 +237,15 @@ const PeaceFundPage: React.FC = () => {
                     try {
                       // Update logic would go here
                       await refreshData();
-                      toast.success('Configurações atualizadas com sucesso!');
+                      toast({
+                        title: 'Configurações atualizadas com sucesso!',
+                      });
                     } catch (error) {
                       console.error(error);
-                      toast.error('Erro ao atualizar configurações');
+                      toast({
+                        variant: "destructive",
+                        title: 'Erro ao atualizar configurações',
+                      });
                     }
                   }} 
                   peaceFund={peaceFund}
