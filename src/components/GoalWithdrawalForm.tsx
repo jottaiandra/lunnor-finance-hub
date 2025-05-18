@@ -2,12 +2,11 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
 import { useFinance } from '@/contexts/FinanceContext';
 import { Goal } from '@/types';
 import { toast } from '@/components/ui/sonner';
+import GoalFormActions from './goals/GoalFormActions';
 
 interface GoalWithdrawalFormProps {
   goal: Goal;
@@ -18,7 +17,6 @@ interface GoalWithdrawalFormProps {
 const GoalWithdrawalForm: React.FC<GoalWithdrawalFormProps> = ({ goal, onSuccess, onCancel }) => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-
   const { updateGoal } = useFinance();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,27 +88,11 @@ const GoalWithdrawalForm: React.FC<GoalWithdrawalFormProps> = ({ goal, onSuccess
             </p>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            {onCancel && (
-              <Button variant="outline" onClick={onCancel} type="button" disabled={loading}>
-                Cancelar
-              </Button>
-            )}
-            <Button 
-              type="submit" 
-              variant="destructive"
-              disabled={loading || !amount || Number(amount) <= 0 || Number(amount) > goal.current}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                "Confirmar Saque"
-              )}
-            </Button>
-          </div>
+          <GoalFormActions 
+            loading={loading}
+            onCancel={onCancel}
+            submitLabel="Confirmar Saque"
+          />
         </form>
       </CardContent>
     </Card>
