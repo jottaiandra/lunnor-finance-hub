@@ -62,9 +62,9 @@ const EditGoalForm: React.FC<EditGoalFormProps> = ({ goal, onSuccess, onCancel }
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Editar Meta</CardTitle>
+    <Card className="w-full border-t-4 border-t-primary shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl">Editar Meta</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

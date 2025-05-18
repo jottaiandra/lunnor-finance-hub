@@ -8,22 +8,34 @@ interface GoalFormActionsProps {
   onCancel?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
+  className?: string;
 }
 
 const GoalFormActions: React.FC<GoalFormActionsProps> = ({
   loading,
   onCancel,
   submitLabel = "Salvar",
-  cancelLabel = "Cancelar"
+  cancelLabel = "Cancelar",
+  className
 }) => {
   return (
-    <div className="flex justify-end space-x-2 pt-4">
+    <div className={`flex justify-end space-x-3 pt-4 ${className || ''}`}>
       {onCancel && (
-        <Button variant="outline" onClick={onCancel} type="button" disabled={loading}>
+        <Button 
+          variant="outline" 
+          onClick={onCancel} 
+          type="button" 
+          disabled={loading}
+          className="min-w-24"
+        >
           {cancelLabel}
         </Button>
       )}
-      <Button type="submit" disabled={loading}>
+      <Button 
+        type="submit" 
+        disabled={loading}
+        className="min-w-24"
+      >
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

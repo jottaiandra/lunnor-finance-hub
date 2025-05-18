@@ -7,6 +7,7 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { Goal } from '@/types';
 import { toast } from '@/components/ui/sonner';
 import GoalFormActions from './goals/GoalFormActions';
+import { formatCurrency } from '@/lib/utils';
 
 interface GoalWithdrawalFormProps {
   goal: Goal;
@@ -45,7 +46,7 @@ const GoalWithdrawalForm: React.FC<GoalWithdrawalFormProps> = ({ goal, onSuccess
 
       await updateGoal(updatedGoal);
 
-      toast.success(`Saque de R$ ${withdrawalAmount.toFixed(2).replace('.', ',')} realizado com sucesso!`);
+      toast.success(`Saque de ${formatCurrency(withdrawalAmount)} realizado com sucesso!`);
 
       if (onSuccess) {
         onSuccess();
@@ -59,9 +60,9 @@ const GoalWithdrawalForm: React.FC<GoalWithdrawalFormProps> = ({ goal, onSuccess
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Realizar Saque</CardTitle>
+    <Card className="w-full border-t-4 border-t-amber-500 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl">Realizar Saque</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,16 +77,19 @@ const GoalWithdrawalForm: React.FC<GoalWithdrawalFormProps> = ({ goal, onSuccess
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              className="focus-visible:ring-amber-500"
             />
           </div>
 
-          <div className="pt-4">
-            <p className="text-sm text-muted-foreground">
-              Valor Disponível: R$ {goal.current.toFixed(2).replace('.', ',')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Novo Saldo: R$ {amount ? (goal.current - Number(amount)).toFixed(2).replace('.', ',') : goal.current.toFixed(2).replace('.', ',')}
-            </p>
+          <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Valor Disponível:</span>
+              <span className="font-medium">{formatCurrency(goal.current)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Novo Saldo:</span>
+              <span className="font-medium">{amount ? formatCurrency(goal.current - Number(amount)) : formatCurrency(goal.current)}</span>
+            </div>
           </div>
 
           <GoalFormActions 

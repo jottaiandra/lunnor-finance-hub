@@ -7,6 +7,7 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { Goal } from '@/types';
 import { toast } from '@/components/ui/sonner';
 import GoalFormActions from './goals/GoalFormActions';
+import { formatCurrency } from '@/lib/utils';
 
 interface GoalDepositFormProps {
   goal: Goal;
@@ -40,7 +41,7 @@ const GoalDepositForm: React.FC<GoalDepositFormProps> = ({ goal, onSuccess, onCa
 
       await updateGoal(updatedGoal);
 
-      toast.success(`Depósito de R$ ${depositAmount.toFixed(2).replace('.', ',')} realizado com sucesso!`);
+      toast.success(`Depósito de ${formatCurrency(depositAmount)} realizado com sucesso!`);
 
       if (onSuccess) {
         onSuccess();
@@ -54,9 +55,9 @@ const GoalDepositForm: React.FC<GoalDepositFormProps> = ({ goal, onSuccess, onCa
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Adicionar Depósito</CardTitle>
+    <Card className="w-full border-t-4 border-t-green-500 shadow-sm">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-xl">Adicionar Depósito</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,16 +71,19 @@ const GoalDepositForm: React.FC<GoalDepositFormProps> = ({ goal, onSuccess, onCa
               placeholder="0,00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              className="focus-visible:ring-green-500"
             />
           </div>
 
-          <div className="pt-4">
-            <p className="text-sm text-muted-foreground">
-              Meta Atual: R$ {goal.current.toFixed(2).replace('.', ',')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Novo Valor: R$ {amount ? (goal.current + Number(amount)).toFixed(2).replace('.', ',') : goal.current.toFixed(2).replace('.', ',')}
-            </p>
+          <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Meta Atual:</span>
+              <span className="font-medium">{formatCurrency(goal.current)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Novo Valor:</span>
+              <span className="font-medium">{amount ? formatCurrency(goal.current + Number(amount)) : formatCurrency(goal.current)}</span>
+            </div>
           </div>
 
           <GoalFormActions 

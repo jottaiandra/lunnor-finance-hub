@@ -12,6 +12,8 @@ import { Dialog, DialogContent } from './ui/dialog';
 import EditGoalForm from './EditGoalForm';
 import GoalDepositForm from './GoalDepositForm';
 import GoalWithdrawalForm from './GoalWithdrawalForm';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { formatCurrency } from '@/lib/utils';
 
 const GoalsList: React.FC = () => {
   const { state, deleteGoal } = useFinance();
@@ -97,7 +99,7 @@ const GoalsList: React.FC = () => {
   }
   
   return (
-    <>
+    <TooltipProvider>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {state.goals.map((goal: any) => {
           // Skip rendering if goal data is invalid
@@ -110,15 +112,16 @@ const GoalsList: React.FC = () => {
           const isComplete = progress >= 100;
           
           return (
-            <Card key={goal.id}>
-              <CardHeader className="pb-2">
+            <Card key={goal.id} className="overflow-hidden transition-all hover:shadow-md">
+              <CardHeader className="pb-2 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{goal.title}</CardTitle>
+                  <CardTitle className="text-lg truncate">{goal.title}</CardTitle>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={() => handleDeleteGoal(goal.id)}
                     disabled={deletingId === goal.id}
+                    className="text-muted-foreground hover:text-destructive"
                   >
                     {deletingId === goal.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -128,41 +131,49 @@ const GoalsList: React.FC = () => {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progresso:</span>
-                    <span className={isComplete ? 'text-green-600 font-medium' : 'font-medium'}>
-                      {progress.toFixed(0)}%
-                    </span>
+              <CardContent className="px-6 pb-6">
+                <div className="space-y-4">
+                  <div className="mt-1">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Progresso:</span>
+                      <span className={isComplete ? 'text-green-600 font-medium' : 'font-medium'}>
+                        {progress.toFixed(0)}%
+                      </span>
+                    </div>
+                    
+                    <Progress 
+                      value={progress} 
+                      className="h-2" 
+                      indicatorClassName={isComplete ? "bg-green-500" : undefined}
+                    />
                   </div>
                   
-                  <Progress value={progress} className="h-2" />
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Atual:</span>
-                    <span className="font-medium">R$ {goal.current.toFixed(2).replace('.', ',')}</span>
+                  <div className="space-y-2 pt-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Atual:</span>
+                      <span className="font-medium">{formatCurrency(goal.current)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Meta:</span>
+                      <span className="font-medium">{formatCurrency(goal.target)}</span>
+                    </div>
+                    
+                    <div className="text-xs text-muted-foreground pt-1">
+                      <span>
+                        {goal.start_date && goal.end_date ? (
+                          <>
+                            Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - 
+                            {format(new Date(goal.endDate), "dd/MM/yyyy")}
+                          </>
+                        ) : (
+                          'Período não definido'
+                        )}
+                      </span>
+                    </div>
                   </div>
                   
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Meta:</span>
-                    <span className="font-medium">R$ {goal.target.toFixed(2).replace('.', ',')}</span>
-                  </div>
-                  
-                  <div className="text-xs text-muted-foreground">
-                    <span>
-                      {goal.start_date && goal.end_date ? (
-                        <>
-                          Período: {format(new Date(goal.startDate), "dd/MM/yyyy")} - 
-                          {format(new Date(goal.endDate), "dd/MM/yyyy")}
-                        </>
-                      ) : (
-                        'Período não definido'
-                      )}
-                    </span>
-                  </div>
-                  
-                  <div className="pt-2 flex items-center">
+                  <div className="pt-1">
                     {isComplete ? (
                       <div className="text-green-600 text-sm font-medium flex items-center">
                         <Check className="h-4 w-4 mr-1" />
@@ -171,41 +182,58 @@ const GoalsList: React.FC = () => {
                     ) : (
                       <div className="text-sm text-muted-foreground flex items-center">
                         <AlertCircle className="h-4 w-4 mr-1" />
-                        Faltam R$ {(goal.target - goal.current).toFixed(2).replace('.', ',')}
+                        Faltam {formatCurrency(goal.target - goal.current)}
                       </div>
                     )}
                   </div>
 
-                  {/* Ações da meta */}
-                  <div className="flex gap-2 mt-4 justify-between">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleEditGoal(goal)}
-                    >
-                      <Edit className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleDeposit(goal)}
-                    >
-                      <ArrowUp className="h-4 w-4 mr-1" />
-                      Depositar
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleWithdrawal(goal)}
-                      disabled={goal.current <= 0}
-                    >
-                      <ArrowDown className="h-4 w-4 mr-1" />
-                      Sacar
-                    </Button>
+                  {/* Ações da meta - com layout melhorado */}
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditGoal(goal)}
+                          className="w-full transition-colors hover:bg-secondary"
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Editar detalhes da meta</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeposit(goal)}
+                          className="w-full transition-colors hover:bg-green-100"
+                        >
+                          <ArrowUp className="h-4 w-4 mr-1" />
+                          Depositar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Adicionar valor à meta</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleWithdrawal(goal)}
+                          disabled={goal.current <= 0}
+                          className="w-full transition-colors hover:bg-red-100"
+                        >
+                          <ArrowDown className="h-4 w-4 mr-1" />
+                          Sacar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Retirar valor da meta</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </CardContent>
@@ -252,7 +280,7 @@ const GoalsList: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   );
 };
 
