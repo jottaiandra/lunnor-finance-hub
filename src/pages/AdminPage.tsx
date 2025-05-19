@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
-import { Loader2, User, Shield, UserX, MessageSquare, Paintbrush } from 'lucide-react';
+import { Loader2, User, Shield, UserX, MessageSquare, Paintbrush, UserPlus } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppMessageLogs from '@/components/admin/WhatsAppMessageLogs';
 import CustomizationSettings from '@/components/admin/CustomizationSettings';
+import AddUserDialog from '@/components/admin/AddUserDialog';
 
 interface UserProfile {
   id: string;
@@ -211,9 +212,12 @@ const AdminPage: React.FC = () => {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="mr-2" /> Usuários do Sistema
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center">
+                  <User className="mr-2" /> Usuários do Sistema
+                </CardTitle>
+                <AddUserDialog onUserAdded={fetchUsers} />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
