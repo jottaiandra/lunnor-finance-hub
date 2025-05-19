@@ -20,10 +20,11 @@ const UserSection: React.FC<UserSectionProps> = ({
   handleSignOut 
 }) => {
   const { user } = useAuth();
+  const userEmail = user?.email || '';
 
   if (!isCollapsed) {
     return (
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-3 w-full">
         <Avatar>
           {profileImage ? (
             <AvatarImage 
@@ -41,8 +42,17 @@ const UserSection: React.FC<UserSectionProps> = ({
             </AvatarFallback>
           )}
         </Avatar>
-        <div>
-          <p className="text-sm font-medium">{user?.email}</p>
+        <div className="min-w-0 flex-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <p className="text-xs font-medium truncate max-w-[120px]">{userEmail}</p>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                {userEmail}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Button 
             variant="ghost" 
             size="sm" 
