@@ -14,6 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import AddUserDialog from './AddUserDialog';
 
@@ -139,7 +140,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onUserChange }) => 
                       )}
                       
                       <AlertDialog open={deleteDialogOpen && userToDelete === user.id} onOpenChange={setDeleteDialogOpen}>
-                        <AlertDialog.Trigger asChild>
+                        <AlertDialogTrigger asChild>
                           <Button 
                             variant="destructive" 
                             size="sm"
@@ -150,7 +151,7 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onUserChange }) => 
                           >
                             <UserX className="h-4 w-4 mr-1" /> Excluir
                           </Button>
-                        </AlertDialog.Trigger>
+                        </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
