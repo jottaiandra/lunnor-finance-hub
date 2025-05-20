@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PeaceFundTransaction } from '@/types/peaceFund';
 import { mapPeaceFundTransactionFromDB } from './mappers';
 import { getUserPeaceFund, updatePeaceFund } from './peaceFundQueries';
+import { sendPeaceFundWebhook } from './webhooks';
 
 // Get peace fund transactions
 export async function getPeaceFundTransactions(peaceFundId: string, limit = 100) {
@@ -51,7 +52,21 @@ export async function createPeaceFundTransaction(
   // Log transaction creation for debugging
   console.log('Transaction created successfully:', data);
   
+  // Send webhook notification to Make.com
+  const mappedTransaction = mapPeaceFundTransactionFromDB(data);
+  sendPeaceFundWebhook(mappedTransaction, transactionData.user_id)
+    .then(success => {
+      if (success) {
+        console.log('Make.com webhook notification sent successfully');
+      } else {
+        console.error('Failed to send Make.com webhook notification');
+      }
+    })
+    .catch(err => {
+      console.error('Error in webhook process:', err);
+    });
+  
   // Return the mapped transaction - we don't need to update the peace fund balance
   // since this is now handled by the database trigger
-  return mapPeaceFundTransactionFromDB(data);
+  return mappedTransaction;
 }
