@@ -20,7 +20,7 @@ export const sendPeaceFundWebhook = async (
     // Get user profile data to include in the webhook
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('first_name, last_name')
+      .select('first_name, last_name, phone_number')
       .eq('id', userId)
       .single();
     
@@ -29,18 +29,38 @@ export const sendPeaceFundWebhook = async (
       return false;
     }
     
-    // Format the transaction type for better readability
-    const transactionType = transaction.type === 'deposit' ? 'depósito' : 'saque';
+    // Get system name from customization settings
+    const { data: customData } = await supabase
+      .from('customization_settings')
+      .select('platform_name')
+      .single();
     
-    // Format the message
-    const message = `${transactionType} de R$ ${transaction.amount.toFixed(2)} - ${transaction.description}`;
+    const systemName = customData?.platform_name || 'Lunnor Caixa';
     
-    // Prepare webhook data structure as requested: name, time, message
+    // Map Peace Fund transaction type to standard transaction type for consistency
+    const transactionType = transaction.type === 'deposit' ? 'receita' : 'despesa';
+    const peaceFundType = transaction.type === 'deposit' ? 'depósito' : 'saque';
+    
+    // Format the data for the webhook to match the standard transaction format
     const webhookData = {
       nome: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
-      horario: new Date(transaction.date).toISOString(),
-      mensagem: message
+      tipo: transactionType,
+      valor: transaction.amount,
+      descricao: `Fundo de Paz: ${peaceFundType} - ${transaction.description}`,
+      data: new Date(transaction.date).toISOString().split('T')[0], // Format as YYYY-MM-DD
+      telefone: profileData.phone_number || '',
+      user_id: userId
     };
+    
+    // Format the message using the template
+    const message = `Olá ${webhookData.nome}! Um novo ${peaceFundType} no Fundo de Paz foi registrado.\n` +
+      `💰 Valor: R$ ${transaction.amount.toFixed(2)}\n` +
+      `📝 Descrição: ${transaction.description}\n` +
+      `📅 Data: ${webhookData.data}\n\n` +
+      `Continue organizando sua vida financeira com o ${systemName}!`;
+    
+    // Add the message to the webhook data
+    webhookData['mensagem'] = message;
     
     console.log('Sending Peace Fund webhook to Make.com:', JSON.stringify(webhookData));
     

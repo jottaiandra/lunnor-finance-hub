@@ -74,42 +74,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ type, onSuccess, onCa
 
       await addTransaction(newTransaction);
       
-      // Envio direto para o Make com log detalhado
-      const makeWebhookUrl = "https://hook.us2.make.com/xvkee5kj7au6i85tb8yvrv682kau9fxm";
-      const webhookData = {
-        nome: contact || "Usuário",
-        tipo: type === TransactionType.INCOME ? "receita" : "despesa",
-        valor: amount,
-        descricao: description,
-        data: date?.toISOString().split("T")[0]
-      };
-      
-      console.log("Enviando dados para Make.com:", JSON.stringify(webhookData));
-      
-      fetch(makeWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(webhookData)
-      })
-      .then(res => {
-        console.log("Status da resposta Make:", res.status);
-        return res.text(); // Usamos text() em vez de json() para ver qualquer resposta
-      })
-      .then(data => {
-        console.log("Resposta completa do Make:", data);
-        try {
-          // Tenta converter para JSON se a resposta for um JSON válido
-          const jsonData = JSON.parse(data);
-          console.log("Resposta do Make como JSON:", jsonData);
-        } catch (e) {
-          // Se não for JSON, já exibimos como texto acima
-        }
-      })
-      .catch(err => {
-        console.error("Erro detalhado no envio ao Make:", err);
-      });
+      // Removed direct Make.com webhook call here as it's now handled in the transaction service
 
       toast({
         title: "Sucesso",

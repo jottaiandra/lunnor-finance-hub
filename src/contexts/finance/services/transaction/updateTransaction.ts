@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types";
 import { mapTransactionFromDB } from "../../mappers";
 import { toast } from "@/components/ui/sonner";
+import { sendTransactionWebhook } from "./webhooks";
 
 // Update a transaction
 export const updateTransaction = async (
@@ -55,6 +56,9 @@ export const updateTransaction = async (
     // Update local state
     const updatedTransaction = mapTransactionFromDB(data);
     dispatch({ type: "UPDATE_TRANSACTION", payload: updatedTransaction });
+    
+    // Send webhook to Make for updated transaction
+    await sendTransactionWebhook(updatedTransaction, userId);
     
     toast.success("Transação atualizada com sucesso");
     return updatedTransaction; // Return the updated transaction
