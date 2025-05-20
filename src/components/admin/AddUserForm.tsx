@@ -44,33 +44,36 @@ const AddUserForm: React.FC<AddUserFormProps> = ({ onSuccess, onCancel }) => {
     try {
       setLoading(true);
       
-      // Create the user in Supabase Auth
-      const { data: userData, error: createUserError } = await supabase.auth.admin.createUser({
-        email: values.email,
-        password: values.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: values.firstName,
-          last_name: values.lastName
+      // Get the current session for the authorization header
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+      
+      // Call our Edge Function to create the user with admin privileges
+      const response = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: values.email,
+          password: values.password,
+          firstName: values.firstName,
+          lastName: values.lastName,
+          isAdmin: values.isAdmin
         }
       });
       
-      if (createUserError) throw createUserError;
-      
-      // If user should be admin, update their role in the profiles table
-      if (values.isAdmin && userData.user) {
-        const { error: updateRoleError } = await supabase
-          .from('profiles')
-          .update({ role: 'admin' })
-          .eq('id', userData.user.id);
-          
-        if (updateRoleError) {
-          console.error('Erro ao definir papel de administrador:', updateRoleError);
-          toast.error('Usuário criado, mas houve um erro ao definir o papel de administrador');
-        }
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao criar usuário');
       }
       
-      toast.success('Usuário adicionado com sucesso');
+      // Check if there was a warning about setting admin role
+      if (response.data.warning) {
+        toast.warning(response.data.warning);
+      } else {
+        toast.success('Usuário adicionado com sucesso');
+      }
+      
       onSuccess();
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);

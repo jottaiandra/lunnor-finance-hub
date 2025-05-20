@@ -27,6 +27,9 @@ enabled = true
 [analytics]
 enabled = false
 
+[functions.admin-create-user]
+verify_jwt = true
+
 [functions.get_customization_settings]
 verify_jwt = false
 

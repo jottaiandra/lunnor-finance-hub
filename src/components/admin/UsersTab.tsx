@@ -36,6 +36,7 @@ interface UsersTabProps {
 const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onUserChange }) => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   const toggleUserRole = async (userId: string, newRole: 'admin' | 'user') => {
     try {
@@ -58,18 +59,37 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onUserChange }) => 
     if (!userToDelete) return;
     
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userToDelete);
+      setDeletingUser(true);
       
-      if (error) throw error;
+      // Get the current session for the authorization header
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+      
+      // Call admin function to delete user
+      const response = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          action: 'delete',
+          userId: userToDelete
+        }
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao excluir usuário');
+      }
       
       onUserChange();
       toast.success('Usuário excluído com sucesso');
     } catch (error: any) {
       console.error('Erro ao excluir usuário:', error);
-      toast.error('Erro ao excluir usuário');
+      toast.error(`Erro ao excluir usuário: ${error.message}`);
     } finally {
       setUserToDelete(null);
       setDeleteDialogOpen(false);
+      setDeletingUser(false);
     }
   };
 
@@ -162,8 +182,12 @@ const UsersTab: React.FC<UsersTabProps> = ({ users, loading, onUserChange }) => 
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel onClick={() => setUserToDelete(null)}>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground">
-                              Excluir
+                            <AlertDialogAction 
+                              onClick={handleDeleteUser} 
+                              className="bg-destructive text-destructive-foreground"
+                              disabled={deletingUser}
+                            >
+                              {deletingUser ? 'Excluindo...' : 'Excluir'}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
