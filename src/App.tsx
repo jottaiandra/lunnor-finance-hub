@@ -15,8 +15,6 @@ import { CustomizationProvider } from './contexts/CustomizationContext';
 import Layout from './pages/Layout';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
-import SobrePage from './pages/SobrePage';
-import ContatoPage from './pages/ContatoPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ReportsPage from './pages/ReportsPage';
 import GoalsPage from './pages/GoalsPage';
@@ -25,7 +23,6 @@ import ProfilePage from './pages/ProfilePage';
 import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminPage from './pages/AdminPage';
-import Index from './pages/Index';
 import PeaceFundPage from './pages/PeaceFundPage';
 
 const queryClient = new QueryClient();
@@ -38,11 +35,11 @@ function App() {
           <CustomizationProvider>
             <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
                 <Routes>
-                  {/* Páginas públicas */}
-                  <Route path="/" element={<Index />} />
+                  {/* Redirect root to auth page */}
+                  <Route path="/" element={<Navigate to="/auth" replace />} />
+                  
+                  {/* Auth page */}
                   <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/sobre" element={<SobrePage />} />
-                  <Route path="/contato" element={<ContatoPage />} />
                   
                   {/* Páginas protegidas */}
                   <Route path="/dashboard" element={
@@ -59,9 +56,6 @@ function App() {
                     <Route path="profile" element={<ProfilePage />} />
                     <Route path="admin" element={<AdminPage />} />
                   </Route>
-                  
-                  {/* Redirect from root to dashboard if accessed directly */}
-                  <Route path="/index" element={<Navigate to="/" replace />} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>
