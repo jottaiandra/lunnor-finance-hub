@@ -28,7 +28,7 @@ export default {
 				positive: '#28C76F',
 				negative: '#EA5455',
 				primary: {
-					DEFAULT: '#7367F0',
+					DEFAULT: '#c5a880',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {

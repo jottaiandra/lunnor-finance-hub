@@ -19,8 +19,8 @@ interface CustomizationContextType {
 }
 
 const defaultSettings: CustomizationSettings = {
-  platformName: 'Lunnor Caixa',
-  primaryColor: '#7367F0',
+  platformName: 'Meu Financeiro Boss',
+  primaryColor: '#c5a880',
   secondaryColor: '#28C76F',
   accentColor: '#EA5455',
   positiveColor: '#28C76F',
