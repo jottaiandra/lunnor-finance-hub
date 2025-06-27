@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PeaceFundInfo from '../PeaceFundInfo';
 import PeaceFundForm from '../PeaceFundForm';
 import { PeaceFund } from '@/types/peaceFund';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { updatePeaceFund } from '@/services/peaceFund';
 
 interface InfoTabProps {
@@ -27,16 +27,10 @@ const InfoTab: React.FC<InfoTabProps> = ({
       });
       
       await onUpdateSuccess();
-      toast({
-        title: 'Configurações atualizadas com sucesso!',
-      });
+      toast.success('Configurações atualizadas com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar configurações:', error);
-      toast({
-        variant: "destructive",
-        title: 'Erro ao atualizar configurações',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro desconhecido',
-      });
+      toast.error('Erro ao atualizar configurações: ' + (error instanceof Error ? error.message : 'Ocorreu um erro desconhecido'));
     }
   };
 
