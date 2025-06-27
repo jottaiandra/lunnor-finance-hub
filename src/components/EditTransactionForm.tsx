@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useFinance } from '@/contexts/FinanceContext';
-import { Transaction, TransactionType, IncomeCategory, ExpenseCategory } from '@/types';
+import { Transaction, TransactionType, IncomeCategory, ExpenseCategory, PaymentMethod } from '@/types';
 import TransactionDetails from './transactions/TransactionDetails';
 import RecurrenceOptions from './transactions/RecurrenceOptions';
 import FormActions from './transactions/FormActions';
@@ -64,7 +64,7 @@ const EditTransactionForm: React.FC<EditTransactionFormProps> = ({ transaction, 
         description,
         amount: Number(amount),
         category,
-        paymentMethod: paymentMethod as any,
+        paymentMethod: paymentMethod as PaymentMethod,
         contact: contact || undefined,
         isRecurrent,
         recurrenceFrequency: isRecurrent ? recurrenceFrequency : undefined,
@@ -95,6 +95,10 @@ const EditTransactionForm: React.FC<EditTransactionFormProps> = ({ transaction, 
     }
   };
 
+  const handlePaymentMethodChange = (method: string) => {
+    setPaymentMethod(method as PaymentMethod);
+  };
+
   const categoryOptions = transaction.type === TransactionType.INCOME
     ? Object.values(IncomeCategory)
     : Object.values(ExpenseCategory);
@@ -120,7 +124,7 @@ const EditTransactionForm: React.FC<EditTransactionFormProps> = ({ transaction, 
             setCategory={setCategory}
             categoryOptions={categoryOptions}
             paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
+            setPaymentMethod={handlePaymentMethodChange}
             contact={contact}
             setContact={setContact}
           />
@@ -140,7 +144,6 @@ const EditTransactionForm: React.FC<EditTransactionFormProps> = ({ transaction, 
             type={transaction.type} 
             onCancel={onCancel}
             loading={loading}
-            submitText="Atualizar"
           />
         </form>
       </CardContent>

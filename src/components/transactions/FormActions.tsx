@@ -8,9 +8,13 @@ interface FormActionsProps {
   type: TransactionType;
   onCancel?: () => void;
   loading: boolean;
+  submitText?: string;
 }
 
-const FormActions: React.FC<FormActionsProps> = ({ type, onCancel, loading }) => {
+const FormActions: React.FC<FormActionsProps> = ({ type, onCancel, loading, submitText }) => {
+  const defaultSubmitText = type === TransactionType.INCOME ? "Adicionar Receita" : "Adicionar Despesa";
+  const buttonText = submitText || defaultSubmitText;
+
   return (
     <div className="flex justify-end space-x-2 pt-4">
       {onCancel && (
@@ -29,7 +33,7 @@ const FormActions: React.FC<FormActionsProps> = ({ type, onCancel, loading }) =>
             Salvando...
           </>
         ) : (
-          type === TransactionType.INCOME ? "Adicionar Receita" : "Adicionar Despesa"
+          buttonText
         )}
       </Button>
     </div>

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/sonner';
 import { Badge } from './ui/badge';
 import { Dialog, DialogContent } from './ui/dialog';
-import TransactionForm from './TransactionForm';
+import EditTransactionForm from './EditTransactionForm';
 
 interface TransactionListProps {
   limit?: number;
