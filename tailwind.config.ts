@@ -28,8 +28,21 @@ export default {
 				positive: '#28C76F',
 				negative: '#EA5455',
 				primary: {
-					DEFAULT: '#c5a880',
+					DEFAULT: '#EC4899',
 					foreground: 'hsl(var(--primary-foreground))'
+				},
+				golden: {
+					DEFAULT: '#FFD700',
+					dark: '#D4AF37',
+					light: '#FFF8E1'
+				},
+				beauty: {
+					pink: '#EC4899',
+					'pink-light': '#FCE7F3',
+					'pink-dark': '#BE185D',
+					gold: '#FFD700',
+					black: '#000000',
+					white: '#FFFFFF'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
