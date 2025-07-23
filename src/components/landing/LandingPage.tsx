@@ -2,24 +2,23 @@
 import React from 'react';
 import Navbar from './Navbar';
 import Hero from './Hero';
-import PainSection from './PainSection';
-import BenefitsSection from './BenefitsSection';
-import TestimonialsSection from './TestimonialsSection';
-import BonusSection from './BonusSection';
-import FinalCTA from './FinalCTA';
+import Features from './Features';
+import Testimonials from './Testimonials';
+import CTA from './CTA';
 import Footer from './Footer';
+import { useCustomization } from '@/contexts/CustomizationContext';
 
 const LandingPage: React.FC = () => {
+  const { settings } = useCustomization();
+  
   return (
     <div className="min-h-screen flex flex-col relative">
       <Navbar />
       <main className="flex-grow">
         <Hero />
-        <PainSection />
-        <BenefitsSection />
-        <TestimonialsSection />
-        <BonusSection />
-        <FinalCTA />
+        <Features />
+        <Testimonials />
+        <CTA />
       </main>
       <Footer />
     </div>
